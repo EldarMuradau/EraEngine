@@ -141,4 +141,13 @@ namespace era_engine::physics
 
         RagdollProfileType type = RagdollProfileType::IDLE;
     };
+
+    struct ERA_PHYSICS_API RagdollStrengthConfig
+    {
+        static constexpr float ANGULAR_DAMPING_MODIFIER = 1.5f;
+        static constexpr float ANGULAR_STIFFNESS_MODIFIER = 1.5f;
+
+        static constexpr float LINEAR_DAMPING_MODIFIER = 1.0f;
+        static constexpr float LINEAR_STIFFNESS_MODIFIER = 1.0f;
+    };
 }

@@ -256,7 +256,7 @@ namespace era_engine::physics
 		}
 	}
 
-	void PhysicsUtils::manual_move_cct(CharacterControllerComponent* cct_component, const vec3& offset)
+	void PhysicsUtils::move_cct(CharacterControllerComponent* cct_component, const vec3& offset)
 	{
 		using namespace physx;
 

@@ -53,14 +53,16 @@ namespace era_engine
 
         std::priority_queue<std::pair<float, hnswlib::labeltype>> search_result = hnsw->searchKnn(query, max_candidates);
 
-        for (uint32 index = 0; index < uint32(search_result.size()); ++index)
+        const int32 size = int32(search_result.size());
+        found_samples.reserve(size);
+
+        for (int32 index = size - 1; index > 0; --index)
         {
-            const uint32 sample_index = uint32(search_result.top().second);
+            const int32 sample_index = int32(search_result.top().second);
             search_result.pop();
 
             ASSERT(sample_index < database.samples.size());
-
-            found_samples.emplace_back(database.samples[sample_index]);
+            found_samples[index] = database.samples[sample_index];
         }
 
         return found_samples;

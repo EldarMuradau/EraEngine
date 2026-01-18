@@ -19,6 +19,7 @@ namespace era_engine::physics
 		: Component(_data)
 	{
 		velocity.set_component(ComponentPtr{this});
+		offset.set_component(ComponentPtr{ this });
 		collision_type.set_component(ComponentPtr{ this });
 		collision_filter_data.set_component(ComponentPtr{ this });
 	}

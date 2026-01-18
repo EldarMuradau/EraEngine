@@ -195,33 +195,24 @@ namespace era_engine::physics
 			physx_filter_data,
 			(callback == nullptr) ? nullptr : &physx_proxy_callback);
 
-		uint32 hits_count = 0;
+		uint32 hit_index = 0;
 
 		if (hit)
 		{
-			hits_count = physx_buffer_out->getNbTouches();
 			if (physx_buffer_out->hasBlock)
 			{
-				++hits_count;
+				create_location_hit(physx_buffer_out->block, SceneQueryHitType::BLOCK, result_buffer_out[hit_index]);
+				++hit_index;
 			}
 
-			uint32 result_buffer_index = 0;
-
-			if (physx_buffer_out->hasBlock)
+			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && hit_index < result_buffer_size; ++i)
 			{
-				create_location_hit(physx_buffer_out->block, SceneQueryHitType::BLOCK, result_buffer_out[result_buffer_index]);
-
-				++result_buffer_index;
-			}
-
-			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && result_buffer_index < result_buffer_size; ++i)
-			{
-				create_location_hit(physx_buffer_out->touches[i], SceneQueryHitType::TOUCH, result_buffer_out[result_buffer_index]);
-				++result_buffer_index;
+				create_location_hit(physx_buffer_out->touches[i], SceneQueryHitType::TOUCH, result_buffer_out[hit_index]);
+				++hit_index;
 			}
 		}
 
-		return hits_count;
+		return hit_index;
 	}
 
 	static uint32 sweep_internal(
@@ -282,32 +273,24 @@ namespace era_engine::physics
 			physx_filter_data,
 			(callback == nullptr) ? nullptr : &physx_proxy_callback);
 
-		uint32 hits_count = 0;
+		uint32 hit_index = 0;
 
 		if (hit)
 		{
-			hits_count = physx_buffer_out->getNbTouches();
 			if (physx_buffer_out->hasBlock)
 			{
-				++hits_count;
+				create_location_hit(physx_buffer_out->block, SceneQueryHitType::BLOCK, result_buffer_out[hit_index]);
+				++hit_index;
 			}
 
-			uint32 result_buffer_index = 0;
-
-			if (physx_buffer_out->hasBlock)
+			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && hit_index < result_buffer_size; ++i)
 			{
-				create_location_hit(physx_buffer_out->block, SceneQueryHitType::BLOCK, result_buffer_out[result_buffer_index]);
-				++result_buffer_index;
-			}
-
-			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && result_buffer_index < result_buffer_size; ++i)
-			{
-				create_location_hit(physx_buffer_out->touches[i], SceneQueryHitType::TOUCH, result_buffer_out[result_buffer_index]);
-				++result_buffer_index;
+				create_location_hit(physx_buffer_out->touches[i], SceneQueryHitType::TOUCH, result_buffer_out[hit_index]);
+				++hit_index;
 			}
 		}
 
-		return hits_count;
+		return hit_index;
 	}
 
 	static uint32 overlap_internal(
@@ -358,34 +341,23 @@ namespace era_engine::physics
 			physx_filter_data,
 			(callback == nullptr) ? nullptr : &physx_proxy_callback);
 
+		uint32 hit_index = 0;
+
 		if (hit)
 		{
-			uint32 hits_count = physx_buffer_out->getNbTouches();
 			if (physx_buffer_out->hasBlock)
 			{
-				++hits_count;
+				result_buffer_out[hit_index].type = SceneQueryHitType::BLOCK;
+				++hit_index;
 			}
 
-			uint32 result_buffer_index = 0;
-
-			if (physx_buffer_out->hasBlock)
+			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && hit_index < result_buffer_size; ++i)
 			{
-				result_buffer_out[result_buffer_index].type = SceneQueryHitType::BLOCK;
-				++result_buffer_index;
+				result_buffer_out[hit_index].type = SceneQueryHitType::TOUCH;
+				++hit_index;
 			}
-
-			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && result_buffer_index < result_buffer_size; ++i)
-			{
-				result_buffer_out[result_buffer_index].type = SceneQueryHitType::TOUCH;
-				++result_buffer_index;
-			}
-
-			return hits_count;
 		}
-		else
-		{
-			return 0;
-		}
+		return hit_index;
 	}
 
 	bool RaycastQuery::any(World* world, const RaycastQuery::Params& params, SceneQueryPositionedHit* out_hit)

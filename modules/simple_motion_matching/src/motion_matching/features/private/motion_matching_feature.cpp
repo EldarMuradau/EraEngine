@@ -47,8 +47,17 @@ namespace era_engine
 		values = std::move(_values);
 	}
 
+	bool MotionMatchingFeature::mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const
+	{
+		return false;
+	}
+
 	std::vector<float> MotionMatchingFeature::get_values() const
 	{
 		return values;
+	}
+	const std::vector<ref<FeatureDesc>>& MotionMatchingFeature::get_descriptors() const
+	{
+		return descriptors;
 	}
 }

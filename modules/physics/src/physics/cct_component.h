@@ -66,6 +66,7 @@ namespace era_engine::physics
         bool handle_non_cct_contacts = false;
 
         ObservableMember<vec3> velocity = vec3::zero;
+        ObservableMember<vec3> offset = vec3::zero;
 
         ERA_VIRTUAL_REFLECT(Component)
 

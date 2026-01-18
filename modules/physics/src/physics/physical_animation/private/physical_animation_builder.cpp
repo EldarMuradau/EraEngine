@@ -264,8 +264,8 @@ namespace era_engine::physics
 		joint_component->swing_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		joint_component->swing_z_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 
-		joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness;
-		joint_component->linear_drive_damping = motor_drive.linear_damping_range.y;
+		joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness * RagdollStrengthConfig::LINEAR_STIFFNESS_MODIFIER;
+		joint_component->linear_drive_damping = motor_drive.linear_damping_range.y * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
 		joint_component->linear_drive_force_limit = motor_drive.max_force;
 		joint_component->linear_drive_accelerated = motor_drive.accelerated;
 
@@ -273,20 +273,20 @@ namespace era_engine::physics
 
 		if (motor_drive.enable_slerp_drive)
 		{
-			joint_component->slerp_drive_damping.get_for_write() = motor_drive.angular_damping_range.y;
+			joint_component->slerp_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 			joint_component->slerp_drive_force_limit.get_for_write() = motor_drive.max_force;
-			joint_component->slerp_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
+			joint_component->slerp_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
 			joint_component->slerp_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
 		else
 		{
 			joint_component->swing_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->swing_drive_accelerated.get_for_write() = motor_drive.accelerated;
-			joint_component->swing_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
-			joint_component->swing_drive_damping.get_for_write() = motor_drive.angular_damping_range.y;
+			joint_component->swing_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
+			joint_component->swing_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 
-			joint_component->twist_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
-			joint_component->twist_drive_damping.get_for_write() = motor_drive.angular_damping_range.y;
+			joint_component->twist_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
+			joint_component->twist_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 			joint_component->twist_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->twist_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}

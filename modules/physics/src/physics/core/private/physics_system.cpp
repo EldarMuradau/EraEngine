@@ -97,6 +97,8 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
+		PxSceneWriteLock _scene_lock{ *PhysicsHolder::physics_ref->get_scene() };
+
 		for (auto [entity_handle, changed_flag, static_body] : world->group(components_group<TransformComponent, StaticBodyComponent>).each())
 		{
 			if (static_body.get_rigid_actor() == nullptr)
@@ -327,12 +329,14 @@ namespace era_engine::physics
 				continue;
 			}
 
-			const vec3 offset = cct_component.velocity.get() * dt;
+			const vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
 
 			if (!fuzzy_equals(offset, vec3::zero))
 			{
-				PhysicsUtils::manual_move_cct(&cct_component, offset);
+				PhysicsUtils::move_cct(&cct_component, offset);
 			}
+
+			cct_component.offset = vec3::zero;
 		}
 	}
 

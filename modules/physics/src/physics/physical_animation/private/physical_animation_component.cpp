@@ -51,7 +51,7 @@ namespace era_engine::physics
 			angular_damping_range.x,
 			angular_damping_range.y);
 
-		return angular_damping_value;
+		return angular_damping_value * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 	}
 
 	float PhysicalAnimationLimbComponent::calculate_desired_linear_damping(float delta_position) const
@@ -62,7 +62,7 @@ namespace era_engine::physics
 			linear_damping_range.x,
 			linear_damping_range.y);
 
-		return linear_damping_value;
+		return linear_damping_value * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
 	}
 
 	void PhysicalAnimationLimbComponent::reset_collision_data()
@@ -178,22 +178,22 @@ namespace era_engine::physics
 						if (motor_drive.enable_slerp_drive)
 						{
 							joint_component->slerp_drive_force_limit = motor_drive.max_force;
-							joint_component->slerp_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff;
+							joint_component->slerp_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
 							joint_component->slerp_drive_accelerated = motor_drive.accelerated;
 						}
 						else
 						{
 							joint_component->swing_drive_force_limit = motor_drive.max_force;
-							joint_component->swing_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff;
+							joint_component->swing_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
 							joint_component->swing_drive_accelerated = motor_drive.accelerated;
 
 							joint_component->twist_drive_force_limit = motor_drive.max_force;
-							joint_component->twist_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff;
+							joint_component->twist_drive_stiffness = motor_drive.angular_drive_stiffness * strength_coeff * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
 							joint_component->twist_drive_accelerated = motor_drive.accelerated;
 						}
 
 						joint_component->linear_drive_force_limit = motor_drive.max_force;
-						joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness * strength_coeff;
+						joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness * strength_coeff * RagdollStrengthConfig::LINEAR_STIFFNESS_MODIFIER;
 						joint_component->linear_drive_accelerated = motor_drive.accelerated;
 					}
 				}

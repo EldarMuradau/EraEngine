@@ -326,7 +326,6 @@ namespace era_engine::physics
 		{
 			ZoneScopedN("Physics::fetchResults");
 			scene->fetchResults(true);
-
 		}
 	}
 

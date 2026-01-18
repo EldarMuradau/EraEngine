@@ -32,6 +32,6 @@ namespace era_engine::physics
 
 		static void update_mass_and_inertia(DynamicBodyComponent* body_component, float density);
 
-		static void manual_move_cct(CharacterControllerComponent* cct_component, const vec3& offset);
+		static void move_cct(CharacterControllerComponent* cct_component, const vec3& offset);
 	};
 }
