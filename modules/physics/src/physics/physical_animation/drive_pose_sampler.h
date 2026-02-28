@@ -25,7 +25,8 @@ namespace era_engine::physics
 
         void sample_pose(PhysicalAnimationComponent* physical_animation_component,
             animation::SkeletonComponent* skeleton_to_update,
-            const animation::SkeletonPose& pose) const;
+            const animation::SkeletonPose& pose,
+			float dt) const;
 
 	private:
 		void blend_with_prev_physics_pose(const trs& prev_joint_transform,
@@ -43,6 +44,6 @@ namespace era_engine::physics
 			const trs& limb_animation_transform,
 			const trs& inverse_ragdoll_transform,
 			const trs& inverse_parent_local_transform,
-			const trs& parent_local_transform) const;
+			float blend_time) const;
 	};
 }

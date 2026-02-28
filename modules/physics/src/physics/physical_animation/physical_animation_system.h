@@ -7,6 +7,7 @@
 #include <ecs/base_components/transform_component.h>
 
 #include <animation/animation.h>
+#include <animation/skeleton.h>
 
 #include <core/sync.h>
 #include <core/math.h>
@@ -40,18 +41,14 @@ namespace era_engine::physics
 
 		void update_chains_states(const PhysicalAnimationComponent* physical_animation_component, float dt) const;
 
-		bool update_chain(const ref<PhysicsLimbChain>& chain,
+		void update_chain(const ref<PhysicsLimbChain>& chain,
 			float dt,
-			bool is_in_ragdoll,
-			bool force_simulation = false) const;
+			bool is_in_ragdoll) const;
 
-		bool check_chain(const ref<PhysicsLimbChain>& chain,
-			bool force_simulation = false) const;
-
-		void update_target_pose(const PhysicalAnimationComponent* physical_animation_component,
-			Entity limb,
-			const trs& calculated_target_local_space_pose,
-			const trs& ragdoll_world_space_pose) const;
+		void update_target_pose(PhysicalAnimationComponent* physical_animation_component,
+			const animation::SkeletonPose& current_animation_pose,
+			const animation::Skeleton* skeleton,
+			const trs& ragdoll_world_space_pose);
 
 		void update_ragdoll_profiles(PhysicalAnimationComponent* physical_animation_component,
 			const vec3& velocity,
@@ -59,8 +56,6 @@ namespace era_engine::physics
 			bool force_reload = false) const;
 
 		bool should_be_simulated(Entity ragdoll) const;
-
-		vec3 get_joint_adjustment(const PhysicalAnimationComponent* physical_animation_component, uint32 joint_id) const;
 
 		void process_added_pacs();
 
@@ -75,12 +70,13 @@ namespace era_engine::physics
 		const CollisionsHolderRootComponent* collisions_holder_rc = nullptr;
 		RendererHolderRootComponent* renderer_holder_rc = nullptr;
 
-		entt::group<entt::owned_t<>, entt::get_t<TransformComponent,
+		entt::group<entt::owned_t<>,
+			entt::get_t<TransformComponent,
 			PhysicalAnimationComponent,
 			animation::AnimationComponent,
 			animation::SkeletonComponent>> ragdolls_group;
 
-		// Demo
+		// Test data
 		ref<RagdollProfile> idle_profile = nullptr;
 		ref<RagdollProfile> running_profile = nullptr;
 		ref<RagdollProfile> sprint_profile = nullptr;

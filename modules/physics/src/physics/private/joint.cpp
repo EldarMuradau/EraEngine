@@ -99,6 +99,7 @@ namespace era_engine::physics
 		break_force.set_component(ComponentPtr(this));
 		always_update.set_component(ComponentPtr(this));
 		disabled.set_component(ComponentPtr(this));
+		disable_preprocessing.set_component(ComponentPtr(this));
 	}
 
 	JointComponent::~JointComponent()
@@ -226,7 +227,6 @@ namespace era_engine::physics
 		drive_limits_are_forces.set_component(ComponentPtr(this));
 
 		improved_slerp.set_component(ComponentPtr(this));
-		disable_preprocessing.set_component(ComponentPtr(this));
 
 		swing_limit_damping.set_component(ComponentPtr(this));
 		swing_limit_stiffness.set_component(ComponentPtr(this));

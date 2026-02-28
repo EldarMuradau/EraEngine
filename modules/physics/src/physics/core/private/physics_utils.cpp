@@ -200,6 +200,11 @@ namespace era_engine::physics
 
 		PxTransform physics_transform = PxTransform(create_PxVec3(pos), create_PxQuat(rot));
 
+		if (!physics_transform.isValid())
+		{
+			return;
+		}
+
 		PxRigidDynamic* rigid_dynamic = body_component->actor->is<PxRigidDynamic>();
 		if (!body_component->actor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) &&
 			rigid_dynamic != nullptr &&

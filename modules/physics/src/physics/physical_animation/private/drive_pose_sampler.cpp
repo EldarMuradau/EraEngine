@@ -8,6 +8,7 @@
 #include <core/debug/debug_var.h>
 #include <core/traits.h>
 
+#include <ecs/world.h>
 #include <ecs/base_components/transform_component.h>
 
 namespace era_engine::physics
@@ -16,12 +17,17 @@ namespace era_engine::physics
 	{
 	}
 
-	void DrivePoseSampler::sample_pose(PhysicalAnimationComponent* physical_animation_component, animation::SkeletonComponent* skeleton_to_update, const animation::SkeletonPose& pose) const
+	void DrivePoseSampler::sample_pose(PhysicalAnimationComponent* physical_animation_component,
+		animation::SkeletonComponent* skeleton_to_update,
+		const animation::SkeletonPose& pose,
+		float dt) const
 	{
 		using namespace animation;
 
 		ref<Skeleton> skeleton = skeleton_to_update->skeleton;
 		ASSERT(skeleton != nullptr);
+
+		const float fixed_update_dt = physical_animation_component->get_world()->get_fixed_update_dt();
 
 		const trs& normal_world_transform = physical_animation_component->get_entity().get_component<TransformComponent>()->get_world_transform();
 		const trs inverse_world_transform = invert(normal_world_transform);
@@ -33,6 +39,13 @@ namespace era_engine::physics
 		physical_animation_component->local_joint_poses[root_id] = root_local_transform;
 
 		auto simulated_joints_end = physical_animation_component->simulated_joints.end();
+		physical_animation_component->elapsed_blend_time += dt;
+
+		const float blend_time = std::min(physical_animation_component->elapsed_blend_time / fixed_update_dt, 1.0f);
+		if (physical_animation_component->elapsed_blend_time >= fixed_update_dt)
+		{
+			physical_animation_component->elapsed_blend_time = 0.0f;
+		}
 
 		for (const uint32 simulation_joint : physical_animation_component->simulated_joints_set)
 		{
@@ -71,7 +84,7 @@ namespace era_engine::physics
 						limb_animation_pose,
 						inverse_world_transform,
 						inverse_parent_local,
-						parent_local);
+						blend_time);
 
 					if (physical_animation_component->mesh_blend_type == SkeletalMeshBlendType::ROTATION)
 					{
@@ -133,44 +146,34 @@ namespace era_engine::physics
 		}
 	}
 
-	trs DrivePoseSampler::sample_limb(Entity limb, 
+	trs DrivePoseSampler::sample_limb(Entity limb,
 		PhysicalAnimationLimbComponent* limb_data_component,
-		PhysicalAnimationComponent* physical_animation_component, 
+		PhysicalAnimationComponent* physical_animation_component,
 		PhysicalLimbBlendType result_type,
-		const trs& limb_animation_transform, 
+		const trs& limb_animation_transform,
 		const trs& inverse_ragdoll_transform,
-		const trs& inverse_parent_local_transform, 
-		const trs& parent_local_transform) const
+		const trs& inverse_parent_local_transform,
+		float blend_time) const
 	{
-		trs new_transform = trs::identity;
-		if (has_flag(result_type, PhysicalLimbBlendType::PURE_PHYSICS))
-		{
-			const trs limb_pose = inverse_ragdoll_transform * limb.get_component<TransformComponent>()->get_world_transform();
+		const trs limb_pose = inverse_ragdoll_transform * limb.get_component<TransformComponent>()->get_world_transform();
+		trs new_transform = inverse_parent_local_transform * limb_pose;
 
-			// No animation impact.
-			new_transform = inverse_parent_local_transform * limb_pose;
+		if (!fuzzy_equals(physical_animation_component->blend_weight, 1.0f))
+		{
+			// Blend with animation step.
+			blend_with_animation_pose(limb_animation_transform, physical_animation_component->blend_weight, new_transform);
 		}
-		else
+		else if (!has_flag(result_type, PhysicalLimbBlendType::PURE_PHYSICS))
 		{
-			const trs limb_pose = inverse_ragdoll_transform * limb.get_component<TransformComponent>()->get_world_transform();
-
-			new_transform = inverse_parent_local_transform * limb_pose;
-
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE))
 			{
-				blend_with_animation_pose(limb_animation_transform, physical_animation_component->blend_factor, new_transform);
+				blend_with_animation_pose(limb_animation_transform, 1.0f - blend_time, new_transform);
 			}
 
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_PREV_POSE))
 			{
-				blend_with_prev_physics_pose(trs(limb_data_component->prev_limb_local_position, limb_data_component->prev_limb_local_rotation), physical_animation_component->blend_factor, new_transform);
+				blend_with_prev_physics_pose(trs(limb_data_component->prev_limb_local_position, limb_data_component->prev_limb_local_rotation), blend_time, new_transform);
 			}
-		}
-
-		// Blend with animation step.
-		if (!fuzzy_equals(physical_animation_component->blend_weight, 1.0f))
-		{
-			blend_with_animation_pose(limb_animation_transform, physical_animation_component->blend_weight, new_transform);
 		}
 
 		new_transform.rotation = normalize(new_transform.rotation);

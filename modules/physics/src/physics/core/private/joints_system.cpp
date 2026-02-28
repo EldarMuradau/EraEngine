@@ -100,6 +100,12 @@ namespace era_engine::physics
 				native_joint->setConstraintFlag(PxConstraintFlag::eALWAYS_UPDATE, joint_component.always_update);
 				joint_component.always_update.sync_changes();
 			}
+
+			if (joint_component.disable_preprocessing.is_changed())
+			{
+				native_joint->setConstraintFlag(PxConstraintFlag::eDISABLE_PREPROCESSING, joint_component.disable_preprocessing);
+				joint_component.disable_preprocessing.sync_changes();
+			}
 		}
 
 		for (auto [entity_handle, observable_component, joint_component] : world->group(components_group<TransformComponent, RevoluteJointComponent>).each())
@@ -181,6 +187,12 @@ namespace era_engine::physics
 				native_joint->setLimit(PxJointAngularLimitPair{ joint_component.linear_limit->x, joint_component.linear_limit->y });
 				joint_component.linear_limit.sync_changes();
 			}
+
+			if (joint_component.disable_preprocessing.is_changed())
+			{
+				native_joint->setConstraintFlag(PxConstraintFlag::eDISABLE_PREPROCESSING, joint_component.disable_preprocessing);
+				joint_component.disable_preprocessing.sync_changes();
+			}
 		}
 
 		for (auto [entity_handle, observable_component, joint_component] : world->group(components_group<TransformComponent, SphericalJointComponent>).each())
@@ -237,6 +249,12 @@ namespace era_engine::physics
 				native_joint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
 				native_joint->setLimitCone(PxJointLimitCone{ joint_component.angular_limit->x, joint_component.angular_limit->y });
 				joint_component.angular_limit.sync_changes();
+			}
+
+			if (joint_component.disable_preprocessing.is_changed())
+			{
+				native_joint->setConstraintFlag(PxConstraintFlag::eDISABLE_PREPROCESSING, joint_component.disable_preprocessing);
+				joint_component.disable_preprocessing.sync_changes();
 			}
 		}
 
@@ -319,6 +337,12 @@ namespace era_engine::physics
 			{
 				native_joint->setConstraintFlag(PxConstraintFlag::eALWAYS_UPDATE, joint_component.always_update);
 				joint_component.always_update.sync_changes();
+			}
+
+			if (joint_component.disable_preprocessing.is_changed())
+			{
+				native_joint->setConstraintFlag(PxConstraintFlag::eDISABLE_PREPROCESSING, joint_component.disable_preprocessing);
+				joint_component.disable_preprocessing.sync_changes();
 			}
 		}
 

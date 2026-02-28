@@ -57,6 +57,7 @@ namespace era_engine::physics
 		ObservableMember<float> break_force = std::numeric_limits<float>::max();
 
 		ObservableMember<bool> disabled = false;
+		ObservableMember<bool> disable_preprocessing = false;
 
 		std::function<void(JointComponent*)> on_broken_callback = nullptr;
 
@@ -180,7 +181,6 @@ namespace era_engine::physics
 		ObservableMember<bool> drive_limits_are_forces = false;
 
 		ObservableMember<bool> improved_slerp = false;
-		ObservableMember<bool> disable_preprocessing = false;
 
 		ObservableMember<float> slerp_drive_stiffness = 0.0f;
 		ObservableMember<float> swing_drive_stiffness = 0.0f;

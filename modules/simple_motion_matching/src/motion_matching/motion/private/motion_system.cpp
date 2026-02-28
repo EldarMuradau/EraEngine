@@ -38,9 +38,9 @@ namespace era_engine
 
 		registration::class_<MotionSystem>("MotionSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
-			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_AFTER_PHYSICS_CONCURRENT))
+			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS_CONCURRENT))
 			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS_CONCURRENT))
-			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::GAMEPLAY_AFTER_PHYSICS_CONCURRENT), metadata("After", std::vector<std::string>{"MotionSystem::update"}))
+			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END))
 			.method("debug_draw_update", &MotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
 	}
 
@@ -62,6 +62,7 @@ namespace era_engine
 	void MotionSystem::update(float dt)
 	{
 		using namespace animation;
+		ZoneScopedN("MotionSystem::update");
 
         for (auto [handle, transform_component, motion_component]
 			: world->group(components_group<TransformComponent, MotionComponent>).each())
@@ -88,7 +89,7 @@ namespace era_engine
 			}
 			else
 			{
-				transform_component.set_world_transform(trs{ motion_component.simulation_position , motion_component.simulation_rotation, vec3(1.0f) });
+				transform_component.set_world_transform(trs{ motion_component.simulation_position, motion_component.simulation_rotation, vec3(1.0f) });
 			}
 			motion_component.last_velocity = motion_component.velocity;
 		}
@@ -96,7 +97,7 @@ namespace era_engine
 
 	void MotionSystem::update_base(float dt)
 	{
-		ZoneScopedN("MotionSystem::update");
+		ZoneScopedN("MotionSystem::update_base");
 
 		for (auto [handle, transform_component, motion_component, reciever_component] : world->group(components_group<TransformComponent, MotionComponent, InputReceiverComponent>).each())
 		{

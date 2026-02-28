@@ -150,6 +150,8 @@ namespace era_engine::physics
 	private:
 		ref<RagdollProfile> current_profile = nullptr;
 
+		float elapsed_blend_time = 0.0f;
+
 		std::unordered_map<uint32, trs> local_joint_poses_for_target_calculation;
 
 		SimulationStateType current_state_type = SimulationStateType::DISABLED;

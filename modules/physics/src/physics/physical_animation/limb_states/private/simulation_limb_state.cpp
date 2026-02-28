@@ -73,7 +73,15 @@ namespace era_engine::physics
 				trs target_pose_in_constraint_space = invert(constraint_frame_actor0_local) * constraint_frame_target_local;
 				target_pose_in_constraint_space.rotation = normalize(target_pose_in_constraint_space.rotation);
 
-				drive_joint_component->drive_transform = target_pose_in_constraint_space;
+				if (physx::create_PxTransform(target_pose_in_constraint_space).isValid())
+				{
+					drive_joint_component->drive_transform = target_pose_in_constraint_space;
+				}
+				else
+				{
+					ASSERT(!physx::create_PxTransform(target_pose_in_constraint_space).isValid());
+				}
+
 				if(!has_velocity_drive)
 				{
 					drive_joint_component->angular_drive_velocity = vec3::zero;
