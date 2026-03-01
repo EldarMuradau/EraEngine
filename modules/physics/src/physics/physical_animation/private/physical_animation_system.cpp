@@ -38,6 +38,10 @@ namespace era_engine::physics
 			(metadata("update_group", update_types::PHYSICS),
 			 metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}))
 
+			.method("fetch_collisions", &PhysicalAnimationSystem::fetch_collisions)
+			(metadata("update_group", update_types::PHYSICS),
+				metadata("After", std::vector<std::string>{"PhysicsSystem::update"}))
+
 			.method("update_normal", &PhysicalAnimationSystem::update_normal)
 			(metadata("update_group", update_types::GAMEPLAY_NORMAL),
 			metadata("After", std::vector<std::string>{"AnimationSystem::update"}));
@@ -296,6 +300,36 @@ namespace era_engine::physics
 		update_ragdolls(dt);
 	}
 
+	void PhysicalAnimationSystem::fetch_collisions(float dt)
+	{
+		if (!has_any_simulated_ragdolls)
+		{
+			return;
+		}
+
+		filter_states_by_collisions(dt);
+
+		for (auto&& [entity_handle,
+			transform_component,
+			physical_animation_component,
+			animation_component,
+			skeleton_component] : ragdolls_group.each())
+		{
+			if (!physical_animation_component.loaded)
+			{
+				continue;
+			}
+
+			const SimulationStateType current_state_type = physical_animation_component.get_current_state_type();
+			const bool is_simulated = current_state_type != SimulationStateType::DISABLED;
+
+			if (is_simulated)
+			{
+				update_chains_states(&physical_animation_component, dt);
+			}
+		}
+	}
+
 	void PhysicalAnimationSystem::update_normal(float dt)
 	{
 		using namespace animation;
@@ -342,7 +376,7 @@ namespace era_engine::physics
 	{
 		using namespace animation;
 
-		bool has_any_simulated_ragdolls = false;
+		has_any_simulated_ragdolls = false;
 
 		for (auto&& [entity_handle,
 			transform_component,
@@ -421,31 +455,6 @@ namespace era_engine::physics
 
 					limb_data_component->physics_pose = limb.get_component<TransformComponent>()->get_local_transform();
 					limb_data_component->is_colliding = false;
-				}
-			}
-		}
-
-		if (has_any_simulated_ragdolls)
-		{
-			filter_states_by_collisions(dt);
-
-			for (auto&& [entity_handle,
-				transform_component,
-				physical_animation_component,
-				animation_component,
-				skeleton_component] : ragdolls_group.each())
-			{
-				if (!physical_animation_component.loaded)
-				{
-					continue;
-				}
-
-				const SimulationStateType current_state_type = physical_animation_component.get_current_state_type();
-				const bool is_simulated = current_state_type != SimulationStateType::DISABLED;
-
-				if (is_simulated)
-				{
-					update_chains_states(&physical_animation_component, dt);
 				}
 			}
 		}
@@ -702,5 +711,4 @@ namespace era_engine::physics
 
 		pacs_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
-
 }

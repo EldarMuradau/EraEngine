@@ -30,6 +30,7 @@ namespace era_engine::physics
 
 		void init() override;
 		void update(float dt) override;
+		void fetch_collisions(float dt);
 
 		void update_normal(float dt);
 
@@ -69,6 +70,8 @@ namespace era_engine::physics
 
 		const CollisionsHolderRootComponent* collisions_holder_rc = nullptr;
 		RendererHolderRootComponent* renderer_holder_rc = nullptr;
+
+		bool has_any_simulated_ragdolls = false;
 
 		entt::group<entt::owned_t<>,
 			entt::get_t<TransformComponent,

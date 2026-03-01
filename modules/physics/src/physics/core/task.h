@@ -15,7 +15,7 @@ namespace era_engine::physics
 		struct GenSeq : GenSeq<N - 1, N - 1, Is...> {};
 
 		template <int... Is>
-		struct GenSeq<0, Is...> : index<Is...> {};
+		struct GenSeq<0, Is...> : Index<Is...> {};
 	}
 
 	template<typename Func, typename... Args>
@@ -27,10 +27,11 @@ namespace era_engine::physics
 		Task(std::function<Func(Args...)> f, Args&&... ars)
 			: func(f),
 			args(std::forward<Args>(ars)...) {}
+
 		~Task() {}
 
-		virtual const char* get_name() const { return "PhysX Task"; }
-		virtual void run() { call(args); }
+		const char* get_name() const override { return "PhysX Task"; }
+		void run() override { call(args); }
 
 	private:
 		template <typename... Args, int... Is>
