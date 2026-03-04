@@ -38,7 +38,7 @@ namespace era_engine::physics
         ASSERT(physical_animation_component_ptr.get() != nullptr);
 
         PhysicalAnimationComponent* physical_animation_component = dynamic_cast<PhysicalAnimationComponent*>(physical_animation_component_ptr.get_for_write());
-        physical_animation_component->blend_weight = 0.0f;
+        physical_animation_component->reset_blends();
 
         if (physical_animation_component->simulated)
         {

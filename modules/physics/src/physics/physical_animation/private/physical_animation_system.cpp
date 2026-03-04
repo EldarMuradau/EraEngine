@@ -34,11 +34,11 @@ namespace era_engine::physics
 		registration::class_<PhysicalAnimationSystem>("PhysicalAnimationSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
 
-			.method("update", &PhysicalAnimationSystem::update)
+			.method("update_before_physics", &PhysicalAnimationSystem::update_before_physics)
 			(metadata("update_group", update_types::PHYSICS),
 			 metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}))
 
-			.method("fetch_collisions", &PhysicalAnimationSystem::fetch_collisions)
+			.method("update_after_physics", &PhysicalAnimationSystem::update_after_physics)
 			(metadata("update_group", update_types::PHYSICS),
 				metadata("After", std::vector<std::string>{"PhysicsSystem::update"}))
 
@@ -226,9 +226,9 @@ namespace era_engine::physics
 		pose_sampler = std::make_unique<DrivePoseSampler>();
 	}
 
-	void PhysicalAnimationSystem::update(float dt)
+	void PhysicalAnimationSystem::update_before_physics(float dt)
 	{
-		ZoneScopedN("PhysicalAnimationSystem::update");
+		ZoneScopedN("PhysicalAnimationSystem::update_before_physics");
 
 		process_added_pacs();
 
@@ -300,33 +300,37 @@ namespace era_engine::physics
 		update_ragdolls(dt);
 	}
 
-	void PhysicalAnimationSystem::fetch_collisions(float dt)
+	void PhysicalAnimationSystem::update_after_physics(float dt)
 	{
-		if (!has_any_simulated_ragdolls)
+		ZoneScopedN("PhysicalAnimationSystem::update_after_physics");
+
+		if (active_ragdolls.empty())
 		{
 			return;
 		}
 
+		for (PhysicalAnimationComponent* physical_animation_component : active_ragdolls)
+		{
+			for (const EntityPtr& limb_ptr : physical_animation_component->limbs)
+			{
+				Entity limb = limb_ptr.get();
+				PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
+
+				ASSERT(limb_data_component != nullptr);
+
+				limb_data_component->prev_physics_pose = limb_data_component->physics_pose;
+				limb_data_component->physics_pose = limb.get_component<TransformComponent>()->get_local_transform();
+			}
+
+			physical_animation_component->reached_physics_pose = false;
+			physical_animation_component->elapsed_blend_time = 0.0f;
+		}
+
 		filter_states_by_collisions(dt);
 
-		for (auto&& [entity_handle,
-			transform_component,
-			physical_animation_component,
-			animation_component,
-			skeleton_component] : ragdolls_group.each())
+		for (PhysicalAnimationComponent* physical_animation_component : active_ragdolls)
 		{
-			if (!physical_animation_component.loaded)
-			{
-				continue;
-			}
-
-			const SimulationStateType current_state_type = physical_animation_component.get_current_state_type();
-			const bool is_simulated = current_state_type != SimulationStateType::DISABLED;
-
-			if (is_simulated)
-			{
-				update_chains_states(&physical_animation_component, dt);
-			}
+			update_chains_states(physical_animation_component, dt);
 		}
 	}
 
@@ -376,7 +380,9 @@ namespace era_engine::physics
 	{
 		using namespace animation;
 
-		has_any_simulated_ragdolls = false;
+		ZoneScopedN("PhysicalAnimationSystem::update_ragdolls");
+
+		active_ragdolls.clear();
 
 		for (auto&& [entity_handle,
 			transform_component,
@@ -410,9 +416,6 @@ namespace era_engine::physics
 			if (is_should_be_simulated) // Update profiles only if simulated.
 			{
 				update_ragdoll_profiles(&physical_animation_component, physical_animation_component.velocity, dt, false);
-
-				const SkeletonPose& current_animation_pose = animation_component.current_animation_pose;
-				update_target_pose(&physical_animation_component, current_animation_pose, skeleton.get(), world_transform);
 			}
 
 			// Update states.
@@ -442,20 +445,24 @@ namespace era_engine::physics
 			const SimulationStateType current_state_type = physical_animation_component.get_current_state_type();
 			const bool is_disabled = current_state_type == SimulationStateType::DISABLED;
 
-			if (!is_disabled)
+			if (is_disabled)
 			{
-				has_any_simulated_ragdolls = true;
+				continue;
+			}
 
-				for (const EntityPtr& limb_ptr : physical_animation_component.limbs)
-				{
-					Entity limb = limb_ptr.get();
-					PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
+			active_ragdolls.emplace_back(&physical_animation_component);
 
-					ASSERT(limb_data_component != nullptr);
+			const SkeletonPose& current_animation_pose = animation_component.current_animation_pose;
+			update_target_pose(&physical_animation_component, current_animation_pose, skeleton.get(), world_transform);
 
-					limb_data_component->physics_pose = limb.get_component<TransformComponent>()->get_local_transform();
-					limb_data_component->is_colliding = false;
-				}
+			for (const EntityPtr& limb_ptr : physical_animation_component.limbs)
+			{
+				Entity limb = limb_ptr.get();
+				PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
+
+				ASSERT(limb_data_component != nullptr);
+
+				limb_data_component->is_colliding = false;
 			}
 		}
 	}

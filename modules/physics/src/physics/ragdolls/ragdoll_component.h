@@ -126,8 +126,11 @@ namespace era_engine::physics
 
 		uint32 joint_id = INVALID_JOINT;
 
-        vec3 prev_limb_local_position = vec3::zero;
-        quat prev_limb_local_rotation = quat::identity;
+        /* Prev frame physics body local space transfrom. */
+        trs prev_physics_pose = trs::identity;
+
+        /* Physics body local space transfrom. */
+        trs physics_pose = trs::identity;
 
         ObservableMember<bool> simulated = false;
 
@@ -154,7 +157,10 @@ namespace era_engine::physics
 
         float mass = 100.0f; // Set before creation.
 
-        float blend_factor = 0.75f;
+        float elapsed_blend_time = 0.0f;
+        bool reached_physics_pose = false;
+
+        float blend_factor = 0.5f;
 
         uint32 root_joint_id = 0;
 

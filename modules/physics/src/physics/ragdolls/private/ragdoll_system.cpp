@@ -51,29 +51,6 @@ namespace era_engine::physics
 
 		process_added_ragdolls();
 
-		for (auto [entity_handle, changed_flag, ragdoll_component] : world->group(components_group<TransformComponent, RagdollComponent>).each())
-		{
-			if (ragdoll_component.simulated.is_changed())
-			{
-				for (const EntityPtr& limb_ptr : ragdoll_component.limbs)
-				{
-					Entity limb = limb_ptr.get();
-					limb.get_component<RagdollLimbComponent>()->simulated = ragdoll_component.simulated;
-				}
-				ragdoll_component.simulated.sync_changes();
-			}
-		}
-
-		for (auto [entity_handle, changed_flag, ragdoll_limb_component] : world->group(components_group<TransformComponent, RagdollLimbComponent>).each())
-		{
-			if (ragdoll_limb_component.simulated.is_changed())
-			{
-				Entity limb = world->get_entity(entity_handle);
-				limb.get_component<DynamicBodyComponent>()->simulated = ragdoll_limb_component.simulated;
-				ragdoll_limb_component.simulated.sync_changes();
-			}
-		}
-
 		for (auto&& [entity_handle, transform_component, ragdoll_component, skeleton_component] : ragdolls_group.each())
 		{
 			if (ragdoll_component.loaded)
@@ -115,6 +92,39 @@ namespace era_engine::physics
 
 			ragdoll_component.loaded = is_ready_for_simulation;
 		}
+
+		for (auto [entity_handle, transform_component, ragdoll_component] : world->group(components_group<TransformComponent, RagdollComponent>).each())
+		{
+			if (!ragdoll_component.loaded)
+			{
+				continue;
+			}
+
+			if (ragdoll_component.simulated.is_changed())
+			{
+				for (const EntityPtr& limb_ptr : ragdoll_component.limbs)
+				{
+					Entity limb = limb_ptr.get();
+					limb.get_component<RagdollLimbComponent>()->simulated = ragdoll_component.simulated;
+				}
+				ragdoll_component.simulated.sync_changes();
+			}
+			ragdoll_component.elapsed_blend_time = 0.0f;
+			ragdoll_component.reached_physics_pose = false;
+		}
+
+		for (auto [entity_handle, transform_component, ragdoll_limb_component] : world->group(components_group<TransformComponent, RagdollLimbComponent>).each())
+		{
+			if (ragdoll_limb_component.simulated.is_changed())
+			{
+				Entity limb = world->get_entity(entity_handle);
+				limb.get_component<DynamicBodyComponent>()->simulated = ragdoll_limb_component.simulated;
+				ragdoll_limb_component.simulated.sync_changes();
+			}
+
+			ragdoll_limb_component.prev_physics_pose = ragdoll_limb_component.physics_pose;
+			ragdoll_limb_component.physics_pose = transform_component.get_local_transform();
+		}
 	}
 
 	void RagdollSystem::update_normal(float dt)
@@ -139,12 +149,23 @@ namespace era_engine::physics
 			}
 			
 			{
-				const trs inverse_ragdoll_world_transform = invert(transform_component.get_world_transform());
+				const float fixed_update_dt = world->get_fixed_update_dt();
 
 				const uint32 root_id = 0;
 				ragdoll_component.local_joint_poses[root_id] = SkeletonUtils::get_object_space_joint_transform(skeleton.get(), root_id);
 
 				auto simulated_joints_end = ragdoll_component.simulated_joints.end();
+
+				if (!ragdoll_component.reached_physics_pose)
+				{
+					ragdoll_component.elapsed_blend_time += dt;
+				}
+
+				const float blend_value = ragdoll_component.reached_physics_pose ? 1.0f : std::min(ragdoll_component.elapsed_blend_time / fixed_update_dt, 1.0f);
+				if (ragdoll_component.elapsed_blend_time >= fixed_update_dt)
+				{
+					ragdoll_component.reached_physics_pose = true;
+				}
 
 				for (const uint32 simulation_joint : ragdoll_component.simulated_joints_set)
 				{
@@ -152,10 +173,9 @@ namespace era_engine::physics
 					const trs& parent_local = ragdoll_component.local_joint_poses[parent_id];
 
 					trs inverse_parent_local = invert(parent_local);
-					inverse_parent_local.rotation = normalize(inverse_parent_local.rotation);
 
 					trs limb_current_pose = skeleton->get_joint_transform(simulation_joint);
-					limb_current_pose.scale = vec3(1.0f);					
+					limb_current_pose.scale = vec3(1.0f);
 
 					auto limb_iter = ragdoll_component.simulated_joints.find(simulation_joint);
 					if (limb_iter == ragdoll_component.simulated_joints.end())
@@ -167,31 +187,25 @@ namespace era_engine::physics
 					{
 						Entity limb = limb_iter->second.get();
 						RagdollLimbComponent* ragdoll_limb = limb.get_component<RagdollLimbComponent>();
-						const trs& limb_physics_pose = limb.get_component<TransformComponent>()->get_world_transform();
 
-						const trs limb_pose = inverse_ragdoll_world_transform * limb_physics_pose;
-						trs new_transform = inverse_parent_local * limb_pose;
+						trs new_transform = inverse_parent_local * ragdoll_limb->physics_pose;
 
-						if (!fuzzy_equals(ragdoll_limb->prev_limb_local_rotation, new_transform.rotation))
+						const trs prev_transform = inverse_parent_local * ragdoll_limb->prev_physics_pose;
+
+						if (!fuzzy_equals(prev_transform, new_transform))
 						{
-							new_transform.rotation = slerp(ragdoll_limb->prev_limb_local_rotation,
-								new_transform.rotation,
-								ragdoll_component.blend_factor);
-						}
-
-						if (!fuzzy_equals(ragdoll_limb->prev_limb_local_position, new_transform.position))
-						{
-							new_transform.position = lerp(ragdoll_limb->prev_limb_local_position,
+							new_transform.position = lerp(prev_transform.position,
 								new_transform.position,
-								ragdoll_component.blend_factor);
+								blend_value);
+
+							new_transform.rotation = slerp(prev_transform.rotation,
+								new_transform.rotation,
+								blend_value);
 						}
 
 						new_transform.rotation = normalize(new_transform.rotation);
 
 						skeleton->set_joint_transform(new_transform, simulation_joint);
-
-						ragdoll_limb->prev_limb_local_position = new_transform.position;
-						ragdoll_limb->prev_limb_local_rotation = new_transform.rotation;
 
 						trs new_local_child_transform = parent_local * new_transform;
 						new_local_child_transform.rotation = normalize(new_local_child_transform.rotation);

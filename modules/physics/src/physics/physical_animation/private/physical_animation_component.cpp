@@ -254,6 +254,13 @@ namespace era_engine::physics
 		return simulation_states.at(current_state_type);
 	}
 
+	void PhysicalAnimationComponent::reset_blends()
+	{
+		blend_weight = 0.0f;
+		reached_physics_pose = false;
+		elapsed_blend_time = 0.0f;
+	}
+
 	SimulationStateType PhysicalAnimationComponent::get_current_state_type() const
 	{
 		return current_state_type;

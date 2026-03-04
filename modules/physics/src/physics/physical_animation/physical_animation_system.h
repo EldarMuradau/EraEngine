@@ -29,8 +29,8 @@ namespace era_engine::physics
 		PhysicalAnimationSystem(World* _world);
 
 		void init() override;
-		void update(float dt) override;
-		void fetch_collisions(float dt);
+		void update_before_physics(float dt);
+		void update_after_physics(float dt);
 
 		void update_normal(float dt);
 
@@ -68,10 +68,10 @@ namespace era_engine::physics
 		std::vector<Entity::Handle> pacs_to_init;
 		SpinLock sync;
 
+		std::vector<PhysicalAnimationComponent*> active_ragdolls;
+
 		const CollisionsHolderRootComponent* collisions_holder_rc = nullptr;
 		RendererHolderRootComponent* renderer_holder_rc = nullptr;
-
-		bool has_any_simulated_ragdolls = false;
 
 		entt::group<entt::owned_t<>,
 			entt::get_t<TransformComponent,

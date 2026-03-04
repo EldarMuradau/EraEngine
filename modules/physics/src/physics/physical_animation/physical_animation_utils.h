@@ -31,7 +31,7 @@ namespace era_engine::physics
 			bool enable_simulation,
 			bool enable_gravity = false);
 
-		static void force_sync_limb_to_skeleton(const PhysicalAnimationLimbComponent* limb_component,
+		static void force_sync_limb_to_skeleton(PhysicalAnimationLimbComponent* limb_component,
 			const animation::SkeletonComponent* skeleton_component,
 			const trs& ragdoll_world_transform);
 	};

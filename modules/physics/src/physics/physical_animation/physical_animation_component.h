@@ -49,9 +49,6 @@ namespace era_engine::physics
 		/* Joint local space transfrom from animation. */
 		trs target_pose = trs::identity;
 
-		/* Physics body local space transfrom. */
-		trs physics_pose = trs::identity;
-
 		vec2 angular_range = vec2(deg2rad(3.0f), deg2rad(30.0f));
 		vec2 angular_damping_range = vec2(80.0f, 15.0f);
 
@@ -97,6 +94,8 @@ namespace era_engine::physics
 		ref<RagdollProfile> get_ragdoll_profile() const;
 
 		std::shared_ptr<BaseSimulationState> get_current_state() const;
+
+		void reset_blends();
 
 		SimulationStateType get_current_state_type() const;
 
@@ -149,8 +148,6 @@ namespace era_engine::physics
 
 	private:
 		ref<RagdollProfile> current_profile = nullptr;
-
-		float elapsed_blend_time = 0.0f;
 
 		std::unordered_map<uint32, trs> local_joint_poses_for_target_calculation;
 

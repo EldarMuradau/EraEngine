@@ -29,11 +29,7 @@ namespace era_engine::physics
 			float dt) const;
 
 	private:
-		void blend_with_prev_physics_pose(const trs& prev_joint_transform,
-			float blend_value,
-			trs& out_transform) const;
-
-		void blend_with_animation_pose(const trs& animation_limb_local_transform,
+		void blend_with_transform(const trs& from_joint_transform,
 			float blend_value,
 			trs& out_transform) const;
 
@@ -42,7 +38,6 @@ namespace era_engine::physics
 			PhysicalAnimationComponent* physical_animation_component,
 			PhysicalLimbBlendType result_type,
 			const trs& limb_animation_transform,
-			const trs& inverse_ragdoll_transform,
 			const trs& inverse_parent_local_transform,
 			float blend_time) const;
 	};

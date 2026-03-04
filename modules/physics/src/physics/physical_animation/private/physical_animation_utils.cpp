@@ -106,7 +106,7 @@ namespace era_engine::physics
         }
     }
 
-    void PhysicalAnimationUtils::force_sync_limb_to_skeleton(const PhysicalAnimationLimbComponent* limb_component,
+    void PhysicalAnimationUtils::force_sync_limb_to_skeleton(PhysicalAnimationLimbComponent* limb_component,
         const animation::SkeletonComponent* skeleton_component,
         const trs& ragdoll_world_transform)
     {
@@ -127,6 +127,9 @@ namespace era_engine::physics
             skeleton_component->skeleton.get(),
             limb_component->joint_id);
         limb_object_space_pose.scale = vec3(1.0f);
+
+        limb_component->prev_physics_pose = limb_object_space_pose;
+        limb_component->physics_pose = limb_object_space_pose;
 
         PhysicsUtils::manual_set_physics_transform(limb, ragdoll_world_transform * limb_object_space_pose, true);
     }
