@@ -118,12 +118,20 @@ namespace era_engine::physics
 			if (ragdoll_limb_component.simulated.is_changed())
 			{
 				Entity limb = world->get_entity(entity_handle);
-				limb.get_component<DynamicBodyComponent>()->simulated = ragdoll_limb_component.simulated;
+
+				DynamicBodyComponent* body_component = limb.get_component<DynamicBodyComponent>();
+				body_component->simulated = ragdoll_limb_component.simulated;
+
 				ragdoll_limb_component.simulated.sync_changes();
 			}
 
 			ragdoll_limb_component.prev_physics_pose = ragdoll_limb_component.physics_pose;
 			ragdoll_limb_component.physics_pose = transform_component.get_local_transform();
+			if (!fuzzy_equals(ragdoll_limb_component.physics_pose, ragdoll_limb_component.prev_physics_pose))
+			{
+				int x = 0;
+				++x;
+			}
 		}
 	}
 

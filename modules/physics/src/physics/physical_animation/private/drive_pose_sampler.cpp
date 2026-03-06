@@ -24,6 +24,11 @@ namespace era_engine::physics
 	{
 		using namespace animation;
 
+		if (!pose.is_valid())
+		{
+			return;
+		}
+
 		ref<Skeleton> skeleton = skeleton_to_update->skeleton;
 		ASSERT(skeleton != nullptr);
 

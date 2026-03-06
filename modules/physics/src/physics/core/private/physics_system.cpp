@@ -230,8 +230,8 @@ namespace era_engine::physics
 
 			if (only_started_simulation && !dynamic_body.kinematic)
 			{
-				body->setLinearVelocity(create_PxVec3(dynamic_body.linear_velocity), false);
-				body->setAngularVelocity(create_PxVec3(dynamic_body.angular_velocity), false);
+				body->setLinearVelocity(create_PxVec3(dynamic_body.linear_velocity), true);
+				body->setAngularVelocity(create_PxVec3(dynamic_body.angular_velocity), true);
 			}
 
 			if (dynamic_body.constraints.is_changed())

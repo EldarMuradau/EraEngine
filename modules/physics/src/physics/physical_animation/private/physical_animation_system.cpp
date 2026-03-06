@@ -49,6 +49,7 @@ namespace era_engine::physics
 
 	static DebugVar<bool> enable_always = DebugVar<bool>("physics.physical_animation.enable_always", false);
 	static DebugVar<bool> force_ragdoll = DebugVar<bool>("physics.physical_animation.force_ragdoll", false);
+	static DebugVar<bool> force_disable_ragdoll = DebugVar<bool>("physics.physical_animation.force_disable_ragdoll", false);
 
 	static DebugVar<float> running_speed = DebugVar<float>("physics.physical_animation.debug_demo.running_speed", 1.0f);
 	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 5.0f);
@@ -75,23 +76,23 @@ namespace era_engine::physics
 			idle_profile->type = RagdollProfileType::IDLE;
 			idle_profile->head_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->head_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->head_limb_details.motor_drive->angular_drive_stiffness = 300.0f;
-			idle_profile->head_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+			idle_profile->head_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			idle_profile->head_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
 
 			idle_profile->neck_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->neck_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 300.0f;
-			idle_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+			idle_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			idle_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
 
 			idle_profile->body_upper_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_upper_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 500.0f;
-			idle_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+			idle_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			idle_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			idle_profile->body_middle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 500.0f;
-			idle_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+			idle_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			idle_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			idle_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 
@@ -137,23 +138,23 @@ namespace era_engine::physics
 			running_profile->type = RagdollProfileType::RUNNING;
 			running_profile->head_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			running_profile->head_limb_details.motor_drive = MotorDriveDetails();
-			running_profile->head_limb_details.motor_drive->angular_drive_stiffness = 300.0f;
-			running_profile->head_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+			running_profile->head_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			running_profile->head_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
 
 			running_profile->neck_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			running_profile->neck_limb_details.motor_drive = MotorDriveDetails();
-			running_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 300.0f;
-			running_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+			running_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			running_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
 
 			running_profile->body_upper_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			running_profile->body_upper_limb_details.motor_drive = MotorDriveDetails();
-			running_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 500.0f;
-			running_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+			running_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			running_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			running_profile->body_middle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			running_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
-			running_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 500.0f;
-			running_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+			running_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			running_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			running_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 
@@ -423,10 +424,13 @@ namespace era_engine::physics
 				if (force_ragdoll)
 				{
 					physical_animation_component.force_set_ragdoll(true);
+					force_ragdoll = false;
 				}
-				else
+				
+				if (force_disable_ragdoll)
 				{
 					physical_animation_component.force_set_ragdoll(false);
+					force_disable_ragdoll = false;
 				}
 
 				SimulationStateType desired_state_type = SimulationStateType::DISABLED;
@@ -569,6 +573,11 @@ namespace era_engine::physics
 		const animation::Skeleton* skeleton,
 		const trs& ragdoll_world_space_pose)
 	{
+		if (!current_animation_pose.is_valid())
+		{
+			return;
+		}
+
 		auto simulated_joints_end = physical_animation_component->simulated_joints.end();
 
 		for (const uint32 simulation_joint : physical_animation_component->simulated_joints_set)

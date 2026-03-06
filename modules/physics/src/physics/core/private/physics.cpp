@@ -143,7 +143,6 @@ namespace era_engine::physics
 		}
 		scene_desc.flags |= PxSceneFlag::eENABLE_CCD;
 		scene_desc.flags |= PxSceneFlag::eENABLE_ACTIVE_ACTORS;
-		scene_desc.flags |= PxSceneFlag::eENABLE_AVERAGE_POINT;
 		scene_desc.flags |= PxSceneFlag::eENABLE_ENHANCED_DETERMINISM;
 		scene_desc.flags |= PxSceneFlag::eENABLE_STABILIZATION;
 		scene_desc.flags |= PxSceneFlag::eENABLE_PCM;

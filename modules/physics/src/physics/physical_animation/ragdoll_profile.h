@@ -52,10 +52,10 @@ namespace era_engine::physics
         float linear_drive_stiffness = 100.0f;
 
         vec2 angular_range = vec2(deg2rad(3.0f), deg2rad(30.0f));
-        vec2 angular_damping_range = vec2(60.0f, 10.0f);
+        vec2 angular_damping_range = vec2(60.0f, 20.0f);
 
         vec2 linear_range = vec2(0.05f, 0.5f);
-        vec2 linear_damping_range = vec2(80.0f, 10.0f);
+        vec2 linear_damping_range = vec2(80.0f, 20.0f);
 
         float max_force = std::numeric_limits<float>::max();
 

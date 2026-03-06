@@ -35,7 +35,8 @@ namespace era_engine::physics
 
     bool PhysicalAnimationUtils::is_head_limb(RagdollLimbType type)
     {
-        return type == RagdollLimbType::HEAD;
+        return type == RagdollLimbType::NECK || 
+            type == RagdollLimbType::HEAD;
     }
 
     bool PhysicalAnimationUtils::is_leg_limb(RagdollLimbType type)
@@ -47,7 +48,8 @@ namespace era_engine::physics
 
     bool PhysicalAnimationUtils::is_arm_limb(RagdollLimbType type)
     {
-        return type == RagdollLimbType::ARM ||
+        return type == RagdollLimbType::CLAVICLE || 
+            type == RagdollLimbType::ARM ||
             type == RagdollLimbType::FOREARM ||
             type == RagdollLimbType::HAND;
     }

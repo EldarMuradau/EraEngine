@@ -62,8 +62,8 @@ namespace era_engine::physics
 		dynamic_body_component->linear_damping.get_for_write() = 0.15f;
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
-		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 16;
+		dynamic_body_component->solver_position_iterations_count.get_for_write() = 16;
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 		dynamic_body_component->stabilization_threshold.get_for_write() = 0.1f;
 
@@ -165,7 +165,7 @@ namespace era_engine::physics
 
 		e1.get_component<PhysicalAnimationLimbComponent>()->parent_joint_component = ComponentPtr{ joint_component };
 
-		if (fuzzy_equals(twist_max_deg, 180.0f) && fuzzy_equals(twist_min_deg, 180.0f))
+		if (fuzzy_equals(twist_max_deg, 180.0f) && fuzzy_equals(twist_min_deg, -180.0f))
 		{
 			joint_component->twist_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		}
@@ -304,6 +304,8 @@ namespace era_engine::physics
 	{
 		box_shape_component->half_extents = (size / 2.0f) / owner_joint_transform.scale.x;
 
+		ASSERT(squared_length(box_shape_component->half_extents) > 0.0f);
+
 		const vec3 offset = to_joint_transform.position - from_joint_transform.position;
 		const vec3 center_between_joints = from_joint_transform.position + offset / 2.0f;
 		const vec3 direction = normalize(offset);
@@ -338,6 +340,9 @@ namespace era_engine::physics
 		capsule_shape_component->radius = radius / owner_joint_transform.scale.x;
 		capsule_shape_component->half_height = (height / 2.0f) / owner_joint_transform.scale.x;
 
+		ASSERT(capsule_shape_component->radius > 0.0f);
+		ASSERT(capsule_shape_component->half_height > 0.0f);
+
 		const vec3 center_between_joints = from_joint_transform.position + offset / 2.0f;
 		const vec3 direction = normalize(offset);
 
@@ -370,6 +375,9 @@ namespace era_engine::physics
 
 		capsule_shape_component->radius = radius / owner_joint_transform.scale.x;
 		capsule_shape_component->half_height = half_height / owner_joint_transform.scale.x;
+
+		ASSERT(capsule_shape_component->radius > 0.0f);
+		ASSERT(capsule_shape_component->half_height > 0.0f);
 
 		const vec3 center_between_joints = from_joint_transform.position + offset / 2.0f + offset_for_from_joint;
 		const vec3 direction = normalize(offset);
@@ -407,6 +415,9 @@ namespace era_engine::physics
 
 		capsule_shape_component->radius = radius / owner_joint_transform.scale.x;
 		capsule_shape_component->half_height = (height / 2.0f) / owner_joint_transform.scale.x;
+
+		ASSERT(capsule_shape_component->radius > 0.0f);
+		ASSERT(capsule_shape_component->half_height > 0.0f);
 
 		const vec3 center_between_joints = from_joint_transform.position + offset / 2.0f;
 		const vec3 direction = normalize(offset);
@@ -602,8 +613,6 @@ namespace era_engine::physics
 			TransformComponent* transform_component = head.get_component<TransformComponent>();
 			transform_component->set_world_transform(ragdoll_world_transform * head_joint_transform);
 
-			trs head_end_transform = trs(head_joint_transform.position + settings.head_end_joint_adjastment, head_joint_transform.rotation, head_joint_transform.scale);
-
 			CapsuleShapeComponent* capsule_shape_component = head.add_component<CapsuleShapeComponent>();
 			capsule_shape_component->collision_type = CollisionType::RAGDOLL;
 			capsule_shape_component->material = material;
@@ -612,7 +621,7 @@ namespace era_engine::physics
 				capsule_shape_component,
 				settings.head_radius,
 				neck_joint_transform,
-				head_end_transform,
+				head_end_joint_transform,
 				neck_joint_transform,
 				1.0f,
 				settings.head_joint_adjastment);
@@ -756,9 +765,9 @@ namespace era_engine::physics
 			shape_component->radius = 0.01f;
 			shape_component->use_in_scene_queries = false;
 
-			JointComponent::BaseDescriptor descriptor;
-			descriptor.connected_entity = body_lower_ghost.get_data_weakref();
-			descriptor.second_connected_entity = body_lower.get_data_weakref();
+				JointComponent::BaseDescriptor descriptor;
+				descriptor.connected_entity = body_lower_ghost.get_data_weakref();
+				descriptor.second_connected_entity = body_lower.get_data_weakref();
 
 			if (physical_animation_component->use_fixed_pelvis_attachment)
 			{
@@ -772,7 +781,7 @@ namespace era_engine::physics
 				joint_component->spring_enabled.get_for_write() = true;
 				joint_component->stiffness.get_for_write() = 1600.0f;
 				joint_component->damping.get_for_write() = 40.0f;
-				joint_component->max_distance.get_for_write() = 0.3f;
+				joint_component->max_distance.get_for_write() = 0.1f;
 				joint_component->min_distance.get_for_write() = 0.0f;
 			}
 
@@ -1261,19 +1270,8 @@ namespace era_engine::physics
 			left_clavicle_joint_transform,
 			thorax_joint_transform,
 			left_clavicle_joint_transform,
-			-180.0f, 180.0f,
-			180.0f, 180.0f);
-
-		const float arm_forward_angle_deg = 90.0f; // How far an arm can be rotated forward around Y axis
-		const float arm_backward_angle_deg = 42.5f; // How far an arm can be rotated backwards around Y axis
-		const float arm_d6_swing_y_deg = (arm_forward_angle_deg + arm_backward_angle_deg) / 2.0f;
-
-		// Thorax -> left arm
-		const vec3 left_arm_capsule_y_axis = left_arm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
-		const trs thorax_to_left_arm_d6_transform = trs(
-			left_arm_capsule_bottom_transform.position,
-			quat(left_arm_capsule_y_axis, deg2rad(arm_d6_swing_y_deg - arm_backward_angle_deg)) * left_arm_capsule_bottom_transform.rotation,
-			left_arm_capsule_bottom_transform.scale);
+			-160.0f, 160.0f,
+			160.0f, 160.0f);
 
 		create_d6_joint(
 			ragdoll,
@@ -1282,9 +1280,8 @@ namespace era_engine::physics
 			left_arm_capsule_bottom_transform,
 			left_clavicle_joint_transform,
 			left_arm_joint_transform,
-			-90.0f, 90.0f,
-			arm_d6_swing_y_deg,
-			95.0f);
+			-160.0f, 160.0f,
+			160.0f, 160.0f);
 
 		// Left arm -> left forearm
 		const float forearm_d6_swing_y_deg = 55.0f;
@@ -1324,15 +1321,8 @@ namespace era_engine::physics
 			right_clavicle_joint_transform,
 			thorax_joint_transform,
 			right_clavicle_joint_transform,
-			-180.0f, 180.0f,
-			180.0f, 180.0f);
-
-		// Thorax -> right arm
-		const vec3 right_arm_capsule_y_axis = right_arm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
-		const trs thorax_to_right_arm_d6_transform = trs(
-			right_arm_capsule_bottom_transform.position,
-			quat(right_arm_capsule_y_axis, deg2rad(arm_d6_swing_y_deg - arm_backward_angle_deg)) * right_arm_capsule_bottom_transform.rotation,
-			right_arm_capsule_bottom_transform.scale);
+			-160.0f, 160.0f,
+			160.0f, 160.0f);
 
 		create_d6_joint(
 			ragdoll,
@@ -1341,9 +1331,8 @@ namespace era_engine::physics
 			right_arm_capsule_bottom_transform,
 			right_clavicle_joint_transform,
 			right_arm_joint_transform,
-			-90.0f, 90.0f,
-			arm_d6_swing_y_deg,
-			95.0f);
+			-160.0f, 160.0f,
+			160.0f, 160.0f);
 
 		// Right arm -> right forearm
 		const vec3 right_forearm_capsule_y_axis = right_forearm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);

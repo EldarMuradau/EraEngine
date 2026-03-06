@@ -50,10 +50,10 @@ namespace era_engine::physics
 		trs target_pose = trs::identity;
 
 		vec2 angular_range = vec2(deg2rad(3.0f), deg2rad(30.0f));
-		vec2 angular_damping_range = vec2(80.0f, 15.0f);
+		vec2 angular_damping_range = vec2(0.0f, 0.0f);
 
 		vec2 linear_range = vec2(0.05f, 0.5f);
-		vec2 linear_damping_range = vec2(80.0f, 15.0f);
+		vec2 linear_damping_range = vec2(0.0f, 0.0f);
 
 		float transition_time = 1.0f;
 
@@ -117,17 +117,12 @@ namespace era_engine::physics
 	public:
 		constexpr static float MAX_RAGDOLL_PROFILE_TRANSITION_TIME = 0.3f;
 
-		RagdollProfileStrengthType strength_type = RagdollProfileStrengthType::DEFAULT;
-
 		bool use_fixed_pelvis_attachment = false;
-		bool force_ragdoll_state = false;
 
 		float blend_weight = 0.0f;
 
 		float blend_in_time = 0.1f;
 		float blend_out_time = 0.2f;
-
-		float ragdoll_profile_transition_time = 0.0f;
 
 		trs prev_world_transform = trs::identity;
 
@@ -154,9 +149,15 @@ namespace era_engine::physics
 		SimulationStateType current_state_type = SimulationStateType::DISABLED;
 		SkeletalMeshBlendType mesh_blend_type = SkeletalMeshBlendType::TRANSFORM;
 
+		float ragdoll_profile_transition_time = 0.0f;
+
 		std::unordered_map<SimulationStateType, std::shared_ptr<BaseSimulationState>> simulation_states;
+
+		RagdollProfileStrengthType strength_type = RagdollProfileStrengthType::DEFAULT;
+		bool force_ragdoll_state = false;
 
 		friend class PhysicalAnimationSystem;
 		friend class DrivePoseSampler;
+		friend class PhysicalAnimationBuilderUtils;
 	};
 }
