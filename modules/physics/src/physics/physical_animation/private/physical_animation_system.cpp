@@ -48,7 +48,6 @@ namespace era_engine::physics
 	}
 
 	static DebugVar<bool> enable_always = DebugVar<bool>("physics.physical_animation.enable_always", false);
-	static DebugVar<bool> force_ragdoll_if_head = DebugVar<bool>("physics.physical_animation.force_ragdoll_if_head", false);
 	static DebugVar<bool> force_ragdoll = DebugVar<bool>("physics.physical_animation.force_ragdoll", false);
 	static DebugVar<bool> force_disable_ragdoll = DebugVar<bool>("physics.physical_animation.force_disable_ragdoll", false);
 
@@ -498,7 +497,7 @@ namespace era_engine::physics
 			if (first_limb_data_component != nullptr)
 			{
 				Entity first_ragdoll = first_limb_data_component->ragdoll_ptr.get();
-				PhysicalAnimationComponent* first_simulation_component = first_ragdoll.get_component<PhysicalAnimationComponent>();
+				const PhysicalAnimationComponent* first_simulation_component = first_ragdoll.get_component<PhysicalAnimationComponent>();
 				ASSERT(first_simulation_component != nullptr);
 
 				const SimulationStateType state = first_simulation_component->get_current_state_type();
@@ -506,17 +505,7 @@ namespace era_engine::physics
 					state == SimulationStateType::RAGDOLL)
 				{
 					first_limb_data_component->collision.is_colliding = true;
-
-					if (first_limb_data_component->type == RagdollLimbType::HEAD &&
-						force_ragdoll_if_head)
-					{
-						first_simulation_component->force_set_ragdoll(true);
-						first_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 3750.0f));
-					}
-					else
-					{
-						first_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 100.0f));
-					}
+					first_limb_data_component->collision.impulse += physx::create_vec3(collision.impulse);
 				}
 			}
 
@@ -524,7 +513,7 @@ namespace era_engine::physics
 			if (second_limb_data_component != nullptr)
 			{
 				Entity second_ragdoll = second_limb_data_component->ragdoll_ptr.get();
-				PhysicalAnimationComponent* second_simulation_component = second_ragdoll.get_component<PhysicalAnimationComponent>();
+				const PhysicalAnimationComponent* second_simulation_component = second_ragdoll.get_component<PhysicalAnimationComponent>();
 				ASSERT(second_simulation_component != nullptr);
 
 				const SimulationStateType state = second_simulation_component->get_current_state_type();
@@ -532,16 +521,7 @@ namespace era_engine::physics
 					state == SimulationStateType::RAGDOLL)
 				{
 					second_limb_data_component->collision.is_colliding = true;
-					if (second_limb_data_component->type == RagdollLimbType::HEAD &&
-						force_ragdoll_if_head)
-					{
-						second_simulation_component->force_set_ragdoll(true);
-						second_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 3750.0f));
-					}
-					else
-					{
-						second_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 100.0f));
-					}
+					second_limb_data_component->collision.impulse += physx::create_vec3(collision.impulse);
 				}
 			}
 		}

@@ -1267,17 +1267,6 @@ namespace era_engine::physics
 	{
 		RagdollSkeletonStructure& structure = ctx.skeleton_structure;
 
-		if (ctx.enable_physical_animation)
-		{
-			create_collision_joint(ctx.ragdoll, 
-				ctx.skeleton_structure.left_arm_joint.physical_limb.value(), 
-				ctx.skeleton_structure.thorax_joint.physical_limb.value());
-
-			create_collision_joint(ctx.ragdoll, 
-				ctx.skeleton_structure.right_arm_joint.physical_limb.value(), 
-				ctx.skeleton_structure.thorax_joint.physical_limb.value());
-		}
-
 		const trs& head_capsule_bottom_transform = structure.head_joint.constraint_object_space_transform.value();
 		const trs& neck_capsule_bottom_transform = structure.neck_joint.constraint_object_space_transform.value();
 

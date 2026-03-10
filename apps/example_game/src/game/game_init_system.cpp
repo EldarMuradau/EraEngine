@@ -170,14 +170,19 @@ namespace era_engine
 
 			RagdollSettings settings;
 			settings.shapes_settings.head_radius = 0.13f;
+			settings.shapes_settings.arm_radius = 0.071f;
 
 			settings.local_shape_settings.head_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
 			//settings.local_shape_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
 			settings.local_shape_settings.thorax_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
 			//settings.local_shape_settings.abdomen_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
 			settings.local_shape_settings.pelvis_joint_adjastment = vec3(0.0f, -0.05f, 0.0f);
-			settings.local_shape_settings.left_clavicle_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
-			settings.local_shape_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
+			settings.local_shape_settings.left_clavicle_joint_adjastment = vec3(0.0f, 0.06f, 0.0f);
+			settings.local_shape_settings.left_arm_joint_adjastment = vec3(0.05f, 0.06f, 0.0f);
+			settings.local_shape_settings.left_forearm_joint_adjastment = vec3(0.03f, 0.0f, 0.0f);
+			settings.local_shape_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.06f, 0.0f);
+			settings.local_shape_settings.right_arm_joint_adjastment = vec3(-0.05f, 0.06f, 0.0f);
+			settings.local_shape_settings.right_forearm_joint_adjastment = vec3(-0.03f, 0.0f, 0.0f);
 
 			settings.object_space_settings.head_end_joint_adjastment = vec3(0.0f, 0.35f, 0.0f);
 			settings.object_space_settings.head_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
@@ -186,16 +191,18 @@ namespace era_engine
 			settings.object_space_settings.abdomen_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
 			settings.object_space_settings.pelvis_joint_adjastment = vec3(0.0f, -0.1f, 0.0f);
 			settings.object_space_settings.left_clavicle_joint_adjastment = vec3(-0.075f, 0.1f, 0.0f);
+			settings.object_space_settings.left_arm_joint_adjastment = vec3(0.0f, 0.075f, 0.0f);
 			settings.object_space_settings.right_clavicle_joint_adjastment = vec3(0.075f, 0.1f, 0.0f);
+			settings.object_space_settings.right_arm_joint_adjastment = vec3(0.0f, 0.075f, 0.0f);
 
 			settings.shapes_settings.hand_x = 0.12f;
 			settings.shapes_settings.hand_y = 0.08f;
 			settings.shapes_settings.hand_z = 0.06f;
 
-			settings.scaler_settings.upper_body_height_modifier = 0.5f;
-			settings.scaler_settings.upper_body_radius_modifier = 0.7f;
+			settings.scaler_settings.upper_body_height_modifier = 0.32f;
+			settings.scaler_settings.upper_body_radius_modifier = 0.8f;
 			settings.scaler_settings.middle_body_height_modifier = 0.45f;
-			settings.scaler_settings.middle_body_radius_modifier = 0.4f;
+			settings.scaler_settings.middle_body_radius_modifier = 0.45f;
 			settings.scaler_settings.lower_body_height_modifier = 1.0f;
 			settings.scaler_settings.lower_body_radius_modifier = 1.0f;
 
@@ -214,7 +221,6 @@ namespace era_engine
 			PhysicalAnimationComponent* ragdoll_component = tiran.add_component<PhysicalAnimationComponent>();
 			ragdoll_component->joint_init_ids = joint_init_ids;
 			ragdoll_component->settings = settings;
-			//ragdoll_component->use_fixed_pelvis_attachment = true;
 		}
 
 		/*if (auto mesh = loadMeshFromFileAsync(get_asset_path("/resources/assets/Sponza/sponza.obj"), mesh_creation_flags_unreal_asset))
