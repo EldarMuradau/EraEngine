@@ -40,12 +40,28 @@ namespace era_engine::physics
 
 		void update_states(float dt, PhysicalLimbStateType desired_state);
 
-		float calculate_desired_angular_damping(float delta_angle) const;
-		float calculate_desired_linear_damping(float delta_position) const;
+		float calculate_desired_angular_damping(float delta_angle, float strength_multiplier = 1.0f) const;
+		float calculate_desired_linear_damping(float delta_position, float strength_multiplier = 1.0f) const;
 
-		void reset_collision_data();
+		void apply_impulse(const vec3& impulse, const vec3& local_point = vec3::zero);
 
 	public:
+		struct CollisionData
+		{
+			constexpr static float MAX_COLLISION_TIME = 0.5f;
+			constexpr static float MAX_FREQUENT_COLLISION_TIME = 0.3f;
+
+			bool was_in_collision = false;
+			bool is_colliding = false;
+			float collision_time = 0.0f;
+
+			vec3 impulse = vec3::zero;
+
+			void reset();
+		};
+
+		CollisionData collision;
+
 		/* Joint local space transfrom from animation. */
 		trs target_pose = trs::identity;
 
@@ -55,14 +71,7 @@ namespace era_engine::physics
 		vec2 linear_range = vec2(0.05f, 0.5f);
 		vec2 linear_damping_range = vec2(0.0f, 0.0f);
 
-		float transition_time = 1.0f;
-
-		bool was_in_collision = false;
-		bool is_colliding = false;
-		float collision_time = 0.0f;
-
-		constexpr static float MAX_COLLISION_TIME = 0.5f;
-		constexpr static float MAX_FREQUENT_COLLISION_TIME = 0.3f;
+		float transition_time = 0.6f;
 
 		PhysicalLimbBlendType blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 		PhysicalLimbBlendType prev_blend_type = PhysicalLimbBlendType::NONE;
@@ -114,6 +123,8 @@ namespace era_engine::physics
 
 		void update_states(float dt, SimulationStateType desired_state);
 
+		float get_strength_value_by_limb(RagdollLimbType limb_type) const;
+
 	public:
 		constexpr static float MAX_RAGDOLL_PROFILE_TRANSITION_TIME = 0.3f;
 
@@ -123,6 +134,8 @@ namespace era_engine::physics
 
 		float blend_in_time = 0.1f;
 		float blend_out_time = 0.2f;
+
+		float animation_blend_factor = 0.5f;
 
 		trs prev_world_transform = trs::identity;
 

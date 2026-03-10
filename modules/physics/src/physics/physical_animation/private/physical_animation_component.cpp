@@ -35,7 +35,7 @@ namespace era_engine::physics
 			const PhysicalAnimationLimbComponent* limb_component = limb.get_component<PhysicalAnimationLimbComponent>();
 			ASSERT(limb_component != nullptr);
 
-			if (limb_component->is_colliding || limb_component->collision_time > 0.0f)
+			if (limb_component->collision.is_colliding || limb_component->collision.collision_time > 0.0f)
 			{
 				return true;
 			}
@@ -43,7 +43,7 @@ namespace era_engine::physics
 		return false;
 	}
 
-	float PhysicalAnimationLimbComponent::calculate_desired_angular_damping(float delta_angle) const
+	float PhysicalAnimationLimbComponent::calculate_desired_angular_damping(float delta_angle, float strength_multiplier /*= 1.0f*/) const
 	{
 		const float angular_damping_value = map_value(delta_angle,
 			angular_range.x,
@@ -51,10 +51,10 @@ namespace era_engine::physics
 			angular_damping_range.x,
 			angular_damping_range.y);
 
-		return angular_damping_value * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
+		return angular_damping_value * strength_multiplier * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 	}
 
-	float PhysicalAnimationLimbComponent::calculate_desired_linear_damping(float delta_position) const
+	float PhysicalAnimationLimbComponent::calculate_desired_linear_damping(float delta_position, float strength_multiplier /*= 1.0f*/) const
 	{
 		const float linear_damping_value = map_value(delta_position,
 			linear_range.x,
@@ -62,14 +62,26 @@ namespace era_engine::physics
 			linear_damping_range.x,
 			linear_damping_range.y);
 
-		return linear_damping_value * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
+		return linear_damping_value * strength_multiplier * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
 	}
 
-	void PhysicalAnimationLimbComponent::reset_collision_data()
+	void PhysicalAnimationLimbComponent::apply_impulse(const vec3& impulse, const vec3& local_point/* = vec3::zero*/)
+	{
+		DynamicBodyComponent* dynamic_body_component = get_entity().get_component<DynamicBodyComponent>();
+		Force& force = dynamic_body_component->forces.emplace_back();
+		force.force = impulse;
+		force.point = local_point;
+		force.mode = ForceMode::IMPULSE;
+
+		collision.impulse += impulse;
+	}
+
+	void PhysicalAnimationLimbComponent::CollisionData::reset()
 	{
 		was_in_collision = false;
 		is_colliding = false;
 		collision_time = 0.0f;
+		impulse = vec3::zero;
 	}
 
 	PhysicalAnimationLimbComponent::PhysicalAnimationLimbComponent(ref<Entity::EcsData> _data, uint32 _joint_id /*= INVALID_JOINT*/)
@@ -131,6 +143,15 @@ namespace era_engine::physics
 		simulation_states.emplace(SimulationStateType::RAGDOLL, std::make_shared<RagdollSimulationState>(this_component_ptr));
 
 		current_state_type = SimulationStateType::DISABLED;
+
+		neck_chain = make_ref<PhysicsLimbChain>();
+		body_chain = make_ref<PhysicsLimbChain>();
+
+		left_arm_chain = make_ref<PhysicsLimbChain>();
+		right_arm_chain = make_ref<PhysicsLimbChain>();
+
+		left_leg_chain = make_ref<PhysicsLimbChain>();
+		right_leg_chain = make_ref<PhysicsLimbChain>();
 	}
 
 	PhysicalAnimationComponent::~PhysicalAnimationComponent()
@@ -303,6 +324,22 @@ namespace era_engine::physics
 		get_current_state()->update(dt);
 
 		update_profile_transition(dt);
+	}
+
+	float PhysicalAnimationComponent::get_strength_value_by_limb(RagdollLimbType limb_type) const
+	{
+		const PhysicalLimbDetails& limb_details = current_profile->get_limb_details_by_type(limb_type);
+
+		if (strength_type == RagdollProfileStrengthType::SOFT)
+		{
+			return limb_details.strength_details.soft_strength_coeff;
+		}
+		else if (strength_type == RagdollProfileStrengthType::HARD)
+		{
+			return limb_details.strength_details.hard_strength_coeff;
+		}
+
+		return limb_details.strength_details.default_strength_coeff;
 	}
 
 }

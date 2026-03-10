@@ -1461,34 +1461,6 @@ vec4 uniform_sample_sphere(vec2 E)
 	return vec4(H, PDF);
 }
 
-vec3 local_to_world(const vec3& local_pos, const trs& transform)
-{
-	mat4 model =
-	{
-		1, 0, 0, transform.position.x,
-		0, 1, 0, transform.position.y,
-		0, 0, 1, transform.position.z,
-		0, 0, 0, 1
-	};
-
-	mat4 rot = quaternion_to_mat4(transform.rotation);
-
-	mat4 scaleMatrix =
-	{
-		transform.scale.x, 0, 0, 0,
-		0, transform.scale.y, 0, 0,
-		0, 0, transform.scale.z, 0,
-		0, 0, 0, 1
-	};
-
-	mat4 model_matrix = model * rot * scaleMatrix;
-
-	vec4 local_pos4 = { local_pos.x, local_pos.y, local_pos.z, 1 };
-	vec4 world_pos4 = model_matrix * local_pos4;
-
-	return { world_pos4.x, world_pos4.y, world_pos4.z };
-}
-
 #define _gamma 5.828427124f // FOUR_GAMMA_SQUARED = sqrt(8)+3
 #define _cstar 0.923879532f // cos(pi/8)
 #define _sstar 0.3826834323f // sin(p/8)

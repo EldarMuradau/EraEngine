@@ -130,6 +130,7 @@ namespace era_engine::physics
             limb_component->joint_id);
         limb_object_space_pose.scale = vec3(1.0f);
 
+        limb_component->collision.reset();
         limb_component->prev_physics_pose = limb_object_space_pose;
         limb_component->physics_pose = limb_object_space_pose;
 

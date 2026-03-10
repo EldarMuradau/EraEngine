@@ -627,6 +627,14 @@ inline float length(const vec2& a) { return sqrt(squared_length(a)); }
 inline float length(const vec3& a) { return sqrt(squared_length(a)); }
 inline float length(const vec4& a) { return sqrt(squared_length(a)); }
 
+inline float squared_distance(const vec2& a, const vec2& b) { vec2 delta = a - b; return dot(delta, delta); }
+inline float squared_distance(const vec3& a, const vec3& b) { vec3 delta = a - b; return dot(delta, delta); }
+inline float squared_distance(const vec4& a, const vec4& b) { vec4 delta = a - b; return dot(delta, delta); }
+
+inline float distance(const vec2& a, const vec2& b) { return sqrt(squared_distance(a, b)); }
+inline float distance(const vec3& a, const vec3& b) { return sqrt(squared_distance(a, b)); }
+inline float distance(const vec4& a, const vec4& b) { return sqrt(squared_distance(a, b)); }
+
 inline vec2 noz(const vec2& a) { float sl = squared_length(a); return (sl < 1e-8f) ? vec2(0.f, 0.f) : (a * (1.f / sqrt(sl))); }
 inline vec3 noz(const vec3& a) { float sl = squared_length(a); return (sl < 1e-8f) ? vec3(0.f, 0.f, 0.f) : (a * (1.f / sqrt(sl))); }
 inline vec4 noz(const vec4& a) { float sl = squared_length(a); return (sl < 1e-8f) ? vec4(0.f, 0.f, 0.f, 0.f) : (a * (1.f / sqrt(sl))); }
@@ -1013,8 +1021,6 @@ ERA_CORE_API vec3 get_tangent(vec3 normal);
 
 // W = PDF = 1 / 4pi
 ERA_CORE_API vec4 uniform_sample_sphere(vec2 E);
-
-ERA_CORE_API vec3 local_to_world(const vec3& local_pos, const trs& transform);
 
 struct ERA_CORE_API singular_value_decomposition
 {

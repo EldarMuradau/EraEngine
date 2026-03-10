@@ -59,13 +59,13 @@ namespace era_engine
 		float velocity_halflife = 0.27f;
 		float rotation_halflife = 0.27f;
 
-		float run_fwrd_speed = 4.0f;
-		float run_side_speed = 3.0f;
-		float run_back_speed = 2.5f;
+		float run_fwrd_speed = 5.0f;
+		float run_side_speed = 4.0f;
+		float run_back_speed = 3.5f;
 
-		float walk_fwrd_speed = 1.75f;
-		float walk_side_speed = 1.5f;
-		float walk_back_speed = 1.25f;
+		float walk_fwrd_speed = 2.25f;
+		float walk_side_speed = 2.0f;
+		float walk_back_speed = 1.75f;
 
 		friend class MotionSystem;
 		friend class TrajectoryMotionSystem;

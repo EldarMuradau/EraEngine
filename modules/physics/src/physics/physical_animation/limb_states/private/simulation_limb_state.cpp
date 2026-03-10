@@ -73,14 +73,7 @@ namespace era_engine::physics
 				trs target_pose_in_constraint_space = invert(constraint_frame_actor0_local) * constraint_frame_target_local;
 				target_pose_in_constraint_space.rotation = normalize(target_pose_in_constraint_space.rotation);
 
-				if (physx::create_PxTransform(target_pose_in_constraint_space).isValid())
-				{
-					drive_joint_component->drive_transform = target_pose_in_constraint_space;
-				}
-				else
-				{
-					ASSERT(!physx::create_PxTransform(target_pose_in_constraint_space).isValid());
-				}
+				drive_joint_component->drive_transform = target_pose_in_constraint_space;
 
 				if(!has_velocity_drive)
 				{
@@ -107,7 +100,9 @@ namespace era_engine::physics
 				}
 			}
 
-			const float angular_damping = limb_component->calculate_desired_angular_damping(delta_angle);
+			const float strength_multiplier = physical_animation_component->get_strength_value_by_limb(limb_component->type);
+
+			const float angular_damping = limb_component->calculate_desired_angular_damping(delta_angle, strength_multiplier);
 
 			if (drive_joint_component->perform_slerp_drive)
 			{
@@ -119,7 +114,7 @@ namespace era_engine::physics
 				drive_joint_component->swing_drive_damping = angular_damping;
 			}
 
-			const float linear_damping = limb_component->calculate_desired_linear_damping(length(delta_position));
+			const float linear_damping = limb_component->calculate_desired_linear_damping(length(delta_position), strength_multiplier);
 			drive_joint_component->linear_drive_damping = linear_damping;
 		}
 

@@ -59,7 +59,7 @@ namespace era_engine::physics
 
         float max_force = std::numeric_limits<float>::max();
 
-        float velocity_drive_modifier = 0.25f;
+        float velocity_drive_modifier = 0.25f; // Only for MotorDriveType::VELOCITY or ALL
 
         bool accelerated = true;
         bool enable_slerp_drive = true;
@@ -83,8 +83,8 @@ namespace era_engine::physics
     {
         float default_strength_coeff = 1.0f;
 
-        float soft_strength_coeff = 0.5f;
-        float hard_strength_coeff = 3.0f;
+        float soft_strength_coeff = 0.2f;
+        float hard_strength_coeff = 5.0f;
     };
 
     class ERA_PHYSICS_API PhysicalLimbDetails final

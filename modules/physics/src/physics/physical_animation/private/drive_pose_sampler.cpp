@@ -160,7 +160,7 @@ namespace era_engine::physics
 		{
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE))
 			{
-				blend_with_transform(limb_animation_transform, physical_animation_component->blend_factor, new_transform);
+				blend_with_transform(limb_animation_transform, physical_animation_component->animation_blend_factor, new_transform);
 			}
 
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_PREV_POSE))

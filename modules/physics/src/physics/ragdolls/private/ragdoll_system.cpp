@@ -4,7 +4,7 @@
 #include "physics/joint.h"
 #include "physics/core/physics_utils.h"
 #include "physics/shape_utils.h"
-#include "physics/ragdolls/ragdoll_builder.h"
+#include "physics/physical_animation/physical_ragdoll_builder.h"
 #include "physics/shape_component.h"
 
 #include <core/cpu_profiling.h>
@@ -127,11 +127,6 @@ namespace era_engine::physics
 
 			ragdoll_limb_component.prev_physics_pose = ragdoll_limb_component.physics_pose;
 			ragdoll_limb_component.physics_pose = transform_component.get_local_transform();
-			if (!fuzzy_equals(ragdoll_limb_component.physics_pose, ragdoll_limb_component.prev_physics_pose))
-			{
-				int x = 0;
-				++x;
-			}
 		}
 	}
 
@@ -244,9 +239,16 @@ namespace era_engine::physics
 				continue;
 			}
 
-			RagdollBuilderUtils::build_simulated_body(entity);
-
 			RagdollComponent* ragdoll_component = entity.get_component<RagdollComponent>();
+
+			PhysicalRagdollBuilder::RuntimeContext context;
+			context.world = world;
+			context.ragdoll = entity;
+			context.ragdoll_component = ragdoll_component;
+			context.default_profile = nullptr;
+			context.enable_physical_animation = false;
+
+			PhysicalRagdollBuilder::build_ragdoll(context);
 
 			for (const EntityPtr& limb_ptr : ragdoll_component->limbs)
 			{

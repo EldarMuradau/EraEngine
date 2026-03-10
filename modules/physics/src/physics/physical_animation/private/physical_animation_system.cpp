@@ -6,7 +6,7 @@
 #include "physics/core/physics_utils.h"
 #include "physics/shape_utils.h"
 #include "physics/collisions_holder_root_component.h"
-#include "physics/physical_animation/physical_animation_builder.h"
+#include "physics/physical_animation/physical_ragdoll_builder.h"
 #include "physics/scene_queries.h"
 #include "physics/shape_component.h"
 #include "physics/physical_animation/ragdoll_profile.h"
@@ -48,6 +48,7 @@ namespace era_engine::physics
 	}
 
 	static DebugVar<bool> enable_always = DebugVar<bool>("physics.physical_animation.enable_always", false);
+	static DebugVar<bool> force_ragdoll_if_head = DebugVar<bool>("physics.physical_animation.force_ragdoll_if_head", false);
 	static DebugVar<bool> force_ragdoll = DebugVar<bool>("physics.physical_animation.force_ragdoll", false);
 	static DebugVar<bool> force_disable_ragdoll = DebugVar<bool>("physics.physical_animation.force_disable_ragdoll", false);
 
@@ -312,6 +313,9 @@ namespace era_engine::physics
 
 		for (PhysicalAnimationComponent* physical_animation_component : active_ragdolls)
 		{
+			const trs& world_transform = physical_animation_component->get_entity().get_component<TransformComponent>()->get_world_transform();
+			const trs inverse_world_transform = invert(world_transform);
+
 			for (const EntityPtr& limb_ptr : physical_animation_component->limbs)
 			{
 				Entity limb = limb_ptr.get();
@@ -320,7 +324,7 @@ namespace era_engine::physics
 				ASSERT(limb_data_component != nullptr);
 
 				limb_data_component->prev_physics_pose = limb_data_component->physics_pose;
-				limb_data_component->physics_pose = limb.get_component<TransformComponent>()->get_local_transform();
+				limb_data_component->physics_pose = inverse_world_transform * limb.get_component<TransformComponent>()->get_world_transform();
 			}
 
 			physical_animation_component->reached_physics_pose = false;
@@ -466,7 +470,8 @@ namespace era_engine::physics
 
 				ASSERT(limb_data_component != nullptr);
 
-				limb_data_component->is_colliding = false;
+				limb_data_component->collision.is_colliding = false;
+				limb_data_component->collision.impulse = vec3::zero;
 			}
 		}
 	}
@@ -493,15 +498,25 @@ namespace era_engine::physics
 			if (first_limb_data_component != nullptr)
 			{
 				Entity first_ragdoll = first_limb_data_component->ragdoll_ptr.get();
-				const PhysicalAnimationComponent* first_simulation_component = first_ragdoll.get_component<PhysicalAnimationComponent>();
+				PhysicalAnimationComponent* first_simulation_component = first_ragdoll.get_component<PhysicalAnimationComponent>();
 				ASSERT(first_simulation_component != nullptr);
 
 				const SimulationStateType state = first_simulation_component->get_current_state_type();
-				if((state == SimulationStateType::ENABLED || 
-					state == SimulationStateType::RAGDOLL) &&
-					first_limb_data_component->type != RagdollLimbType::FOOT)
+				if(state == SimulationStateType::ENABLED || 
+					state == SimulationStateType::RAGDOLL)
 				{
-					first_limb_data_component->is_colliding = true;
+					first_limb_data_component->collision.is_colliding = true;
+
+					if (first_limb_data_component->type == RagdollLimbType::HEAD &&
+						force_ragdoll_if_head)
+					{
+						first_simulation_component->force_set_ragdoll(true);
+						first_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 3750.0f));
+					}
+					else
+					{
+						first_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 100.0f));
+					}
 				}
 			}
 
@@ -509,15 +524,24 @@ namespace era_engine::physics
 			if (second_limb_data_component != nullptr)
 			{
 				Entity second_ragdoll = second_limb_data_component->ragdoll_ptr.get();
-				const PhysicalAnimationComponent* second_simulation_component = second_ragdoll.get_component<PhysicalAnimationComponent>();
+				PhysicalAnimationComponent* second_simulation_component = second_ragdoll.get_component<PhysicalAnimationComponent>();
 				ASSERT(second_simulation_component != nullptr);
 
 				const SimulationStateType state = second_simulation_component->get_current_state_type();
-				if ((state == SimulationStateType::ENABLED ||
-					state == SimulationStateType::RAGDOLL) &&
-					second_limb_data_component->type != RagdollLimbType::FOOT)
+				if (state == SimulationStateType::ENABLED ||
+					state == SimulationStateType::RAGDOLL)
 				{
-					second_limb_data_component->is_colliding = true;
+					second_limb_data_component->collision.is_colliding = true;
+					if (second_limb_data_component->type == RagdollLimbType::HEAD &&
+						force_ragdoll_if_head)
+					{
+						second_simulation_component->force_set_ragdoll(true);
+						second_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 3750.0f));
+					}
+					else
+					{
+						second_limb_data_component->apply_impulse(noz(physx::create_vec3(collision.impulse) * 100.0f));
+					}
 				}
 			}
 		}
@@ -553,18 +577,18 @@ namespace era_engine::physics
 
 			limb_data_component->update_states(dt, desired_chain_state);
 
-			if (limb_data_component->was_in_collision && limb_data_component->is_colliding)
+			if (limb_data_component->collision.was_in_collision && limb_data_component->collision.is_colliding)
 			{
 				const float used_collision_time = PhysicalAnimationUtils::is_arm_limb(limb_data_component->type) ?
-					PhysicalAnimationLimbComponent::MAX_FREQUENT_COLLISION_TIME :
-					PhysicalAnimationLimbComponent::MAX_COLLISION_TIME;
-				limb_data_component->collision_time = clamp(limb_data_component->collision_time + dt, 0.0f, used_collision_time);
+					PhysicalAnimationLimbComponent::CollisionData::MAX_FREQUENT_COLLISION_TIME :
+					PhysicalAnimationLimbComponent::CollisionData::MAX_COLLISION_TIME;
+				limb_data_component->collision.collision_time = clamp(limb_data_component->collision.collision_time + dt, 0.0f, used_collision_time);
 			}
 			else
 			{
-				limb_data_component->collision_time = max(limb_data_component->collision_time - dt, 0.0f);
+				limb_data_component->collision.collision_time = max(limb_data_component->collision.collision_time - dt, 0.0f);
 			}
-			limb_data_component->was_in_collision = limb_data_component->is_colliding;
+			limb_data_component->collision.was_in_collision = limb_data_component->collision.is_colliding;
 		}
 	}
 
@@ -677,7 +701,14 @@ namespace era_engine::physics
 			PhysicalAnimationComponent* physical_animation_component = entity.get_component<PhysicalAnimationComponent>();
 			physical_animation_component->current_profile = idle_profile;
 
-			PhysicalAnimationBuilderUtils::build_simulated_body(entity);
+			PhysicalRagdollBuilder::RuntimeContext context;
+			context.world = world;
+			context.ragdoll = entity;
+			context.ragdoll_component = physical_animation_component;
+			context.default_profile = idle_profile.get();
+			context.enable_physical_animation = true;
+
+			PhysicalRagdollBuilder::build_ragdoll(context);
 
 			for (const EntityPtr& limb_ptr : physical_animation_component->limbs)
 			{
