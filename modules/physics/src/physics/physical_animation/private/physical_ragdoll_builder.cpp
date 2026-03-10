@@ -592,7 +592,7 @@ namespace era_engine::physics
 		using namespace animation;
 
 		AggregateHolderComponent* aggregate_component = ctx.ragdoll.add_component<AggregateHolderComponent>();
-		aggregate_component->enable_self_collision = false;
+		aggregate_component->enable_self_collision = true;
 		aggregate_component->max_actors = 48;
 
 		ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->create_material(0.2f, 0.8f, 0.8f);
@@ -1266,6 +1266,17 @@ namespace era_engine::physics
 	bool PhysicalRagdollBuilder::build_constraint_joints(const RuntimeContext& ctx)
 	{
 		RagdollSkeletonStructure& structure = ctx.skeleton_structure;
+
+		if (ctx.enable_physical_animation)
+		{
+			create_collision_joint(ctx.ragdoll, 
+				ctx.skeleton_structure.left_arm_joint.physical_limb.value(), 
+				ctx.skeleton_structure.thorax_joint.physical_limb.value());
+
+			create_collision_joint(ctx.ragdoll, 
+				ctx.skeleton_structure.right_arm_joint.physical_limb.value(), 
+				ctx.skeleton_structure.thorax_joint.physical_limb.value());
+		}
 
 		const trs& head_capsule_bottom_transform = structure.head_joint.constraint_object_space_transform.value();
 		const trs& neck_capsule_bottom_transform = structure.neck_joint.constraint_object_space_transform.value();
