@@ -28,6 +28,10 @@
 
 #include "PhysXIntegration.h"
 
+#include "physics/shape_utils.h"
+
+#include "ecs/world.h"
+
 namespace snippetvehicle2
 {
 
@@ -151,7 +155,7 @@ void PhysXActorVehicle::destroy()
 	BaseVehicle::destroy();
 }
 
-void PhysXActorVehicle::setUpActor(PxScene& scene, const PxTransform& pose, const char* vehicleName)
+void PhysXActorVehicle::setUpActor(era_engine::World* world, PxScene& scene, const PxTransform& pose, const char* vehicleName, uint32 collision_type)
 {
 	//Give the vehicle a start pose by appylying a pose to the PxRigidDynamic associated with the vehicle. 
 	//This vehicle has components that are configured to read the pose from the PxRigidDynamic 
@@ -171,11 +175,7 @@ void PhysXActorVehicle::setUpActor(PxScene& scene, const PxTransform& pose, cons
 		shapes[i]->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		shapes[i]->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 
-		PxFilterData filterData;
-		filterData.word0 = (PxU32)(-1); // word0 = own ID
-		filterData.word1 = (PxU32)(-1);  // word1 = ID mask to filter pairs that trigger a contact callback
-		shapes[i]->setSimulationFilterData(filterData);
-		shapes[i]->setQueryFilterData(filterData);
+		era_engine::physics::ShapeUtils::setup_filtering(world, shapes[i], collision_type, std::nullopt);
 	}
 
 	//Add the physx actor to the physx scene.

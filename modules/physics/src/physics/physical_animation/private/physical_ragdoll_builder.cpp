@@ -186,8 +186,8 @@ namespace era_engine::physics
 			joint_component->twist_min_limit.get_for_write() = deg2rad(twist_min_deg);
 			joint_component->twist_max_limit.get_for_write() = deg2rad(twist_max_deg);
 
-			joint_component->twist_limit_damping.get_for_write() = 10.0f;
-			joint_component->twist_limit_stiffness.get_for_write() = 100.0f;
+			joint_component->twist_limit_damping.get_for_write() = 50.0f;
+			joint_component->twist_limit_stiffness.get_for_write() = 500.0f;
 			joint_component->twist_limit_restitution.get_for_write() = 0.0f;
 		}
 
@@ -225,8 +225,8 @@ namespace era_engine::physics
 
 		if (any_moving_swing)
 		{
-			joint_component->swing_limit_damping.get_for_write() = 10.0f;
-			joint_component->swing_limit_stiffness.get_for_write() = 100.0f;
+			joint_component->swing_limit_damping.get_for_write() = 50.0f;
+			joint_component->swing_limit_stiffness.get_for_write() = 500.0f;
 			joint_component->swing_limit_restitution.get_for_write() = 0.0f;
 		}
 	}
@@ -933,8 +933,8 @@ namespace era_engine::physics
 				DistanceJointComponent* joint_component = body_lower_ghost.add_component<DistanceJointComponent>(descriptor);
 				joint_component->enable_collision.get_for_write() = false;
 				joint_component->spring_enabled.get_for_write() = true;
-				joint_component->stiffness.get_for_write() = 1600.0f;
-				joint_component->damping.get_for_write() = 40.0f;
+				joint_component->stiffness.get_for_write() = 800.0f;
+				joint_component->damping.get_for_write() = 80.0f;
 				joint_component->max_distance.get_for_write() = 0.1f;
 				joint_component->min_distance.get_for_write() = 0.0f;
 			}
@@ -951,7 +951,7 @@ namespace era_engine::physics
 			structure.left_clavicle_joint,
 			structure.left_arm_joint,
 			settings.shapes_settings.clavicle_radius,
-			1.0f,
+			settings.scaler_settings.clavicle_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -970,7 +970,7 @@ namespace era_engine::physics
 			structure.left_arm_joint,
 			structure.left_forearm_joint,
 			settings.shapes_settings.arm_radius,
-			1.0f,
+			settings.scaler_settings.arm_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -989,7 +989,7 @@ namespace era_engine::physics
 			structure.left_forearm_joint,
 			structure.left_hand_joint,
 			settings.shapes_settings.forearm_radius,
-			1.0f,
+			settings.scaler_settings.forearm_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1025,7 +1025,7 @@ namespace era_engine::physics
 			structure.right_clavicle_joint,
 			structure.right_arm_joint,
 			settings.shapes_settings.clavicle_radius,
-			1.0f,
+			settings.scaler_settings.clavicle_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1044,7 +1044,7 @@ namespace era_engine::physics
 			structure.right_arm_joint,
 			structure.right_forearm_joint,
 			settings.shapes_settings.arm_radius,
-			1.0f,
+			settings.scaler_settings.arm_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1063,7 +1063,7 @@ namespace era_engine::physics
 			structure.right_forearm_joint,
 			structure.right_hand_joint,
 			settings.shapes_settings.forearm_radius,
-			1.0f,
+			settings.scaler_settings.forearm_height_modifier,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1142,7 +1142,7 @@ namespace era_engine::physics
 			ctx.enable_physical_animation ? physical_animation_component->left_leg_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
 			settings.object_space_settings.left_foot_joint_adjastment,
-			vec3::zero,
+			settings.object_space_settings.left_foot_end_joint_adjastment,
 			settings.local_shape_settings.left_foot_joint_adjastment,
 			settings.local_shape_settings.left_foot_joint_spin
 		);
@@ -1199,7 +1199,7 @@ namespace era_engine::physics
 			ctx.enable_physical_animation ? physical_animation_component->right_leg_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
 			settings.object_space_settings.right_foot_joint_adjastment,
-			vec3::zero,
+			settings.object_space_settings.right_foot_end_joint_adjastment,
 			settings.local_shape_settings.right_foot_joint_adjastment,
 			settings.local_shape_settings.right_foot_joint_spin
 		);

@@ -175,10 +175,12 @@ namespace era_engine::physics
             vec3 left_thigh_joint_adjastment = vec3::zero;
             vec3 left_calf_joint_adjastment = vec3::zero;
             vec3 left_foot_joint_adjastment = vec3::zero;
+            vec3 left_foot_end_joint_adjastment = vec3::zero;
 
             vec3 right_thigh_joint_adjastment = vec3::zero;
             vec3 right_calf_joint_adjastment = vec3::zero;
             vec3 right_foot_joint_adjastment = vec3::zero;
+            vec3 right_foot_end_joint_adjastment = vec3::zero;
         };
 
         struct ShapeScalerSettings
@@ -190,6 +192,10 @@ namespace era_engine::physics
             float upper_body_radius_modifier = 1.0f;
             float middle_body_radius_modifier = 1.0f;
             float lower_body_radius_modifier = 1.0f;
+
+            float clavicle_height_modifier = 1.0f;
+            float arm_height_modifier = 1.0f;
+            float forearm_height_modifier = 1.0f;
         };
 
         MassSettings mass_settings;
