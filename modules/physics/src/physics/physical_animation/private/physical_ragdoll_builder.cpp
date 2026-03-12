@@ -80,9 +80,8 @@ namespace era_engine::physics
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->solver_position_iterations_count.get_for_write() = 16;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 8;
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
-		dynamic_body_component->stabilization_threshold.get_for_write() = 0.1f;
 
 		return dynamic_body_component;
 	}
@@ -273,7 +272,7 @@ namespace era_engine::physics
 		joint_component->swing_z_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 
 		joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness * RagdollStrengthConfig::LINEAR_STIFFNESS_MODIFIER;
-		joint_component->linear_drive_damping = motor_drive.linear_damping_range.y * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
+		joint_component->linear_drive_damping = motor_drive.linear_damping_range.x * RagdollStrengthConfig::LINEAR_DAMPING_MODIFIER;
 		joint_component->linear_drive_force_limit = motor_drive.max_force;
 		joint_component->linear_drive_accelerated = motor_drive.accelerated;
 
@@ -283,18 +282,18 @@ namespace era_engine::physics
 		{
 			joint_component->slerp_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->slerp_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
-			joint_component->slerp_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
+			joint_component->slerp_drive_damping.get_for_write() = motor_drive.angular_damping_range.x * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 			joint_component->slerp_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
 		else
 		{
 			joint_component->swing_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->swing_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
-			joint_component->swing_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
+			joint_component->swing_drive_damping.get_for_write() = motor_drive.angular_damping_range.x * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 			joint_component->swing_drive_accelerated.get_for_write() = motor_drive.accelerated;
 
 			joint_component->twist_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness * RagdollStrengthConfig::ANGULAR_STIFFNESS_MODIFIER;
-			joint_component->twist_drive_damping.get_for_write() = motor_drive.angular_damping_range.y * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
+			joint_component->twist_drive_damping.get_for_write() = motor_drive.angular_damping_range.x * RagdollStrengthConfig::ANGULAR_DAMPING_MODIFIER;
 			joint_component->twist_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->twist_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
@@ -595,7 +594,7 @@ namespace era_engine::physics
 		aggregate_component->enable_self_collision = true;
 		aggregate_component->max_actors = 48;
 
-		ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->create_material(0.2f, 0.8f, 0.8f);
+		ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->create_material(0.3f, 0.5f, 0.7f);
 		ASSERT(material != nullptr);
 
 		const RagdollSettings& settings = ctx.ragdoll_component->settings;
@@ -1354,7 +1353,7 @@ namespace era_engine::physics
 			body_middle_d6_swing_y_deg, 10.0f);
 
 		// Body upper -> left clavicle
-		const float clavicle_d6_swing_y_deg = 60.0f;
+		const float clavicle_d6_swing_y_deg = 20.0f;
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
@@ -1362,8 +1361,8 @@ namespace era_engine::physics
 			structure.left_clavicle_joint,
 			left_clavicle_capsule_bottom_transform,
 			left_clavicle_capsule_bottom_transform,
-			-55.0f, 55.0f,
-			clavicle_d6_swing_y_deg, 60.0f);
+			-25.0f, 25.0f,
+			clavicle_d6_swing_y_deg, 20.0f);
 
 		// Left clavicle -> left arm
 		float arm_forward_angle_deg = 90.0f;  // How far an arm can be rotated forward around Y axis
@@ -1415,8 +1414,8 @@ namespace era_engine::physics
 			structure.right_clavicle_joint,
 			right_clavicle_capsule_bottom_transform,
 			right_clavicle_capsule_bottom_transform,
-			-55.0f, 55.0f,
-			clavicle_d6_swing_y_deg, 60.0f);
+			-25.0f, 25.0f,
+			clavicle_d6_swing_y_deg, 20.0f);
 
 		// Right clavicle -> right arm
 		create_d6_joint(

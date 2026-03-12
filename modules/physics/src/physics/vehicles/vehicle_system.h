@@ -40,6 +40,6 @@ namespace era_engine::physics
 			W4VehicleComponent>> w4_vehicles_group;
 
 		entt::group<entt::owned_t<>, entt::get_t<TransformComponent,
-			W4VehicleComponent>> tank_vehicles_group;
+			TankVehicleComponent>> tank_vehicles_group;
 	};
 }

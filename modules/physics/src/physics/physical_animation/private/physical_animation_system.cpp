@@ -95,6 +95,9 @@ namespace era_engine::physics
 			idle_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			idle_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			idle_profile->body_lower_limb_details.motor_drive = MotorDriveDetails();
+			idle_profile->body_lower_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			idle_profile->body_lower_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 
 			idle_profile->clavicle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->clavicle_limb_details.motor_drive = MotorDriveDetails();

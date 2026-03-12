@@ -77,32 +77,30 @@ namespace era_engine::physics
 
 				if(!has_velocity_drive)
 				{
-					drive_joint_component->angular_drive_velocity = vec3::zero;
-					drive_joint_component->linear_drive_velocity = vec3::zero;
+					drive_joint_component->angular_drive_velocity.get_for_write() = vec3::zero;
+					drive_joint_component->linear_drive_velocity.get_for_write() = vec3::zero;
 				}
 			}
 
 			if (has_velocity_drive)
 			{
 				const quat parent_constraint_frame_rotation = normalize(parent_local_transform.rotation * constraint_frame_in_actor0_local.rotation);
+				const quat inv_parent_constraint_frame_rotation = conjugate(parent_constraint_frame_rotation);
 
-				const vec3 angular_velocity_constraint_space = conjugate(parent_constraint_frame_rotation) * angular_drive_velocity;
+				const vec3 angular_velocity_constraint_space = inv_parent_constraint_frame_rotation * angular_drive_velocity;
 				drive_joint_component->angular_drive_velocity = angular_velocity_constraint_space * limb_details.motor_drive->velocity_drive_modifier;
 
 				const vec3 desired_linear_velocity = delta_position / dt;
-
-				const vec3 linear_velocity_constraint_space = conjugate(parent_constraint_frame_rotation) * desired_linear_velocity;
+				const vec3 linear_velocity_constraint_space = inv_parent_constraint_frame_rotation * desired_linear_velocity;
 				drive_joint_component->linear_drive_velocity = linear_velocity_constraint_space * limb_details.motor_drive->velocity_drive_modifier;
 
 				if (!has_transform_drive)
 				{
-					drive_joint_component->drive_transform = trs::identity;
+					drive_joint_component->drive_transform.get_for_write() = trs::identity;
 				}
 			}
 
-			const float strength_multiplier = physical_animation_component->get_strength_value_by_limb(limb_component->type);
-
-			const float angular_damping = limb_component->calculate_desired_angular_damping(delta_angle, strength_multiplier);
+			const float angular_damping = limb_component->calculate_desired_angular_damping(delta_angle);
 
 			if (drive_joint_component->perform_slerp_drive)
 			{
@@ -114,7 +112,7 @@ namespace era_engine::physics
 				drive_joint_component->swing_drive_damping = angular_damping;
 			}
 
-			const float linear_damping = limb_component->calculate_desired_linear_damping(length(delta_position), strength_multiplier);
+			const float linear_damping = limb_component->calculate_desired_linear_damping(length(delta_position));
 			drive_joint_component->linear_drive_damping = linear_damping;
 		}
 

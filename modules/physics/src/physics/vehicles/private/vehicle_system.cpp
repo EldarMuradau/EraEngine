@@ -41,6 +41,9 @@ namespace era_engine::physics
 		registry.on_construct<W4VehicleComponent>().connect<&VehicleSystem::on_vehicle_created>(this);
 		registry.on_destroy<W4VehicleComponent>().connect<&VehicleSystem::on_vehicle_released>(this);
 
+		registry.on_construct<TankVehicleComponent>().connect<&VehicleSystem::on_vehicle_created>(this);
+		registry.on_destroy<TankVehicleComponent>().connect<&VehicleSystem::on_vehicle_released>(this);
+
 		w4_vehicles_group = world->group(components_group<TransformComponent, W4VehicleComponent>);
 		tank_vehicles_group = world->group(components_group<TransformComponent, TankVehicleComponent>);
 	}
@@ -63,12 +66,12 @@ namespace era_engine::physics
 
 		for (auto [entity_handle, transformm_component, tank_vehicle_component] : tank_vehicles_group.each())
 		{
-			const PxVec3 lin_vel = w4_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getLinearVelocity();
-			const PxVec3 forward_dir = w4_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
+			const PxVec3 lin_vel = tank_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getLinearVelocity();
+			const PxVec3 forward_dir = tank_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
 			const PxReal forward_speed = lin_vel.dot(forward_dir);
 			const PxU8 nb_substeps = (forward_speed < 5.0f ? 3 : 1);
-			w4_vehicle_component.vehicle->mComponentSequence.setSubsteps(w4_vehicle_component.vehicle->mComponentSequenceSubstepGroupHandle, nb_substeps);
-			w4_vehicle_component.vehicle->step(dt, *w4_vehicle_component.vehicle_simulation_context);
+			tank_vehicle_component.vehicle->mComponentSequence.setSubsteps(tank_vehicle_component.vehicle->mComponentSequenceSubstepGroupHandle, nb_substeps);
+			tank_vehicle_component.vehicle->step(dt, *tank_vehicle_component.vehicle_simulation_context);
 		}
 	}
 
