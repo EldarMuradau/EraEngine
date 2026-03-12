@@ -21,6 +21,8 @@ namespace era_engine::physics
 		uint8 get_nb_actors() const;
 		bool is_self_collision() const;
 
+		physx::PxAggregate* get_native_aggregate();
+
 		ERA_REFLECT
 
 	private:

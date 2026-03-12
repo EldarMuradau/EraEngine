@@ -33,6 +33,10 @@ namespace era_engine::physics
 		void on_aggregate_created(entt::registry& registry, entt::entity entity_handle);
 		void on_cct_created(entt::registry& registry, entt::entity entity_handle);
 
+		void on_body_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_cct_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_aggregate_removed(entt::registry& registry, entt::entity entity_handle);
+
 		ERA_VIRTUAL_REFLECT(System)
 
 	private:

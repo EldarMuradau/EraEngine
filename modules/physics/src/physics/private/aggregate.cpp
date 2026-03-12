@@ -38,4 +38,9 @@ namespace era_engine::physics
 	{
 		return self_collisions;
 	}
+
+	physx::PxAggregate* Aggregate::get_native_aggregate()
+	{
+		return aggregate;
+	}
 }

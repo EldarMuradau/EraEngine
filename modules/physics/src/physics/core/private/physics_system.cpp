@@ -44,6 +44,11 @@ namespace era_engine::physics
 		registry.on_construct<AggregateHolderComponent>().connect<&PhysicsSystem::on_aggregate_created>(this);
 		registry.on_construct<CharacterControllerComponent>().connect<&PhysicsSystem::on_cct_created>(this);
 
+		registry.on_destroy<DynamicBodyComponent>().connect<&PhysicsSystem::on_body_removed>(this);
+		registry.on_destroy<StaticBodyComponent>().connect<&PhysicsSystem::on_body_removed>(this);
+		registry.on_destroy<AggregateHolderComponent>().connect<&PhysicsSystem::on_aggregate_removed>(this);
+		registry.on_destroy<CharacterControllerComponent>().connect<&PhysicsSystem::on_cct_removed>(this);
+
 		dynamic_body_group = world->group(components_group<TransformComponent, DynamicBodyComponent>);
 	}
 
@@ -554,4 +559,62 @@ namespace era_engine::physics
 		ccts_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
+	void PhysicsSystem::on_body_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		BodyComponent* body_component = PhysicsUtils::get_body_component(entity);
+
+		physx::PxRigidActor* actor = body_component->actor;
+
+		std::array<physx::PxShape*, MAX_SHAPES_COUNT_PER_BODY> shapes;
+		const size_t shapes_count = actor->getShapes(shapes.data(), static_cast<uint32>(shapes.size()));
+		for (size_t i = 0; i < shapes_count; ++i)
+		{
+			physx::PxShape* shape = shapes[i];
+			ASSERT(shape != nullptr);
+
+			actor->detachShape(*shape);
+		}
+
+		// PxScene will also remove the actor from the aggregate if necessary.
+		PhysicsHolder::physics_ref->get_scene()->removeActor(*actor);
+
+		PX_RELEASE(actor)
+	}
+
+	void PhysicsSystem::on_cct_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		CharacterControllerComponent* cct_component = entity.get_component<CharacterControllerComponent>();
+
+		if (cct_component != nullptr)
+		{
+			physx::PxCapsuleController* cct = cct_component->controller;
+			PX_RELEASE(cct);
+		}
+	}
+
+	void PhysicsSystem::on_aggregate_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		AggregateHolderComponent* aggregate_component = entity.get_component<AggregateHolderComponent>();
+
+		if (aggregate_component != nullptr)
+		{
+			physx::PxAggregate* aggregate = aggregate_component->aggregate->get_native_aggregate();
+
+			// Releasing the PxAggregate does not release the aggregated actors.
+			// The actors are automatically re-inserted in that scene and aggregate will be removed from that scene.
+			PX_RELEASE(aggregate);
+		}
+	}
 }

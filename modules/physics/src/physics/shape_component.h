@@ -16,6 +16,7 @@ namespace era_engine
 
 namespace era_engine::physics
 {
+	static constexpr size_t MAX_SHAPES_COUNT_PER_BODY = 16;
 
 	template<typename T_>
 	using IsShapeType = std::enable_if_t<std::is_base_of_v<class ShapeComponent, T_>, bool>;
