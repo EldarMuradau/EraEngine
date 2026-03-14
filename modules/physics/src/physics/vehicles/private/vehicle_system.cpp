@@ -7,6 +7,7 @@
 #include <ecs/base_components/name_component.h>
 
 #include <core/log.h>
+#include <core/ecs/input_receiver_component.h>
 #include <core/string.h>
 
 #include <rttr/policy.h>
@@ -51,6 +52,7 @@ namespace era_engine::physics
 	void VehicleSystem::update(float dt)
 	{
 		using namespace physx;
+		using namespace physx::vehicle2;
 
 		process_added_vehicles();
 
@@ -58,7 +60,46 @@ namespace era_engine::physics
 		{
 			const PxVec3 lin_vel = w4_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getLinearVelocity();
 			const PxVec3 forward_dir = w4_vehicle_component.vehicle->mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
-			const PxReal forward_speed = lin_vel.dot(forward_dir);
+			const float forward_speed = lin_vel.dot(forward_dir);
+
+			Entity entity = world->get_entity(entity_handle);
+
+			if (const InputReceiverComponent* input_receiver_component = entity.get_component_if_exists<InputReceiverComponent>())
+			{
+				const UserInput& input = input_receiver_component->get_frame_input();
+
+				VehicleInputContext input_ctx;
+				input_ctx.reverse_pressed = input.keyboard['S'].down;
+				input_ctx.accelerate_pressed = input.keyboard['W'].down || input_ctx.reverse_pressed;
+				input_ctx.brake_pressed = input.keyboard[key_space].down;
+				input_ctx.steer_left_pressed = input.keyboard['A'].down;
+				input_ctx.steer_right_pressed = input.keyboard['D'].down;
+				input_ctx.steer_amount = 0.0f;
+
+				VehicleControlOutput output = w4_vehicle_component.process_input(input_ctx, dt, forward_speed);
+
+				w4_vehicle_component.vehicle->mCommandState.brakes[0] = output.brake;
+				w4_vehicle_component.vehicle->mCommandState.nbBrakes = 1;
+				w4_vehicle_component.vehicle->mCommandState.throttle = output.throttle;
+				w4_vehicle_component.vehicle->mCommandState.steer = output.steer;
+
+				if (!input_ctx.accelerate_pressed)
+				{
+					w4_vehicle_component.vehicle->mTransmissionCommandState.targetGear = PxVehicleDirectDriveTransmissionCommandState::eNEUTRAL;
+				}
+				else
+				{
+					if (output.reverse)
+					{
+						w4_vehicle_component.vehicle->mTransmissionCommandState.targetGear = PxVehicleDirectDriveTransmissionCommandState::eREVERSE;
+					}
+					else
+					{
+						w4_vehicle_component.vehicle->mTransmissionCommandState.targetGear = PxVehicleDirectDriveTransmissionCommandState::eFORWARD;
+					}
+				}
+			}
+
 			const PxU8 nb_substeps = (forward_speed < 5.0f ? 3 : 1);
 			w4_vehicle_component.vehicle->mComponentSequence.setSubsteps(w4_vehicle_component.vehicle->mComponentSequenceSubstepGroupHandle, nb_substeps);
 			w4_vehicle_component.vehicle->step(dt, *w4_vehicle_component.vehicle_simulation_context);
@@ -140,7 +181,7 @@ namespace era_engine::physics
 				w4_vehicle_component->vehicle->mEngineDriveState.gearboxState.currentGear = w4_vehicle_component->vehicle->mEngineDriveParams.gearBoxParams.neutralGear + 1;
 				w4_vehicle_component->vehicle->mEngineDriveState.gearboxState.targetGear = w4_vehicle_component->vehicle->mEngineDriveParams.gearBoxParams.neutralGear + 1;
 
-				w4_vehicle_component->vehicle->mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
+				//w4_vehicle_component->vehicle->mTransmissionCommandState.targetGear = PxVehicleDirectDriveTransmissionCommandState::eNEUTRAL;
 
 				w4_vehicle_component->vehicle_simulation_context->setToDefault();
 				w4_vehicle_component->vehicle_simulation_context->frame.lngAxis = PxVehicleAxes::ePosZ;
