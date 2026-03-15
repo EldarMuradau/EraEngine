@@ -19,25 +19,28 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		auto& physics = PhysicsHolder::physics_ref;
+		auto physics = PhysicsEngine::get_physics_core();
 
 		plane = PxCreatePlane(*physics->get_physics(), PxPlane(create_PxVec3(point), create_PxVec3(normal)), *physics->get_default_material()->get_native_material());
-		
+
 		PxShape* buffer[1];
 		plane->getShapes(buffer, 1);
 		ShapeUtils::setup_filtering(get_world(), buffer[0], static_cast<uint32>(_collision_type), std::optional<uint32>{});
 
-		PxSceneWriteLock lock{ *physics->get_scene() };
-		physics->get_scene()->addActor(*plane);
+		PhysicsEngine::execute_write([&]() {
+			physics->get_scene()->addActor(*plane);
+		});
 	}
 
 	PlaneComponent::~PlaneComponent()
 	{
 		using namespace physx;
 
-		auto& physics = PhysicsHolder::physics_ref;
-		PxSceneWriteLock lock{ *physics->get_scene() };
-		physics->get_scene()->removeActor(*plane);
+		auto physics = PhysicsEngine::get_physics_core();
+
+		PhysicsEngine::execute_write([&]() {
+			physics->get_scene()->removeActor(*plane);
+			});
 
 		PX_RELEASE(plane)
 	}
@@ -45,7 +48,7 @@ namespace era_engine::physics
 	physx::PxRigidDynamic* create_rigid_cube(physx::PxReal half_extent, const physx::PxVec3& position)
 	{
 		using namespace physx;
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		PxMaterial* material = physics->createMaterial(0.8f, 0.8f, 0.6f);
 

@@ -31,54 +31,56 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		const auto physics = PhysicsHolder::physics_ref->get_physics();
+		PxPhysics* physics = PhysicsEngine::get_physics_core()->get_physics();
 
-		articulation = physics->createArticulationReducedCoordinate();
+		PhysicsEngine::execute_write([&]() {
+			articulation = physics->createArticulationReducedCoordinate();
 
-		articulation->setArticulationFlag(PxArticulationFlag::eFIX_BASE, descriptor.fixed_base);
-		articulation->setArticulationFlag(PxArticulationFlag::eDISABLE_SELF_COLLISION, !descriptor.self_collision);
+			articulation->setArticulationFlag(PxArticulationFlag::eFIX_BASE, descriptor.fixed_base);
+			articulation->setArticulationFlag(PxArticulationFlag::eDISABLE_SELF_COLLISION, !descriptor.self_collision);
 
-		PxTransform rootTrs = PxTransform(create_PxVec3(descriptor.root_position));
+			PxTransform rootTrs = PxTransform(create_PxVec3(descriptor.root_position));
 
-		articulation->setRootGlobalPose(rootTrs);
+			articulation->setRootGlobalPose(rootTrs);
 
-		PxArticulationLink* link = articulation->createLink(nullptr, rootTrs);
+			PxArticulationLink* link = articulation->createLink(nullptr, rootTrs);
 
-		// Test data
-		{
-			PxSphereGeometry geometry = PxSphereGeometry(1.0f);
+			// Test data
+			{
+				PxSphereGeometry geometry = PxSphereGeometry(1.0f);
 
-			physx::PxRigidActorExt::createExclusiveShape(*link, geometry, *PhysicsHolder::physics_ref->get_default_material()->get_native_material());
-			physx::PxRigidBodyExt::updateMassAndInertia(*link, 1.0f);
+				physx::PxRigidActorExt::createExclusiveShape(*link, geometry, *PhysicsEngine::get_physics_core()->get_default_material()->get_native_material());
+				physx::PxRigidBodyExt::updateMassAndInertia(*link, 1.0f);
 
-			PxArticulationJointReducedCoordinate* joint = link->getInboundJoint();
-			joint->setParentPose(rootTrs);
-			joint->setChildPose(rootTrs);
+				PxArticulationJointReducedCoordinate* joint = link->getInboundJoint();
+				joint->setParentPose(rootTrs);
+				joint->setChildPose(rootTrs);
 
-			joint->setJointType(PxArticulationJointType::eREVOLUTE);
-			joint->setMotion(PxArticulationAxis::eSWING2, PxArticulationMotion::eLIMITED);
-			PxArticulationLimit limits;
-			limits.low = -PxPiDivFour;
-			limits.high = PxPiDivFour;
-			joint->setLimitParams(PxArticulationAxis::eSWING2, limits);
+				joint->setJointType(PxArticulationJointType::eREVOLUTE);
+				joint->setMotion(PxArticulationAxis::eSWING2, PxArticulationMotion::eLIMITED);
+				PxArticulationLimit limits;
+				limits.low = -PxPiDivFour;
+				limits.high = PxPiDivFour;
+				joint->setLimitParams(PxArticulationAxis::eSWING2, limits);
 
-			PxArticulationDrive posDrive;
-			posDrive.stiffness = 0.5f;
-			posDrive.damping = 0.05f;
-			posDrive.maxForce = 100.0f;
-			posDrive.driveType = PxArticulationDriveType::eFORCE;
+				PxArticulationDrive posDrive;
+				posDrive.stiffness = 0.5f;
+				posDrive.damping = 0.05f;
+				posDrive.maxForce = 100.0f;
+				posDrive.driveType = PxArticulationDriveType::eFORCE;
 
-			joint->setDriveParams(PxArticulationAxis::eSWING2, posDrive);
-			joint->setDriveVelocity(PxArticulationAxis::eSWING2, 0.0f);
-			joint->setDriveTarget(PxArticulationAxis::eSWING2, 1.0f);
-		}
+				joint->setDriveParams(PxArticulationAxis::eSWING2, posDrive);
+				joint->setDriveVelocity(PxArticulationAxis::eSWING2, 0.0f);
+				joint->setDriveTarget(PxArticulationAxis::eSWING2, 1.0f);
+			}
 
-		PhysicsHolder::physics_ref->get_scene()->addArticulation(*articulation);
+			PhysicsEngine::get_physics_core()->get_scene()->addArticulation(*articulation);
+		});
 	}
 
 	ArticulationComponent::~ArticulationComponent()
 	{
-		PhysicsHolder::physics_ref->get_scene()->removeArticulation(*articulation);
+		PhysicsEngine::get_physics_core()->get_scene()->removeArticulation(*articulation);
 
 		joints.clear();
 		links.clear();

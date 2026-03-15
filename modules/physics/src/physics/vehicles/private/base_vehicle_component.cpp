@@ -23,7 +23,7 @@ namespace era_engine::physics
 
 	void VehicleBaseComponent::init_material_friction_table()
 	{
-		material = PhysicsHolder::physics_ref->create_material(0.8f, 0.8f, 0.6f);
+		material = PhysicsEngine::get_physics_core()->create_material(0.8f, 0.8f, 0.6f);
 
 		material_frictions[0].friction = 1.0f;
 		material_frictions[0].material = material->get_native_material();

@@ -8,25 +8,35 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		auto& physics_ref = PhysicsHolder::physics_ref;
+		auto physics_core = PhysicsEngine::get_physics_core();
 
-		aggregate = physics_ref->get_physics()->createAggregate(nb_actors, nb_actors, PxGetAggregateFilterHint(PxAggregateType::eGENERIC, self_collisions));
-		physics_ref->get_scene()->addAggregate(*aggregate);
+		PhysicsEngine::execute_write([&]() {
+			aggregate = physics_core->get_physics()->createAggregate(nb_actors, nb_actors, PxGetAggregateFilterHint(PxAggregateType::eGENERIC, self_collisions));
+			physics_core->get_scene()->addAggregate(*aggregate);
+		});
 	}
 
 	Aggregate::~Aggregate()
 	{
-		PX_RELEASE(aggregate)
+		// Releasing the PxAggregate does not release the aggregated actors.
+		// The actors are automatically re-inserted in that scene and aggregate will be removed from that scene.
+		PhysicsEngine::execute_write([&]() {
+			PX_RELEASE(aggregate)
+		});
 	}
 
 	void Aggregate::add_actor(physx::PxActor* actor)
 	{
-		aggregate->addActor(*actor);
+		PhysicsEngine::execute_write([&]() {
+			aggregate->addActor(*actor);
+		});
 	}
 
 	void Aggregate::remove_actor(physx::PxActor* actor)
 	{
-		aggregate->removeActor(*actor);
+		PhysicsEngine::execute_write([&]() {
+			aggregate->removeActor(*actor);
+		});
 	}
 
 	uint8 Aggregate::get_nb_actors() const

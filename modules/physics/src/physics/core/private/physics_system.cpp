@@ -77,9 +77,7 @@ namespace era_engine::physics
 		{
 			ZoneScopedN("PhysicsSystem::update PhysX");
 
-			ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
-
-			PhysicsHolder::physics_ref->update(dt);
+			PhysicsEngine::get_physics_core()->update_locked(dt);
 		}
 
 		{
@@ -93,16 +91,16 @@ namespace era_engine::physics
 	{
 		ZoneScopedN("PhysicsSystem::clear_pending_collisions");
 
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
-		PhysicsHolder::physics_ref->clear_collisions();
+		PhysicsEngine::get_physics_core()->clear_collisions();
 	}
 
 	void PhysicsSystem::sync_physics_to_component_changes(float dt)
 	{
 		using namespace physx;
 
-		PxSceneWriteLock _scene_lock{ *PhysicsHolder::physics_ref->get_scene() };
+		PxSceneWriteLock _scene_lock{ *PhysicsEngine::get_physics_core()->get_scene() };
 
 		for (auto [entity_handle, changed_flag, static_body] : world->group(components_group<TransformComponent, StaticBodyComponent>).each())
 		{
@@ -360,8 +358,10 @@ namespace era_engine::physics
 
 			if (!dynamic_body.kinematic)
 			{
-				dynamic_body.linear_velocity.get_silent_for_write() = create_vec3(body->getLinearVelocity());
-				dynamic_body.angular_velocity.get_silent_for_write() = create_vec3(body->getAngularVelocity());
+				PhysicsEngine::execute_read([&]() {
+					dynamic_body.linear_velocity.get_silent_for_write() = create_vec3(body->getLinearVelocity());
+					dynamic_body.angular_velocity.get_silent_for_write() = create_vec3(body->getAngularVelocity());
+				});
 			}
 			else
 			{
@@ -375,12 +375,10 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
-		auto& physics_ref = PhysicsHolder::physics_ref;
-		const auto& physics = physics_ref->get_physics();
-
-		PxSceneWriteLock _scene_lock { *physics_ref->get_scene()};
+		auto physics_core = PhysicsEngine::get_physics_core();
+		const auto& physics = physics_core->get_physics();
 
 		for (Entity::Handle entity_handle : std::exchange(aggregates_to_init, {}))
 		{
@@ -396,7 +394,7 @@ namespace era_engine::physics
 
 			DynamicBodyComponent* dynamic_body_component = entity.get_component<DynamicBodyComponent>();
 
-			auto& colliders = physics_ref->colliders_map[entity_handle];
+			auto& colliders = physics_core->colliders_map[entity_handle];
 
 			TransformComponent* transform = entity.get_component_if_exists<TransformComponent>();
 			transform->type = TransformComponent::DYNAMIC;
@@ -413,28 +411,29 @@ namespace era_engine::physics
 
 			for (ShapeComponent* shape_component : colliders)
 			{
-				PxShape* shape = shape_component->create_shape();
+				PhysicsEngine::execute_write([&]() {
+					PxShape* shape = shape_component->create_shape();
 
-				dynamic_body_component->actor->attachShape(*shape);
+					dynamic_body_component->actor->attachShape(*shape);
 
-				ShapeUtils::setup_filtering(world, shape, static_cast<uint32>(shape_component->collision_type.get()), shape_component->collision_filter_data);
+					ShapeUtils::setup_filtering(world, shape, static_cast<uint32>(shape_component->collision_type.get()), shape_component->collision_filter_data);
+				});
 			}
 
-			physics_ref->add_actor(dynamic_body_component, dynamic_body_component->actor);
+			physics_core->add_actor_locked(dynamic_body_component, dynamic_body_component->actor);
+			PhysicsEngine::execute_write([&](){
+					PxRigidDynamic* dynamic_body = dynamic_body_component->get_rigid_dynamic();
 
-			{
-				PxRigidDynamic* dynamic_body = dynamic_body_component->get_rigid_dynamic();
+					const PxVec3 center_of_mass = create_PxVec3(dynamic_body_component->center_of_mass);
 
-				const PxVec3 center_of_mass = create_PxVec3(dynamic_body_component->center_of_mass);
+					PxRigidBodyExt::setMassAndUpdateInertia(
+						*dynamic_body,
+						dynamic_body_component->mass.get(),
+						&center_of_mass,
+						false);
 
-				PxRigidBodyExt::setMassAndUpdateInertia(
-					*dynamic_body,
-					dynamic_body_component->mass.get(),
-					&center_of_mass,
-					false);
-
-				dynamic_body_component->center_of_mass.get_silent_for_write() = create_vec3(dynamic_body->getCMassLocalPose().p);
-			}
+					dynamic_body_component->center_of_mass.get_silent_for_write() = create_vec3(dynamic_body->getCMassLocalPose().p);
+			});
 		}
 
 		for (Entity::Handle entity_handle : std::exchange(statics_to_init, {}))
@@ -443,7 +442,7 @@ namespace era_engine::physics
 
 			StaticBodyComponent* static_body_component = entity.get_component<StaticBodyComponent>();
 
-			auto& colliders = physics_ref->colliders_map[entity_handle];
+			auto& colliders = physics_core->colliders_map[entity_handle];
 
 			const TransformComponent* transform = entity.get_component_if_exists<TransformComponent>();
 
@@ -459,13 +458,15 @@ namespace era_engine::physics
 
 			for (ShapeComponent* shape_component : colliders)
 			{
-				PxShape* shape = shape_component->create_shape();
+				PhysicsEngine::execute_write([&]() {
+					PxShape* shape = shape_component->create_shape();
 
-				static_body_component->actor->attachShape(*shape);
-				ShapeUtils::setup_filtering(world, shape, static_cast<uint32>(shape_component->collision_type.get()), shape_component->collision_filter_data);
+					static_body_component->actor->attachShape(*shape);
+					ShapeUtils::setup_filtering(world, shape, static_cast<uint32>(shape_component->collision_type.get()), shape_component->collision_filter_data);
+				});
 			}
 
-			physics_ref->add_actor(static_body_component, static_body_component->actor);
+			physics_core->add_actor_locked(static_body_component, static_body_component->actor);
 		}
 	}
 
@@ -490,7 +491,7 @@ namespace era_engine::physics
 			ASSERT(cct_component->radius > 0.0f);
 			ASSERT(cct_component->height > 0.0f);
 
-			ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->create_material(0.5f, 1.0f, 0.1f);
+			ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.5f, 1.0f, 0.1f);
 			ASSERT(material != nullptr);
 
 			PxCapsuleControllerDesc desc;
@@ -514,54 +515,61 @@ namespace era_engine::physics
 				desc.nonWalkableMode = PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
 			}
 
-			cct_component->controller = static_cast<PxCapsuleController*>(PhysicsHolder::physics_ref->cct_manager->createController(desc));
-
-			cct_component->controller->setUserData(user_data);
+			PhysicsEngine::execute_write([&]() {
+				cct_component->controller = static_cast<PxCapsuleController*>(PhysicsEngine::get_physics_core()->cct_manager->createController(desc));
+				cct_component->controller->setUserData(user_data);
+			});
 
 			PxRigidDynamic* physx_actor = cct_component->controller->getActor();
 			ASSERT(physx_actor != nullptr);
 			physx_actor->userData = user_data;
 
 			PxShape* physx_shape = nullptr;
-			physx_actor->getShapes(&physx_shape, 1, 0);
+
+			PhysicsEngine::execute_read([&]() {
+				physx_actor->getShapes(&physx_shape, 1, 0);
+				});
+
 			ASSERT(physx_shape != nullptr);
 			physx_shape->userData = user_data;
 
-			ShapeUtils::setup_filtering(world, physx_shape, static_cast<uint32>(cct_component->collision_type.get()), cct_component->collision_filter_data);
+			PhysicsEngine::execute_write([&]() {
+				ShapeUtils::setup_filtering(world, physx_shape, static_cast<uint32>(cct_component->collision_type.get()), cct_component->collision_filter_data);
+			});
 		}
 	}
 
 	void PhysicsSystem::on_dynamic_body_created(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		dynamics_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
 	void PhysicsSystem::on_static_body_created(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		statics_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
 	void PhysicsSystem::on_aggregate_created(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		aggregates_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
 	void PhysicsSystem::on_cct_created(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		ccts_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
 	void PhysicsSystem::on_body_removed(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		Entity entity = world->get_entity(entity_handle);
 
@@ -569,25 +577,27 @@ namespace era_engine::physics
 
 		physx::PxRigidActor* actor = body_component->actor;
 
-		std::array<physx::PxShape*, MAX_SHAPES_COUNT_PER_BODY> shapes;
-		const size_t shapes_count = actor->getShapes(shapes.data(), static_cast<uint32>(shapes.size()));
-		for (size_t i = 0; i < shapes_count; ++i)
-		{
-			physx::PxShape* shape = shapes[i];
-			ASSERT(shape != nullptr);
+		PhysicsEngine::execute_write([&]() {
+			std::array<physx::PxShape*, MAX_SHAPES_COUNT_PER_BODY> shapes{};
+			const size_t shapes_count = actor->getShapes(shapes.data(), static_cast<uint32>(shapes.size()));
+			for (size_t i = 0; i < shapes_count; ++i)
+			{
+				physx::PxShape* shape = shapes[i];
+				ASSERT(shape != nullptr);
 
-			actor->detachShape(*shape);
-		}
+				actor->detachShape(*shape);
+			}
+		});
 
 		// PxScene will also remove the actor from the aggregate if necessary.
-		PhysicsHolder::physics_ref->get_scene()->removeActor(*actor);
+		PhysicsEngine::get_physics_core()->remove_actor_locked(body_component);
 
 		PX_RELEASE(actor)
 	}
 
 	void PhysicsSystem::on_cct_removed(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
+		ScopedSpinLock _lock{ sys_sync };
 
 		Entity entity = world->get_entity(entity_handle);
 
@@ -595,26 +605,14 @@ namespace era_engine::physics
 
 		if (cct_component != nullptr)
 		{
-			physx::PxCapsuleController* cct = cct_component->controller;
-			PX_RELEASE(cct);
+			PhysicsEngine::execute_write([&]() {
+				physx::PxCapsuleController* cct = cct_component->controller;
+				PX_RELEASE(cct);
+			});
 		}
 	}
 
 	void PhysicsSystem::on_aggregate_removed(entt::registry& registry, entt::entity entity_handle)
 	{
-		ScopedSpinLock _lock{ PhysicsHolder::physics_ref->sync };
-
-		Entity entity = world->get_entity(entity_handle);
-
-		AggregateHolderComponent* aggregate_component = entity.get_component<AggregateHolderComponent>();
-
-		if (aggregate_component != nullptr)
-		{
-			physx::PxAggregate* aggregate = aggregate_component->aggregate->get_native_aggregate();
-
-			// Releasing the PxAggregate does not release the aggregated actors.
-			// The actors are automatically re-inserted in that scene and aggregate will be removed from that scene.
-			PX_RELEASE(aggregate);
-		}
 	}
 }

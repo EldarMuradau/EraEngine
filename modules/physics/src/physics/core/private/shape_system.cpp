@@ -23,7 +23,9 @@ namespace era_engine::physics
 
 		registration::class_<ShapeSystem>("ShapeSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
-			.method("update", &ShapeSystem::update)(metadata("update_group", update_types::PHYSICS))
+			.method("update", &ShapeSystem::update)
+			(metadata("update_group", update_types::PHYSICS),
+			metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}))
 			.method("process_skeleton_attachments", &ShapeSystem::process_skeleton_attachments)(metadata("update_group", update_types::AFTER_PHYSICS));
 	}
 
@@ -41,6 +43,8 @@ namespace era_engine::physics
 		using namespace physx;
 
 		ZoneScopedN("ShapeSystem::update");
+
+		PxSceneWriteLock write_lock(*PhysicsEngine::get_physics_core()->get_scene());
 
 		for (auto [entity_handle, changed_flag, shape_component] : world->group(components_group<TransformComponent, BoxShapeComponent>).each())
 		{
@@ -230,12 +234,12 @@ namespace era_engine::physics
 
 		ZoneScopedN("ShapeSystem::process_skeleton_attachments");
 
-		auto& physics_ref = PhysicsHolder::physics_ref;
+		auto physics_core = PhysicsEngine::get_physics_core();
 
 		for (auto [entity_handle, dynamic_body_component, transform_component] 
 			: world->group(components_group<DynamicBodyComponent, TransformComponent>).each())
 		{
-			auto& colliders = physics_ref->colliders_map[entity_handle];
+			auto& colliders = physics_core->colliders_map[entity_handle];
 
 			if (colliders.empty())
 			{
@@ -268,7 +272,7 @@ namespace era_engine::physics
 				const trs& reference_world_transform = referenced_entity.get_component<TransformComponent>()->get_world_transform();
 				const trs world_space_joint_trasnform = reference_world_transform * reference_space_joint_transform;
 
-				PhysicsUtils::manual_set_physics_transform(world->get_entity(entity_handle), world_space_joint_trasnform, true);
+				PhysicsUtils::manual_set_physics_transform_locked(world->get_entity(entity_handle), world_space_joint_trasnform, true);
 			}
 		}
 	}

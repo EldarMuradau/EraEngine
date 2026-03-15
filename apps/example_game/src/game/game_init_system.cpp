@@ -110,7 +110,7 @@ namespace era_engine
 			SkeletonComponent* skeleton_component = tiran.add_component<SkeletonComponent>();
 
 			AnimationComponent* animation_component = tiran.add_component<AnimationComponent>();
-			animation_component->play = false;
+			animation_component->play = true;
 			animation_component->loop = true;
 
 			GameAssetsProvider provider;
@@ -213,7 +213,7 @@ namespace era_engine
 			settings.scaler_settings.arm_height_modifier = 1.0f;
 			settings.scaler_settings.forearm_height_modifier = 1.3f;
 
-			/*CharacterControllerComponent* cct_component = tiran.add_component<CharacterControllerComponent>();
+			CharacterControllerComponent* cct_component = tiran.add_component<CharacterControllerComponent>();
 			cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
 			cct_component->height = 1.2f;
 			cct_component->radius = 0.3f;
@@ -221,11 +221,11 @@ namespace era_engine
 
 			tiran.add_component<MotionComponent>();
 			tiran.add_component<TrajectoryComponent>();
-			camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());*/
+			camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
 
-			RagdollComponent* ragdoll_component = tiran.add_component<RagdollComponent>();
-			ragdoll_component->simulated = true;
-			//PhysicalAnimationComponent* ragdoll_component = tiran.add_component<PhysicalAnimationComponent>();
+			//RagdollComponent* ragdoll_component = tiran.add_component<RagdollComponent>();
+			//ragdoll_component->simulated = true;
+			PhysicalAnimationComponent* ragdoll_component = tiran.add_component<PhysicalAnimationComponent>();
 			ragdoll_component->joint_init_ids = joint_init_ids;
 			ragdoll_component->settings = settings;
 		}
@@ -239,12 +239,12 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -3.75f, 35.0f));
 		}*/
 
-		{
-			Entity vehicle = world->create_entity("Vehicle");
-			vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
-			vehicle.add_component<physics::W4VehicleComponent>();
-			camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
-		}
+		//{
+		//	Entity vehicle = world->create_entity("Vehicle");
+		//	vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
+		//	vehicle.add_component<physics::W4VehicleComponent>();
+		//	camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
+		//}
 
 		Entity plane = world->create_entity("Platform");
 		plane.add_component<PlaneComponent>(CollisionType::TERRAIN, vec3(0.f, -5.0, 0.0f));
@@ -275,7 +275,7 @@ namespace era_engine
 
 			Entity sphere = world->create_entity("Sphere");
 
-			ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->get_default_material();
+			ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->get_default_material();
 
 			SphereShapeComponent* sphere_shape_component = sphere.add_component<SphereShapeComponent>();
 			sphere_shape_component->collision_type = static_cast<CollisionType>(GameCollisionType::DYNAMICS);

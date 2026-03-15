@@ -480,7 +480,7 @@ namespace era_engine::physics
 
 	void PhysicalAnimationSystem::filter_states_by_collisions(float dt) const
 	{
-		ref<SimulationEventCallback> event_callback = PhysicsHolder::physics_ref->simulation_event_callback;
+		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
 		for (const Collision& collision : event_callback->new_collisions)
 		{
 			Entity first_entity = collision.this_actor->get_entity();
@@ -615,13 +615,13 @@ namespace era_engine::physics
 				if (limb_component->drive_joint_component.get() != nullptr)
 				{
 					D6JointComponent* drive_joint = dynamic_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
-					PhysicsUtils::manual_set_physics_transform(drive_joint->get_first_entity_ptr().get(), ragdoll_world_space_pose * limb_component->target_pose, true);
+					PhysicsUtils::manual_set_physics_transform_locked(drive_joint->get_first_entity_ptr().get(), ragdoll_world_space_pose * limb_component->target_pose, true);
 				}
 			}
 		}
 
 		TransformComponent* root_attachment_transform_component = physical_animation_component->attachment_body.get().get_component<TransformComponent>();
-		PhysicsUtils::manual_set_physics_transform(physical_animation_component->attachment_body.get(),
+		PhysicsUtils::manual_set_physics_transform_locked(physical_animation_component->attachment_body.get(),
 			ragdoll_world_space_pose * physical_animation_component->local_joint_poses_for_target_calculation[physical_animation_component->root_joint_id],
 			true);
 	}

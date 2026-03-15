@@ -21,7 +21,7 @@ namespace era_engine
     {
         IModule::initialize(engine);
 
-        MODULE_REGISTRATION
+        ERA_MODULE_REGISTRATION
 
         return true;
     }

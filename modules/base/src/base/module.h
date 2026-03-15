@@ -55,7 +55,7 @@ namespace era_engine
 	};
 }
 
-#define MODULE_REGISTRATION															\
+#define ERA_MODULE_REGISTRATION														\
 	{																				\
 		Engine * engine_ptr = static_cast<Engine*>(engine);							\
 		World* world = get_world_by_name(World::GAMEPLAY_WORLD_NAME);				\

@@ -48,5 +48,7 @@ namespace era_engine::physics
 		entt::group<entt::owned_t<>, entt::get_t<TransformComponent, DynamicBodyComponent>> dynamic_body_group;
 
 		ref<CharacterControllerHitReportCallback> cct_hit_report_callback = nullptr;
+
+		SpinLock sys_sync;
 	};
 }

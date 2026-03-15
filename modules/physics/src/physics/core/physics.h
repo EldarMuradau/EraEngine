@@ -14,6 +14,7 @@
 namespace era_engine
 {
 	class EditorScene;
+	class PhysicsModule;
 }
 
 namespace era_engine::physics
@@ -52,30 +53,30 @@ namespace era_engine::physics
 
 		bool is_gpu() const;
 
-		void release();
+		void release_locked();
 
 		void start();
-		void update(float dt);
+		void update_locked(float dt);
 
 		void clear_collisions();
 
 		void start_simulation(float dt);
 		void end_simulation(float dt);
 
-		void reset_actors_velocity_and_inertia();
+		void reset_actors_velocity_and_inertia_locked();
 
 		void add_shape_to_entity_data(ShapeComponent* shape);
 		void remove_shape_from_entity_data(ShapeComponent* shape);
 
-		void add_actor(BodyComponent* actor, physx::PxRigidActor* physx_actor);
-		void remove_actor(BodyComponent* actor);
+		void add_actor_locked(BodyComponent* actor, physx::PxRigidActor* physx_actor);
+		void remove_actor_locked(BodyComponent* actor);
 
-		void release_scene();
+		void release_scene_locked();
 
 		void explode(const vec3& world_pos, float damage_radius, float explosive_impulse);
 
 	private:
-		void sync_transforms();
+		void sync_transforms_locked();
 		void process_simulation_event_callbacks();
 
 	public:
@@ -126,16 +127,25 @@ namespace era_engine::physics
 		physx::PxTolerancesScale tolerance_scale;
 
 		const uint32 nb_cpu_dispatcher_threads = 4;
-		static constexpr uint64 scratch_mem_block_size = MB(32U);
+		static constexpr uint64 scratch_mem_block_size = MB(64U);
 
 		friend class PhysicsSystem;
 	};
 
-	class ERA_PHYSICS_API PhysicsHolder final
+	class ERA_PHYSICS_API PhysicsEngine final
 	{
-		PhysicsHolder() = delete;
+		PhysicsEngine() = delete;
 
 	public:
-		static inline ref<Physics> physics_ref = nullptr;
+
+		static ref<Physics> get_physics_core();
+
+		static void execute_read(const std::function<void()>& func);
+		static void execute_write(const std::function<void()>& func);
+
+	private:
+		static inline ref<Physics> physics_core = nullptr;
+
+		friend PhysicsModule;
 	};
 }

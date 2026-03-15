@@ -113,7 +113,7 @@ namespace era_engine::physics
 		pelvis_local_transform.scale = vec3(1.0f);
 
 		const trs pelvis_world_transform = ragdoll_transform * pelvis_local_transform;
-		PhysicsUtils::manual_set_physics_transform(physical_animation_component->attachment_body.get(), pelvis_world_transform, true);
+		PhysicsUtils::manual_set_physics_transform_locked(physical_animation_component->attachment_body.get(), pelvis_world_transform, true);
 
 		for (const EntityPtr& limb_ptr : physical_animation_component->limbs)
 		{
@@ -125,7 +125,7 @@ namespace era_engine::physics
 			if (limb_data_component->drive_joint_component.get() != nullptr)
 			{
 				D6JointComponent* drive_joint = dynamic_cast<D6JointComponent*>(limb_data_component->drive_joint_component.get_for_write());
-				PhysicsUtils::manual_set_physics_transform(drive_joint->get_first_entity_ptr().get(), ragdoll_transform * limb_data_component->target_pose, true);
+				PhysicsUtils::manual_set_physics_transform_locked(drive_joint->get_first_entity_ptr().get(), ragdoll_transform * limb_data_component->target_pose, true);
 			}
 		}
 

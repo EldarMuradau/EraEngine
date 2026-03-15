@@ -1480,7 +1480,7 @@ namespace era_engine
 		this->scene->environment.forceUpdate(this->scene->sun.direction);
 		setSelectedEntity({});
 		//app->linker->reload_src();
-		//physics::PhysicsHolder::physics_ref->reset_actors_velocity_and_inertia();
+		//physics::PhysicsEngine::get_physics_core()->reset_actors_velocity_and_inertia();
 		paused = false;
 		this->scene->editor_camera.setPositionAndRotation(vec3(0.0f), quat::identity);
 	}
@@ -1494,7 +1494,7 @@ namespace era_engine
 			return;
 		}
 
-		auto scene = physics::PhysicsHolder::physics_ref->get_scene();
+		auto scene = physics::PhysicsEngine::get_physics_core()->get_scene();
 		const physx::PxRenderBuffer& rb = scene->getRenderBuffer();
 
 		for (physx::PxU32 i = 0; i < rb.getNbPoints(); i++)
@@ -1716,7 +1716,7 @@ namespace era_engine
 			{
 				if (ImGui::BeginProperties())
 				{
-					const auto& physicsRef = physics::PhysicsHolder::physics_ref;
+					const auto& physicsRef = physics::PhysicsEngine::get_physics_core();
 					float frame_rate = physicsRef->frame_rate;
 
 					ImGui::PropertyInput("Frame rate", frame_rate);

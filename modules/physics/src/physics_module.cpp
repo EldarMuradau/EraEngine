@@ -23,20 +23,27 @@ namespace era_engine
 
     bool PhysicsModule::initialize(void* engine)
     {
+        using namespace physics;
+
         IModule::initialize(engine);
 
-        physics::PhysicsDescriptor desc;
-        physics::PhysicsHolder::physics_ref = make_ref<physics::Physics>(desc);
-        physics::PhysicsHolder::physics_ref->init_scene();
-        physics::PhysicsHolder::physics_ref->start();
-        MODULE_REGISTRATION
+        PhysicsDescriptor desc;
+        desc.broad_phase = physx::PxBroadPhaseType::eGPU;
+
+        ref<Physics> physics_core = make_ref<Physics>(desc);
+        physics_core->init_scene();
+        physics_core->start();
+
+        PhysicsEngine::physics_core = physics_core;
+
+        ERA_MODULE_REGISTRATION
 
         return true;
     }
 
     bool PhysicsModule::terminate()
     {
-        physics::PhysicsHolder::physics_ref->release();
+        physics::PhysicsEngine::get_physics_core()->release_locked();
 
         IModule::terminate();
         return true;

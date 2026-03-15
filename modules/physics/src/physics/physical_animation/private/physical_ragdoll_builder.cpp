@@ -81,7 +81,15 @@ namespace era_engine::physics
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->solver_position_iterations_count.get_for_write() = 16;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
+
+		if (PhysicsEngine::get_physics_core()->is_gpu())
+		{
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
+		}
+		else
+		{
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
+		}
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 
 		return dynamic_body_component;
@@ -591,11 +599,15 @@ namespace era_engine::physics
 	{
 		using namespace animation;
 
-		AggregateHolderComponent* aggregate_component = ctx.ragdoll.add_component<AggregateHolderComponent>();
-		aggregate_component->enable_self_collision = true;
-		aggregate_component->max_actors = 48;
+		if(!PhysicsEngine::get_physics_core()->is_gpu())
+		{
+			// GPU broad phase does not support PxAggregate. Aggregates will be ignored when GPU broad phase is enabled.
+			AggregateHolderComponent* aggregate_component = ctx.ragdoll.add_component<AggregateHolderComponent>();
+			aggregate_component->enable_self_collision = true;
+			aggregate_component->max_actors = 48;
+		}
 
-		ref<PhysicsMaterial> material = PhysicsHolder::physics_ref->create_material(0.3f, 0.5f, 0.7f);
+		ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.3f, 0.5f, 0.7f);
 		ASSERT(material != nullptr);
 
 		const RagdollSettings& settings = ctx.ragdoll_component->settings;

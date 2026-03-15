@@ -79,7 +79,7 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		PxRigidDynamic* actor = PhysicsHolder::physics_ref->get_physics()->createRigidDynamic(transform);
+		PxRigidDynamic* actor = PhysicsEngine::get_physics_core()->get_physics()->createRigidDynamic(transform);
 		ASSERT(actor != nullptr);
 		
 #ifndef VISUALIZE_PHYSICS
@@ -95,7 +95,7 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		PxRigidStatic* actor = PhysicsHolder::physics_ref->get_physics()->createRigidStatic(transform);
+		PxRigidStatic* actor = PhysicsEngine::get_physics_core()->get_physics()->createRigidStatic(transform);
 		ASSERT(actor != nullptr);
 
 #ifndef VISUALIZE_PHYSICS
@@ -182,7 +182,7 @@ namespace era_engine::physics
 		dynamic_body_component->mass_space_inertia_tensor.get_silent_for_write() = create_vec3(physx_rigid_body->getMassSpaceInertiaTensor());
 	}
 
-	void PhysicsUtils::manual_set_physics_transform(Entity entity, const vec3& pos, const quat& rot, bool update_transform_component)
+	void PhysicsUtils::manual_set_physics_transform_locked(Entity entity, const vec3& pos, const quat& rot, bool update_transform_component)
 	{
 		using namespace physx;
 
@@ -193,7 +193,7 @@ namespace era_engine::physics
 			return;
 		}
 
-		if(body_component->actor == nullptr)
+		if (body_component->actor == nullptr)
 		{
 			return;
 		}
@@ -205,18 +205,20 @@ namespace era_engine::physics
 			return;
 		}
 
-		PxRigidDynamic* rigid_dynamic = body_component->actor->is<PxRigidDynamic>();
-		if (!body_component->actor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) &&
-			rigid_dynamic != nullptr &&
-			rigid_dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC) &&
-			dynamic_cast<DynamicBodyComponent*>(body_component)->kinematic_motion_type.get() == KinematicMotionType::VELOCITY)
-		{
-			rigid_dynamic->setKinematicTarget(physics_transform);
-		}
-		else
-		{
-			body_component->actor->setGlobalPose(physics_transform);
-		}
+		PhysicsEngine::execute_write([&]() {
+			PxRigidDynamic* rigid_dynamic = body_component->actor->is<PxRigidDynamic>();
+			if (!body_component->actor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) &&
+				rigid_dynamic != nullptr &&
+				rigid_dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC) &&
+				dynamic_cast<DynamicBodyComponent*>(body_component)->kinematic_motion_type.get() == KinematicMotionType::VELOCITY)
+			{
+				rigid_dynamic->setKinematicTarget(physics_transform);
+			}
+			else
+			{
+				body_component->actor->setGlobalPose(physics_transform);
+			}
+		});
 
 		if (update_transform_component)
 		{
@@ -225,9 +227,9 @@ namespace era_engine::physics
 		}
 	}
 
-	void PhysicsUtils::manual_set_physics_transform(Entity entity, const trs& transform, bool update_transform_component)
+	void PhysicsUtils::manual_set_physics_transform_locked(Entity entity, const trs& transform, bool update_transform_component)
 	{
-		manual_set_physics_transform(entity, transform.position, transform.rotation, update_transform_component);
+		manual_set_physics_transform_locked(entity, transform.position, transform.rotation, update_transform_component);
 	}
 
 	void PhysicsUtils::manual_clear_force_and_torque(DynamicBodyComponent* body_component)
@@ -236,16 +238,17 @@ namespace era_engine::physics
 
 		if (PxRigidDynamic* body = body_component->get_rigid_dynamic())
 		{
-			PxSceneWriteLock lock(*PhysicsHolder::physics_ref->get_scene());
-			body->clearForce();
-			body->clearTorque();
+			PhysicsEngine::execute_write([&]() {
+				body->clearForce();
+				body->clearTorque();
 
-			if (body_component->kinematic)
-			{
-				return;
-			}
-			body_component->linear_velocity = vec3::zero;
-			body_component->angular_velocity = vec3::zero;
+				if (body_component->kinematic)
+				{
+					return;
+				}
+				body_component->linear_velocity = vec3::zero;
+				body_component->angular_velocity = vec3::zero;
+			});
 		}
 	}
 

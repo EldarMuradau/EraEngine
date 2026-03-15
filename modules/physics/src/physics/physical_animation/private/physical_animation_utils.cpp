@@ -134,6 +134,6 @@ namespace era_engine::physics
         limb_component->prev_physics_pose = limb_object_space_pose;
         limb_component->physics_pose = limb_object_space_pose;
 
-        PhysicsUtils::manual_set_physics_transform(limb, ragdoll_world_transform * limb_object_space_pose, true);
+        PhysicsUtils::manual_set_physics_transform_locked(limb, ragdoll_world_transform * limb_object_space_pose, true);
     }
 }

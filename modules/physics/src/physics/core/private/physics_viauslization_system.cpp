@@ -44,17 +44,27 @@ namespace era_engine::physics
 			return;
 		}
 
-		auto scene = physics::PhysicsHolder::physics_ref->get_scene();
-		const PxRenderBuffer& rb = scene->getRenderBuffer();
+		auto scene = physics::PhysicsEngine::get_physics_core()->get_scene();
 
-		for (PxU32 i = 0; i < rb.getNbPoints(); i++)
-		{
-			const PxDebugPoint& point = rb.getPoints()[i];
-			renderPoint(create_vec3(point.pos), vec4(1.0f), renderer_holder_rc->ldrRenderPass, true);
-		}
+		const PxRenderBuffer* rb = nullptr;
+		const PxDebugLine* lines = nullptr;
 
-		const PxDebugLine* lines = rb.getLines();
-		for (PxU32 i = 0; i < rb.getNbLines(); i++)
+		size_t nb_lines = 0;
+
+		PhysicsEngine::execute_read([&]() {
+			rb = &scene->getRenderBuffer();
+
+			for (PxU32 i = 0; i < rb->getNbPoints(); i++)
+			{
+				const PxDebugPoint& point = rb->getPoints()[i];
+				renderPoint(create_vec3(point.pos), vec4(1.0f), renderer_holder_rc->ldrRenderPass, true);
+			}
+
+			lines = rb->getLines();
+			nb_lines = rb->getNbLines();
+		});
+
+		for (PxU32 i = 0; i < nb_lines; i++)
 		{
 			const PxDebugLine& line = lines[i];
 			renderLine(create_vec3(line.pos0), create_vec3(line.pos1), vec4(1.0f), renderer_holder_rc->ldrRenderPass, true);

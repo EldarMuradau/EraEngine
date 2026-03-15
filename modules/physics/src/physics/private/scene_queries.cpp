@@ -170,7 +170,7 @@ namespace era_engine::physics
 		ASSERT(result_buffer_size > 0);
 		ASSERT(result_buffer_out != nullptr);
 
-		ref<Physics> physics = PhysicsHolder::physics_ref;
+		ref<Physics> physics = PhysicsEngine::get_physics_core();
 
 		const PxScene* physx_scene = physics->get_scene();
 		if (physx_scene == nullptr)
@@ -246,7 +246,7 @@ namespace era_engine::physics
 		ASSERT(result_buffer_size > 0);
 		ASSERT(result_buffer_out != nullptr);
 
-		ref<Physics> physics = PhysicsHolder::physics_ref;
+		ref<Physics> physics = PhysicsEngine::get_physics_core();
 
 		const PxScene* physx_scene = physics->get_scene();
 
@@ -320,7 +320,7 @@ namespace era_engine::physics
 		ASSERT(result_buffer_size > 0);
 		ASSERT(result_buffer_out != nullptr);
 
-		ref<Physics> physics = PhysicsHolder::physics_ref;
+		ref<Physics> physics = PhysicsEngine::get_physics_core();
 		ASSERT(physics != nullptr);
 
 		const PxScene* physx_scene = physics->get_scene();

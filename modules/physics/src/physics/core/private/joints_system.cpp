@@ -23,7 +23,7 @@ namespace era_engine::physics
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
 			.method("update", &JointsSystem::update)
 			(metadata("update_group", update_types::PHYSICS), 
-			 metadata("After", std::vector<std::string>{"PhysicsSystem::update"}));
+			 metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}));
 	}
 
 	JointsSystem::JointsSystem(World* _world)
@@ -51,6 +51,8 @@ namespace era_engine::physics
 	void JointsSystem::sync_physics_to_component_changes()
 	{
 		using namespace physx;
+
+		PxSceneWriteLock write_lock(*PhysicsEngine::get_physics_core()->get_scene());
 
 		for (auto [entity_handle, observable_component, joint_component] : world->group(components_group<TransformComponent, FixedJointComponent>).each())
 		{
@@ -780,19 +782,21 @@ namespace era_engine::physics
 					continue;
 				}
 			}
-
-			PxD6Joint* created_joint = PxD6JointCreate(*PhysicsHolder::physics_ref->get_physics(),
+			PxD6Joint* created_joint = nullptr;
+			PhysicsEngine::execute_write([&]() {
+				created_joint = PxD6JointCreate(*PhysicsEngine::get_physics_core()->get_physics(),
 				first_actor,
 				create_PxTransform(joint_component->base_descriptor.local_frame),
 				second_actor,
 				create_PxTransform(joint_component->base_descriptor.second_local_frame));
 
-			created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
-			created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+				created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
+				created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+			});
 
 			joint_component->joint = created_joint;
 			joint_component->joint->userData = joint_component;
-						
+
 			joint_component->state = JointComponent::State::ENABLED;
 
 			iter = d6_joints_to_init.erase(iter);
@@ -848,16 +852,17 @@ namespace era_engine::physics
 					continue;
 				}
 			}
-
-			PxDistanceJoint* created_joint = PxDistanceJointCreate(*PhysicsHolder::physics_ref->get_physics(),
+			PxDistanceJoint* created_joint = nullptr;
+			PhysicsEngine::execute_write([&]() {
+				created_joint = PxDistanceJointCreate(*PhysicsEngine::get_physics_core()->get_physics(),
 				first_actor,
 				create_PxTransform(joint_component->base_descriptor.local_frame),
 				second_actor,
 				create_PxTransform(joint_component->base_descriptor.second_local_frame));
 
-			created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
-			created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
-
+				created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
+				created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+			});
 			joint_component->joint = created_joint;
 			joint_component->joint->userData = joint_component;
 
@@ -916,15 +921,17 @@ namespace era_engine::physics
 					continue;
 				}
 			}
-
-			PxFixedJoint* created_joint = PxFixedJointCreate(*PhysicsHolder::physics_ref->get_physics(),
+			PxFixedJoint* created_joint = nullptr;
+			PhysicsEngine::execute_write([&]() {
+				created_joint = PxFixedJointCreate(*PhysicsEngine::get_physics_core()->get_physics(),
 				first_actor,
 				create_PxTransform(joint_component->base_descriptor.local_frame),
 				second_actor,
 				create_PxTransform(joint_component->base_descriptor.second_local_frame));
 
-			created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
-			created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+				created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
+				created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+			});
 
 			joint_component->joint = created_joint;
 			joint_component->joint->userData = joint_component;
@@ -984,16 +991,17 @@ namespace era_engine::physics
 					continue;
 				}
 			}
-
-			PxRevoluteJoint* created_joint = PxRevoluteJointCreate(*PhysicsHolder::physics_ref->get_physics(),
+			PxRevoluteJoint* created_joint = nullptr;
+			PhysicsEngine::execute_write([&]() {
+				created_joint = PxRevoluteJointCreate(*PhysicsEngine::get_physics_core()->get_physics(),
 				first_actor,
 				create_PxTransform(joint_component->base_descriptor.local_frame),
 				second_actor,
 				create_PxTransform(joint_component->base_descriptor.second_local_frame));
 
-			created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
-			created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
-
+				created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
+				created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+			});
 			joint_component->joint = created_joint;
 			joint_component->joint->userData = joint_component;
 
@@ -1052,15 +1060,17 @@ namespace era_engine::physics
 					continue;
 				}
 			}
-
-			PxSphericalJoint* created_joint = PxSphericalJointCreate(*PhysicsHolder::physics_ref->get_physics(),
+			PxSphericalJoint* created_joint = nullptr;
+			PhysicsEngine::execute_write([&]() {
+				created_joint = PxSphericalJointCreate(*PhysicsEngine::get_physics_core()->get_physics(),
 				first_actor,
 				create_PxTransform(joint_component->base_descriptor.local_frame),
 				second_actor,
 				create_PxTransform(joint_component->base_descriptor.second_local_frame));
 
-			created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
-			created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+				created_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, false);
+				created_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, joint_component->enable_collision);
+			});
 
 			joint_component->joint = created_joint;
 			joint_component->joint->userData = joint_component;

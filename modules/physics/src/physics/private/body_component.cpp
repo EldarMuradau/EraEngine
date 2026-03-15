@@ -35,9 +35,6 @@ namespace era_engine::physics
 
 	BodyComponent::~BodyComponent()
 	{
-		PhysicsHolder::physics_ref->remove_actor(this);
-
-		PX_RELEASE(actor)
 	}
 
 	physx::PxRigidActor* BodyComponent::get_rigid_actor() const
@@ -49,7 +46,9 @@ namespace era_engine::physics
 	{
 		if (actor != nullptr)
 		{
-			actor->detachShape(*shape);
+			PhysicsEngine::execute_write([&]() {
+				actor->detachShape(*shape);
+				});
 		}
 	}
 
@@ -94,8 +93,12 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		PxSceneReadLock lock(*PhysicsHolder::physics_ref->get_scene());
-		const PxVec3 pos = actor->getGlobalPose().p;
+		PxVec3 pos;
+
+		PhysicsEngine::execute_read([&]() {
+			pos = actor->getGlobalPose().p;
+			});
+
 		return create_vec3(pos);
 	}
 
@@ -112,7 +115,9 @@ namespace era_engine::physics
 		{
 			if(simulated)
 			{
-				body->wakeUp();
+				PhysicsEngine::execute_write([&]() {
+					body->wakeUp();
+					});
 			}
 		}
 	}

@@ -254,8 +254,8 @@ namespace era_engine::physics
 				PxRigidActor* actor1 = r1;
 				PxRigidActor* actor2 = r2;
 
-				BodyComponent* rb1 = PhysicsHolder::physics_ref->actors_map[actor1];
-				BodyComponent* rb2 = PhysicsHolder::physics_ref->actors_map[actor2];
+				BodyComponent* rb1 = PhysicsEngine::get_physics_core()->actors_map[actor1];
+				BodyComponent* rb2 = PhysicsEngine::get_physics_core()->actors_map[actor2];
 
 				if (!rb1 || !rb2)
 				{
@@ -283,8 +283,8 @@ namespace era_engine::physics
 				PxRigidActor* actor1 = r1;
 				PxRigidActor* actor2 = r2;
 
-				BodyComponent* rb1 = PhysicsHolder::physics_ref->actors_map[actor1];
-				BodyComponent* rb2 = PhysicsHolder::physics_ref->actors_map[actor2];
+				BodyComponent* rb1 = PhysicsEngine::get_physics_core()->actors_map[actor1];
+				BodyComponent* rb2 = PhysicsEngine::get_physics_core()->actors_map[actor2];
 
 				if (!rb1 || !rb2)
 				{
@@ -305,7 +305,7 @@ namespace era_engine::physics
 	physx::PxAgain ExplodeOverlapCallback::processTouches(const physx::PxOverlapHit* buffer, physx::PxU32 nbHits)
 	{
 		using namespace physx;
-		PxSceneWriteLock lock{ *PhysicsHolder::physics_ref->get_scene()};
+		PxSceneWriteLock lock{ *PhysicsEngine::get_physics_core()->get_scene()};
 		for (PxU32 i = 0; i < nbHits; ++i)
 		{
 			PxRigidActor* actor = buffer[i].actor;
@@ -356,7 +356,7 @@ namespace era_engine::physics
 		cct_collision_info.direction = create_vec3(hit.dir);
 		cct_collision_info.length = hit.length;
 
-		ref<SimulationEventCallback> event_callback = PhysicsHolder::physics_ref->simulation_event_callback;
+		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
 		event_callback->cct_collisions.pushBack(cct_collision_info);
 	}
 
@@ -379,7 +379,7 @@ namespace era_engine::physics
 		cct_collision_info.direction = create_vec3(hit.dir);
 		cct_collision_info.length = hit.length;
 
-		ref<SimulationEventCallback> event_callback = PhysicsHolder::physics_ref->simulation_event_callback;
+		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
 		event_callback->cct_collisions.pushBack(cct_collision_info);
 	}
 

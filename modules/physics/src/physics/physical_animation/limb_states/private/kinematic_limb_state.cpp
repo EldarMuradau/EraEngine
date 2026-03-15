@@ -30,6 +30,6 @@ namespace era_engine::physics
 
         const trs desired_pose = ragdoll_world_transform * limb_component->target_pose;
 
-        PhysicsUtils::manual_set_physics_transform(limb, desired_pose, true);
+        PhysicsUtils::manual_set_physics_transform_locked(limb, desired_pose, true);
     }
 }

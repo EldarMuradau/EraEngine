@@ -125,14 +125,19 @@ namespace era_engine::physics
 
 	Physics::~Physics()
 	{
-		release();
+		release_locked();
 
-		allocator.reset();
+		{
+			ScopedSpinLock lock{ sync };
+			allocator.reset();
+		}
 	}
 
 	void Physics::init_scene()
 	{
 		using namespace physx;
+
+		ScopedSpinLock lock{ sync };
 
 		PxSceneDesc scene_desc(tolerance_scale);
 		scene_desc.gravity = gravity;
@@ -146,6 +151,7 @@ namespace era_engine::physics
 		scene_desc.flags |= PxSceneFlag::eENABLE_ENHANCED_DETERMINISM;
 		scene_desc.flags |= PxSceneFlag::eENABLE_STABILIZATION;
 		scene_desc.flags |= PxSceneFlag::eENABLE_PCM;
+		scene_desc.flags |= PxSceneFlag::eREQUIRE_RW_LOCK;
 
 		if (descriptor.broad_phase == PxBroadPhaseType::eGPU)
 		{
@@ -154,6 +160,8 @@ namespace era_engine::physics
 			scene_desc.cudaContextManager = cuda_context_manager;
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
+
+			scene_desc.sceneQueryUpdateMode = PxSceneQueryUpdateMode::eBUILD_ENABLED_COMMIT_DISABLED;
 		}
 
 		scene_desc.broadPhaseType = descriptor.broad_phase;
@@ -168,14 +176,19 @@ namespace era_engine::physics
 
 #if defined(VISUALIZE_PHYSICS)
 
-		scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
-		scene->setVisualizationParameter(PxVisualizationParameter::eCONTACT_POINT, 1.0f);
-		scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_FNORMALS, 1.0f);
-		scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
+		{
+			PxSceneWriteLock lock{*scene};
+			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
+			scene->setVisualizationParameter(PxVisualizationParameter::eCONTACT_POINT, 1.0f);
+			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_FNORMALS, 1.0f);
+			scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
+		}
 
 		if (descriptor.enable_pvd)
 		{
 			pvd = PxCreatePvd(*foundation);
+
+			PxSceneReadLock lock{ *scene };
 
 			PxPvdSceneClient* pvd_client = scene->getScenePvdClient();
 			if (pvd_client)
@@ -220,6 +233,12 @@ namespace era_engine::physics
 		scratch_mem_block = allocator.allocate(scratch_mem_block_size, align, true);
 
 		cct_manager = PxCreateControllerManager(*scene);
+
+		if (is_gpu())
+		{
+			ASSERT(cuda_context_manager->contextIsValid());
+			LOG_MESSAGE(cuda_context_manager->getUsingConcurrentStreams() ? "ConcurrentCudaStreams" : "NonConcurrentCudaStreams");
+		}
 	}
 
 	physx::PxScene* Physics::get_scene() const
@@ -240,7 +259,10 @@ namespace era_engine::physics
 	ref<PhysicsMaterial> Physics::create_material(float restitution, float static_friction, float dynamic_friction)
 	{
 		ref<PhysicsMaterial> material = make_ref<PhysicsMaterial>(physics, restitution, static_friction, dynamic_friction);
-		materials.emplace_back(material);
+		{
+			ScopedSpinLock lock{ sync };
+			materials.emplace_back(material);
+		}
 		return material;
 	}
 
@@ -264,11 +286,11 @@ namespace era_engine::physics
 		return descriptor.broad_phase == physx::PxBroadPhaseType::eGPU;
 	}
 
-	void Physics::release()
+	void Physics::release_locked()
 	{
-		ScopedSpinLock lock{ sync };
+		release_scene_locked();
 
-		release_scene();
+		ScopedSpinLock lock{ sync };
 
 #if PX_VEHICLE
 		physx::PxCloseVehicleSDK();
@@ -276,23 +298,21 @@ namespace era_engine::physics
 
 		PxCloseExtensions();
 
-		{
-			PX_RELEASE(default_material)
-			PX_RELEASE(cct_manager)
-			PX_RELEASE(physics)
-			PX_RELEASE(dispatcher)
+		PX_RELEASE(default_material)
+		PX_RELEASE(cct_manager)
+		PX_RELEASE(physics)
+		PX_RELEASE(dispatcher)
 
 #if defined(_DEBUG)
 
-			PX_RELEASE(pvd)
-			PX_RELEASE(omni_pvd)
-			PX_RELEASE(transport)
+		PX_RELEASE(pvd)
+		PX_RELEASE(omni_pvd)
+		PX_RELEASE(transport)
 
 #endif
 
-			PX_RELEASE(cuda_context_manager)
-			PX_RELEASE(foundation)
-		}
+		PX_RELEASE(cuda_context_manager)
+		PX_RELEASE(foundation)
 
 		delete allocator_callback;
 	}
@@ -301,8 +321,10 @@ namespace era_engine::physics
 	{
 	}
 
-	void Physics::update(float dt)
+	void Physics::update_locked(float dt)
 	{
+		ScopedSpinLock _lock{ sync };
+
 		start_simulation(dt);
 		end_simulation(dt);
 	}
@@ -318,12 +340,15 @@ namespace era_engine::physics
 
 		{
 			ZoneScopedN("Physics::simulate");
-
-			scene->simulate(dt, nullptr, scratch_mem_block, scratch_mem_block_size);
+			PxSceneWriteLock write_lock(*scene);
+			bool status = scene->simulate(dt, nullptr, scratch_mem_block, scratch_mem_block_size);
+			ASSERT(status);
 		}
 
 		{
 			ZoneScopedN("Physics::fetchResults");
+
+			PxSceneWriteLock write_lock(*scene);
 			scene->fetchResults(true);
 		}
 	}
@@ -337,21 +362,27 @@ namespace era_engine::physics
 
 		{
 			ZoneScopedN("Physics::sync_transforms");
-			sync_transforms();
+			sync_transforms_locked();
 		}
 	}
 
-	void Physics::reset_actors_velocity_and_inertia()
+	void Physics::reset_actors_velocity_and_inertia_locked()
 	{
 		using namespace physx;
 
 		PxU32 nb_active_actors = 0;
-		PxActor** active_actors = scene->getActiveActors(nb_active_actors);
+		PxActor** active_actors = nullptr;
+
+		{
+			PxSceneReadLock lock{ *scene };
+			active_actors = scene->getActiveActors(nb_active_actors);
+		}
 
 		for (size_t i = 0; i < nb_active_actors; ++i)
 		{
 			if (auto rd = active_actors[i]->is<PxRigidDynamic>())
 			{
+				PxSceneWriteLock lock{ *scene };
 				rd->setAngularVelocity(PxVec3(0.0f));
 				rd->setLinearVelocity(PxVec3(0.0f));
 			}
@@ -380,65 +411,76 @@ namespace era_engine::physics
 		}
 	}
 
-	void Physics::add_actor(BodyComponent* actor, physx::PxRigidActor* physx_actor)
+	void Physics::add_actor_locked(BodyComponent* actor, physx::PxRigidActor* physx_actor)
 	{
 		using namespace physx;
 
-		ScopedSpinLock l{ sync };
-
 		if (AggregateHolderComponent* aggregate_component = actor->get_world()->get_entity(actor->get_entity().get_parent_handle()).get_component_if_exists<AggregateHolderComponent>())
 		{
+			PxSceneWriteLock lock{ *scene };
 			aggregate_component->aggregate->add_actor(physx_actor);
 		}
 		else
 		{
+			PxSceneWriteLock lock{ *scene };
 			scene->addActor(*physx_actor);
 		}
 
-		actors.emplace(actor);
-		actors_map.insert(std::make_pair(physx_actor, actor));
+		{
+			ScopedSpinLock l{ sync };
+			actors.emplace(actor);
+			actors_map.insert(std::make_pair(physx_actor, actor));
+		}
 	}
 
-	void Physics::remove_actor(BodyComponent* actor)
+	void Physics::remove_actor_locked(BodyComponent* actor)
 	{
 		using namespace physx;
 
-		ScopedSpinLock l{ sync };
-		actors.erase(actor);
-		actors_map.erase(actor->get_rigid_actor());
+		{
+			ScopedSpinLock l{ sync };
+			actors.erase(actor);
+			actors_map.erase(actor->get_rigid_actor());
+		}
 
 		if (AggregateHolderComponent* aggregate_component = actor->get_world()->get_entity(actor->get_entity().get_parent_handle()).get_component<AggregateHolderComponent>())
 		{
+			PxSceneWriteLock lock{ *scene };
 			aggregate_component->aggregate->remove_actor(actor->get_rigid_actor());
 		}
 		else
 		{
+			PxSceneWriteLock lock{ *scene };
 			scene->removeActor(*actor->get_rigid_actor());
 		}
 	}
 
-	void Physics::release_scene()
+	void Physics::release_scene_locked()
 	{
 		using namespace physx;
-		ScopedSpinLock l{ sync };
 
-		if (scene)
+		if (scene != nullptr)
 		{
+			PxSceneWriteLock lock{ *scene };
 			scene->flushSimulation();
+
+			for (auto& actor : actors)
+			{
+				scene->removeActor(*actor->get_rigid_actor());
+			}
 		}
 
-		for (auto& actor : actors)
 		{
-			scene->removeActor(*actor->get_rigid_actor());
+			ScopedSpinLock lock{ sync };
+
+			actors.clear();
+			actors_map.clear();
+			colliders_map.clear();
+
+			nb_active_actors = 0;
+
+			PX_RELEASE(scene)
 		}
-
-		actors.clear();
-		actors_map.clear();
-		colliders_map.clear();
-
-		nb_active_actors = 0;
-
-		PX_RELEASE(scene)
 	}
 
 	void Physics::explode(const vec3& world_pos, float damage_radius, float explosive_impulse)
@@ -449,9 +491,11 @@ namespace era_engine::physics
 		scene->overlap(PxSphereGeometry(damage_radius), PxTransform(pos), overlap_callback);
 	}
 
-	void Physics::sync_transforms()
+	void Physics::sync_transforms_locked()
 	{
 		using namespace physx;
+
+		PxSceneReadLock lock{ *scene };
 
 		uint32 temp_nb = 0;
 		PxActor** active_actors = scene->getActiveActors(temp_nb);
@@ -522,6 +566,27 @@ namespace era_engine::physics
 		simulation_event_callback->sendCollisionEvents();
 		simulation_event_callback->sendTriggerEvents();
 		simulation_event_callback->sendJointEvents();
+	}
+
+	ref<Physics> PhysicsEngine::get_physics_core()
+	{
+		return physics_core;
+	}
+
+	void PhysicsEngine::execute_read(const std::function<void()>& func)
+	{
+		using namespace physx;
+
+		PxSceneReadLock lock(*physics_core->get_scene());
+		func();
+	}
+
+	void PhysicsEngine::execute_write(const std::function<void()>& func)
+	{
+		using namespace physx;
+
+		PxSceneWriteLock lock(*physics_core->get_scene());
+		func();
 	}
 
 }

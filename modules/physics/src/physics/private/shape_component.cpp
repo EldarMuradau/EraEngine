@@ -48,11 +48,13 @@ namespace era_engine::physics
 
     ShapeComponent::~ShapeComponent()
     {
-        PhysicsHolder::physics_ref->remove_shape_from_entity_data(this);
+        PhysicsEngine::get_physics_core()->remove_shape_from_entity_data(this);
 
-        PhysicsUtils::get_body_component(component_data)->detach_shape(shape);
+        PhysicsEngine::execute_write([&]() {
+            PhysicsUtils::get_body_component(component_data)->detach_shape(shape);
 
-        PX_RELEASE(shape)
+            PX_RELEASE(shape)
+        });
     }
 
     physx::PxShape* ShapeComponent::get_shape() const
@@ -80,7 +82,7 @@ namespace era_engine::physics
 
     void ShapeComponent::register_shape()
     {
-        PhysicsHolder::physics_ref->add_shape_to_entity_data(this);
+        PhysicsEngine::get_physics_core()->add_shape_to_entity_data(this);
     }
 
     physx::PxShape* ShapeComponent::create_shape()
@@ -101,7 +103,7 @@ namespace era_engine::physics
     {
         using namespace physx;
 
-        ref<Physics> physics = PhysicsHolder::physics_ref;
+        ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr 
             ? physics->get_default_material()->get_native_material() 
@@ -126,7 +128,7 @@ namespace era_engine::physics
     {
         using namespace physx;
 
-        ref<Physics> physics = PhysicsHolder::physics_ref;
+        ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
             ? physics->get_default_material()->get_native_material()
@@ -152,7 +154,7 @@ namespace era_engine::physics
     {
         using namespace physx;
 
-        ref<Physics> physics = PhysicsHolder::physics_ref;
+        ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
             ? physics->get_default_material()->get_native_material()
@@ -178,7 +180,7 @@ namespace era_engine::physics
     {
         using namespace physx;
         PxTriangleMesh* mesh = ShapeUtils::build_triangle_mesh(asset.get(), size);
-        ref<Physics> physics = PhysicsHolder::physics_ref;
+        ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
             ? physics->get_default_material()->get_native_material()
@@ -204,7 +206,7 @@ namespace era_engine::physics
     {
         using namespace physx;
         PxConvexMesh* mesh = ShapeUtils::build_convex_mesh(asset.get(), size);
-        ref<Physics> physics = PhysicsHolder::physics_ref;
+        ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
             ? physics->get_default_material()->get_native_material()

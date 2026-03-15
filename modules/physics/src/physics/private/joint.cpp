@@ -10,7 +10,7 @@ namespace era_engine::physics
 
 	physx::PxRevoluteJoint* create_revolute_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxRevoluteJointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
@@ -19,7 +19,7 @@ namespace era_engine::physics
 
 	physx::PxDistanceJoint* create_distance_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxDistanceJointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
@@ -28,7 +28,7 @@ namespace era_engine::physics
 
 	physx::PxSphericalJoint* create_spherical_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxSphericalJointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
@@ -37,7 +37,7 @@ namespace era_engine::physics
 
 	physx::PxFixedJoint* create_fixed_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxFixedJointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
@@ -46,7 +46,7 @@ namespace era_engine::physics
 
 	physx::PxPrismaticJoint* create_prismatic_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxPrismaticJointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
@@ -55,7 +55,7 @@ namespace era_engine::physics
 
 	physx::PxD6Joint* create_d6_joint(physx::PxRigidActor* first_actor, physx::PxRigidActor* second_actor)
 	{
-		auto* physics = PhysicsHolder::physics_ref->get_physics();
+		auto* physics = PhysicsEngine::get_physics_core()->get_physics();
 
 		return physx::PxD6JointCreate(*physics,
 			first_actor, first_actor->getGlobalPose(),
