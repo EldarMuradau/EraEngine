@@ -8,7 +8,6 @@
 
 #include "core/math.h"
 #include "core/cpu_profiling.h"
-#include "core/bounding_volumes.h"
 
 #include "geometry/mesh.h"
 

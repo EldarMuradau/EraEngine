@@ -21,6 +21,7 @@ add_subdirectory(modules/imgui)
 add_subdirectory(modules/base)
 add_subdirectory(modules/core)
 add_subdirectory(modules/physics)
+add_subdirectory(modules/dynx)
 add_subdirectory(modules/simple_motion_matching)
 
 add_subdirectory(apps/editor)

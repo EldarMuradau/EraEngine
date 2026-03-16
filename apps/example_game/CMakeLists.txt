@@ -9,6 +9,7 @@ era_begin(example_game "APP")
     require_module(example_game base)
     require_module(example_game core)
     require_module(example_game physics)
+    require_module(example_game dynx)
     require_module(example_game simple_motion_matching)
 
     require_physx(example_game)

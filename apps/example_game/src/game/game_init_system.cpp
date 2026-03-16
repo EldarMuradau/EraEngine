@@ -95,7 +95,7 @@ namespace era_engine
 		builder.pushBox({ vec3(0.f), vec3(30.f, 4.f, 30.f) });
 		groundMesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, defaultPlaneMat });
 
-		if (auto mesh = loadAnimatedMeshFromFileAsync(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), 
+		if (auto mesh = loadAnimatedMeshFromFileAsync(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"),
 			mesh_creation_flags_unreal_animated_asset))
 		{
 			Entity tiran = world->create_entity("Tiran");

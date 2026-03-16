@@ -6,8 +6,6 @@
 
 #include "core/memory.h"
 
-#include "core/bounding_volumes.h"
-
 #include "animation/animation.h"
 
 #include "dx/dx_buffer.h"

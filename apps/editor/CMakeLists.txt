@@ -9,6 +9,7 @@ era_begin(editor "APP")
     require_module(editor base)
     require_module(editor core)
     require_module(editor physics)
+    require_module(editor dynx)
 
     require_physx(editor)
 era_end(editor)

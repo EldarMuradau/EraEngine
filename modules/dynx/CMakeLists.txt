@@ -1,0 +1,12 @@
+include(${CMAKE_SOURCE_DIR}/cmake/common.cmake)
+
+era_begin(dynx "MODULE")
+    require_thirdparty_module(dynx EnTT)
+    require_thirdparty_module(dynx yaml-cpp)
+    require_thirdparty_module(dynx rttr_core)
+    require_thirdparty_module(dynx DirectXTex)
+    require_module(dynx imgui)
+    require_module(dynx base)
+    require_module(dynx core)
+    target_compile_definitions(dynx PRIVATE ERA_DYNX TRACY_IMPORTS)
+era_end(dynx)

@@ -11,6 +11,7 @@ era_begin(unittests "APP")
     require_module(unittests base)
     require_module(unittests core)
     require_module(unittests physics)
+    require_module(unittests dynx)
 
     require_physx(unittests)
 

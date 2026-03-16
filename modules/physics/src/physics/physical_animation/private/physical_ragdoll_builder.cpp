@@ -74,22 +74,14 @@ namespace era_engine::physics
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
 		dynamic_body_component->ccd.get_for_write() = true;
-		dynamic_body_component->max_depenetration_velocity = 100.0f;
+		dynamic_body_component->max_depenetration_velocity = 150.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->linear_damping.get_for_write() = 0.15f;
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->solver_position_iterations_count.get_for_write() = 16;
-
-		if (PhysicsEngine::get_physics_core()->is_gpu())
-		{
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
-		}
-		else
-		{
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
-		}
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 2;
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 
 		return dynamic_body_component;
@@ -194,8 +186,8 @@ namespace era_engine::physics
 			joint_component->twist_min_limit.get_for_write() = deg2rad(twist_min_deg);
 			joint_component->twist_max_limit.get_for_write() = deg2rad(twist_max_deg);
 
-			joint_component->twist_limit_damping.get_for_write() = 50.0f;
-			joint_component->twist_limit_stiffness.get_for_write() = 500.0f;
+			joint_component->twist_limit_damping.get_for_write() = 100.0f;
+			joint_component->twist_limit_stiffness.get_for_write() = 1000.0f;
 			joint_component->twist_limit_restitution.get_for_write() = 0.0f;
 		}
 
@@ -233,8 +225,8 @@ namespace era_engine::physics
 
 		if (any_moving_swing)
 		{
-			joint_component->swing_limit_damping.get_for_write() = 50.0f;
-			joint_component->swing_limit_stiffness.get_for_write() = 500.0f;
+			joint_component->swing_limit_damping.get_for_write() = 100.0f;
+			joint_component->swing_limit_stiffness.get_for_write() = 1000.0f;
 			joint_component->swing_limit_restitution.get_for_write() = 0.0f;
 		}
 	}
@@ -1285,11 +1277,13 @@ namespace era_engine::physics
 		const trs& body_upper_capsule_bottom_transform = structure.thorax_joint.constraint_object_space_transform.value();
 		const trs& middle_default_transform = structure.abdomen_joint.constraint_object_space_transform.value();
 
+		const trs& left_clavicle_joint_transform = structure.left_clavicle_joint.joint_object_space_transform;
 		const trs& left_clavicle_capsule_bottom_transform = structure.left_clavicle_joint.constraint_object_space_transform.value();
 		const trs& left_arm_capsule_bottom_transform = structure.left_arm_joint.constraint_object_space_transform.value();
 		const trs& left_forearm_capsule_bottom_transform = structure.left_forearm_joint.constraint_object_space_transform.value();
 		const trs& left_hand_capsule_bottom_transform = structure.left_hand_joint.constraint_object_space_transform.value();
 
+		const trs& right_clavicle_joint_transform = structure.right_clavicle_joint.joint_object_space_transform;
 		const trs& right_clavicle_capsule_bottom_transform = structure.right_clavicle_joint.constraint_object_space_transform.value();
 		const trs& right_arm_capsule_bottom_transform = structure.right_arm_joint.constraint_object_space_transform.value();
 		const trs& right_forearm_capsule_bottom_transform = structure.right_forearm_joint.constraint_object_space_transform.value();
@@ -1372,8 +1366,8 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.thorax_joint,
 			structure.left_clavicle_joint,
-			left_clavicle_capsule_bottom_transform,
-			left_clavicle_capsule_bottom_transform,
+			left_clavicle_joint_transform,
+			left_clavicle_joint_transform,
 			-25.0f, 25.0f,
 			clavicle_d6_swing_y_deg, 20.0f);
 
@@ -1405,8 +1399,8 @@ namespace era_engine::physics
 			structure.left_forearm_joint,
 			left_forearm_d6_transform,
 			left_forearm_capsule_bottom_transform,
-			-25.0f, 25.0f,
-			forearm_d6_swing_y_deg, 20.0f);
+			-5.0f, 5.0f,
+			forearm_d6_swing_y_deg, 6.0f);
 
 		// Left forearm -> left hand
 		create_d6_joint(
@@ -1425,8 +1419,8 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.thorax_joint,
 			structure.right_clavicle_joint,
-			right_clavicle_capsule_bottom_transform,
-			right_clavicle_capsule_bottom_transform,
+			right_clavicle_joint_transform,
+			right_clavicle_joint_transform,
 			-25.0f, 25.0f,
 			clavicle_d6_swing_y_deg, 20.0f);
 
@@ -1454,8 +1448,8 @@ namespace era_engine::physics
 			structure.right_forearm_joint,
 			right_forearm_d6_transform,
 			right_forearm_capsule_bottom_transform,
-			-25.0f, 25.0f,
-			forearm_d6_swing_y_deg, 20.0f);
+			-5.0f, 5.0f,
+			forearm_d6_swing_y_deg, 6.0f);
 
 		// Right forearm -> right hand
 		create_d6_joint(
@@ -1501,7 +1495,7 @@ namespace era_engine::physics
 			structure.left_calf_joint,
 			left_leg_d6_transform,
 			left_leg_capsule_bottom_transform,
-			-10.0f, 10.0f,
+			-3.0f, 3.0f,
 			leg_d6_swing_y_deg, 5.0f);
 
 		// Left leg -> left foot
@@ -1544,7 +1538,7 @@ namespace era_engine::physics
 			structure.right_calf_joint,
 			right_leg_d6_transform,
 			right_leg_capsule_bottom_transform,
-			-10.0f, 10.0f,
+			-3.0f, 3.0f,
 			leg_d6_swing_y_deg, 5.0f);
 
 		// Right leg -> right foot
