@@ -16,6 +16,7 @@ namespace Nv
         class TkGroup;
         class TkAsset;
         class TkFramework;
+        class ExtPxManager;
 
         class ExtPxAsset;
     }
@@ -58,10 +59,12 @@ namespace era_engine::physics
         Nv::Blast::Mesh* mesh = nullptr;
     };
 
+    class DestructibleFamily;
+    typedef std::shared_ptr<DestructibleFamily> DestructibleFamilyPtr;
+
 	class ERA_PHYSICS_API DestructibleAsset
 	{
 	public:
-
         struct ActorDesc
         {
             NvBlastID id;
@@ -73,6 +76,8 @@ namespace era_engine::physics
 		virtual ~DestructibleAsset();
 
         size_t get_asset_size() const;
+
+        virtual DestructibleFamilyPtr createFamily(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc) = 0;
 
         float bond_health_max = 1.0f;
         float support_chunk_health_max = 1.0f;

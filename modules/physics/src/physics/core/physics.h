@@ -3,6 +3,7 @@
 #include "physics/physx_api.h"
 #include "physics/core/physics_types.h"
 #include "physics/material.h"
+#include "physics/destructions/blast_core.h"
 
 #include <core/memory.h>
 #include <core/math.h>
@@ -50,6 +51,8 @@ namespace era_engine::physics
 		physx::PxCudaContextManager* get_cuda_context_manager() const;
 		physx::PxCpuDispatcher* get_cpu_dispatcher() const;
 		physx::PxTolerancesScale get_tolerance_scale() const;
+
+		ref<BlastCore> get_blast_core() const;
 
 		bool is_gpu() const;
 
@@ -128,6 +131,8 @@ namespace era_engine::physics
 
 		const uint32 nb_cpu_dispatcher_threads = 4;
 		static constexpr uint64 scratch_mem_block_size = MB(64U);
+
+		ref<BlastCore> blast_core;
 
 		friend class PhysicsSystem;
 	};

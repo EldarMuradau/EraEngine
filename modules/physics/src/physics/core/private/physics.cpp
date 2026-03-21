@@ -112,6 +112,8 @@ namespace era_engine::physics
 
 		dispatcher = PxDefaultCpuDispatcherCreate(nb_cpu_dispatcher_threads);
 
+		blast_core = make_ref<BlastCore>();
+
 #if PX_VEHICLE
 		if (!PxInitVehicleSDK(*physics))
 		{
@@ -160,6 +162,8 @@ namespace era_engine::physics
 			scene_desc.cudaContextManager = cuda_context_manager;
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
+			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 4;
+			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 4;
 
 			scene_desc.sceneQueryUpdateMode = PxSceneQueryUpdateMode::eBUILD_ENABLED_COMMIT_DISABLED;
 		}

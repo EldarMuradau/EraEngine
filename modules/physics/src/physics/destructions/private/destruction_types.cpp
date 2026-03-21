@@ -24,6 +24,10 @@ namespace era_engine::physics
 
 	DestructibleAsset::~DestructibleAsset()
 	{
+        if (damage_accelerator)
+        {
+            damage_accelerator->release();
+        }
 	}
 
 	size_t DestructibleAsset::get_asset_size() const
@@ -36,7 +40,6 @@ namespace era_engine::physics
 		using namespace Nv::Blast;
 
 		// Calc max healths.
-
 		const auto& actor_desc = px_asset->getDefaultActorDesc();
 		if (actor_desc.initialBondHealths)
 		{

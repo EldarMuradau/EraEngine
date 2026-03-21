@@ -41,14 +41,14 @@ namespace era_engine::physics
 		{
 			if (mesh_desc.isValid())
 			{
-				PxCookingParams cookingParams = PxCookingParams(PhysicsEngine::get_physics_core()->get_tolerance_scale());
-#if PX_GPU_BROAD_PHASE
-				cookingParams.buildGPUData = true;
-#endif
-				//cookingParams.meshWeldTolerance = 0.15f;
-				cookingParams.convexMeshCookingType = PxConvexMeshCookingType::eQUICKHULL;
-				cookingParams.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;
-				return PxCreateConvexMesh(cookingParams, mesh_desc, PhysicsEngine::get_physics_core()->get_physics()->getPhysicsInsertionCallback());
+				PxCookingParams convex_mesh_desc = PxCookingParams(PhysicsEngine::get_physics_core()->get_tolerance_scale());
+				if (PhysicsEngine::get_physics_core()->is_gpu())
+				{
+					convex_mesh_desc.buildGPUData = true;
+				}
+				convex_mesh_desc.convexMeshCookingType = PxConvexMeshCookingType::eQUICKHULL;
+				convex_mesh_desc.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;
+				return PxCreateConvexMesh(convex_mesh_desc, mesh_desc, PhysicsEngine::get_physics_core()->get_physics()->getPhysicsInsertionCallback());
 			}
 		}
 		catch (...)

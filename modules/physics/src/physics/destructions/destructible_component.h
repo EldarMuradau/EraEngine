@@ -18,7 +18,6 @@ namespace era_engine::physics
 		~DestructibleComponent() override;
 
 	protected:
-
 		uint32 health = 100;
 		bool is_root = true;
 
