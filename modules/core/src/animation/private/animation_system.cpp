@@ -81,6 +81,11 @@ namespace era_engine::animation
 					{
 						if (animation_component.update_skeleton)
 						{
+							if (animation_component.inertial_blend_inited)
+							{
+								animation_component.inertial_sampler->process_pose(animation_component.current_anim_position, &result_pose);
+							}
+
 							skeleton->apply_pose(result_pose);
 						}
 						animation_component.current_animation_pose = result_pose;

@@ -13,7 +13,7 @@
 
 namespace era_engine::physics
 {
-    enum class SkeletalMeshBlendType : uint8
+    enum class SkeletonUpdateType : uint8
     {
         ROTATION = 0,
         TRANSLATION,
@@ -144,8 +144,8 @@ namespace era_engine::physics
 
     struct ERA_PHYSICS_API RagdollStrengthConfig
     {
-        static constexpr float ANGULAR_DAMPING_MODIFIER = 1.5f;
-        static constexpr float ANGULAR_STIFFNESS_MODIFIER = 1.5f;
+        static constexpr float ANGULAR_DAMPING_MODIFIER = 1.0f;
+        static constexpr float ANGULAR_STIFFNESS_MODIFIER = 1.0f;
 
         static constexpr float LINEAR_DAMPING_MODIFIER = 1.0f;
         static constexpr float LINEAR_STIFFNESS_MODIFIER = 1.0f;

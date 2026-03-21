@@ -160,7 +160,7 @@ namespace era_engine::physics
 		std::unordered_map<uint32, trs> local_joint_poses_for_target_calculation;
 
 		SimulationStateType current_state_type = SimulationStateType::DISABLED;
-		SkeletalMeshBlendType mesh_blend_type = SkeletalMeshBlendType::TRANSFORM;
+		SkeletonUpdateType mesh_update_type = SkeletonUpdateType::TRANSFORM;
 
 		float ragdoll_profile_transition_time = 0.0f;
 

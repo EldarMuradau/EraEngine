@@ -1,4 +1,4 @@
-#include "dynx/core/physixs.h"
+#include "dynx/core/physics.h"
 
 namespace era_engine::dynx
 {

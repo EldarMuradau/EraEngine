@@ -5,6 +5,7 @@
 #include "core_api.h"
 
 #include "core/memory.h"
+#include "core/bounding_volumes.h"
 
 #include "animation/animation.h"
 

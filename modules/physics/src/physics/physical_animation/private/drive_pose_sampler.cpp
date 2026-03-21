@@ -96,15 +96,15 @@ namespace era_engine::physics
 						inverse_parent_local,
 						blend_value);
 
-					if (physical_animation_component->mesh_blend_type == SkeletalMeshBlendType::ROTATION)
+					if (physical_animation_component->mesh_update_type == SkeletonUpdateType::ROTATION)
 					{
 						skeleton->set_joint_rotation(new_transform.rotation, simulation_joint);
 					}
-					else if (physical_animation_component->mesh_blend_type == SkeletalMeshBlendType::TRANSLATION)
+					else if (physical_animation_component->mesh_update_type == SkeletonUpdateType::TRANSLATION)
 					{
 						skeleton->set_joint_translation(new_transform.position, simulation_joint);
 					}
-					else if (physical_animation_component->mesh_blend_type == SkeletalMeshBlendType::TRANSFORM)
+					else if (physical_animation_component->mesh_update_type == SkeletonUpdateType::TRANSFORM)
 					{
 						skeleton->set_joint_transform(new_transform, simulation_joint);
 					}

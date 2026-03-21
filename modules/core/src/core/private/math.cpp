@@ -579,9 +579,30 @@ void get_axis_rotation(quat q, vec3& axis, float& angle)
 void decompose_quaternion_into_twist_and_swing(quat q, vec3 normalized_twist_axis, quat& twist, quat& swing)
 {
 	vec3 axis(q.x, q.y, q.z);
-	vec3 proj = dot(axis, normalized_twist_axis) * normalized_twist_axis; // This assumes that twistAxis is normalized.
+	vec3 proj = dot(axis, normalized_twist_axis) * normalized_twist_axis; // This assumes that twist_axis is normalized.
 	twist = normalize(quat(proj.x, proj.y, proj.z, q.w));
 	swing = q * conjugate(twist);
+}
+
+float get_twist_angle(const quat& q, const vec3& axis)
+{
+	float xyz = axis.x * q.x + axis.y * q.y + axis.z * q.z;
+	float w = q.w;
+
+	if (w < 0.0f)
+	{
+		w = -w;
+		xyz = -xyz;
+	}
+
+	float angle = 2.0f * std::atan2f(xyz, w);
+
+	if (angle >= M_PI)
+	{
+		angle -= M_TAU;
+	}
+
+	return angle;
 }
 
 quat slerp(quat from, quat to, float t)
@@ -1335,28 +1356,22 @@ vec2 direction_to_panorama_uv(vec3 dir)
 
 float angle_to_zero_to_two_pi(float angle)
 {
-	while (angle < 0)
+	angle = fmodf(angle, M_TAU);
+	if (angle < 0)
 	{
 		angle += M_TAU;
-	}
-	while (angle > M_TAU)
-	{
-		angle -= M_TAU;
 	}
 	return angle;
 }
 
 float angle_to_neg_pi_to_pi(float angle)
 {
-	while (angle < -M_PI)
+	angle = fmodf(angle + M_PI, M_TAU);
+	if (angle < 0)
 	{
 		angle += M_TAU;
 	}
-	while (angle > M_PI)
-	{
-		angle -= M_TAU;
-	}
-	return angle;
+	return angle - M_PI;
 }
 
 vec2 solve_linear_system(const mat2& A, vec2 b)

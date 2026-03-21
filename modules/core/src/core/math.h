@@ -746,6 +746,20 @@ inline float max_element(vec2 a) { return max(a.x, a.y); }
 inline float max_element(vec3 a) { return max(a.x, max(a.y, a.z)); }
 inline float max_element(vec4 a) { return max(a.x, max(a.y, max(a.z, a.w))); }
 
+inline void decompose(const vec3& a, float& len, vec3& normal, float epsilon = EPSILON)
+{
+	len = length(a);
+	if (len <= epsilon)
+	{
+		normal = vec3();
+	}
+	else
+	{
+		float inv = 1.0f / len;
+		normal = vec3(a.x * inv, a.y * inv, a.z * inv);
+	}
+}
+
 inline quat nlerp(const quat& q, const quat& p, float alpha)
 {
 	return normalize(quat(
@@ -967,6 +981,7 @@ ERA_CORE_API quat rotate_from_to(vec3 from, vec3 to);
 ERA_CORE_API quat look_at_quaternion(vec3 forward, vec3 up);
 ERA_CORE_API void get_axis_rotation(quat q, vec3& axis, float& angle);
 ERA_CORE_API void decompose_quaternion_into_twist_and_swing(quat q, vec3 normalized_twist_axis, quat& twist, quat& swing);
+ERA_CORE_API float get_twist_angle(const quat& q, const vec3& axis);
 
 ERA_CORE_API quat slerp(quat from, quat to, float t);
 ERA_CORE_API quat nlerp(quat* qs, float* weights, uint32 count);

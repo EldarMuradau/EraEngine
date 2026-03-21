@@ -536,4 +536,19 @@ namespace era_engine::animation
 	AnimationComponent::~AnimationComponent()
 	{
 	}
+
+	void AnimationComponent::activate_inertial_blend()
+	{
+		const SkeletonComponent* skeleton_component = get_entity().get_component<SkeletonComponent>();
+
+		inertial_sampler = make_ref<InertialBlendSampler>(skeleton_component->skeleton.get());
+		inertial_blend_inited = true;
+	}
+
+	void AnimationComponent::trigger_reset_inertial_blend(const SkeletonPose& reset_pose, float _blend_time)
+	{
+		blend_time = _blend_time;
+		inertial_sampler->reset_blend_time(blend_time);
+		inertial_sampler->init_inertial_blend(reset_pose);
+	}
 }
