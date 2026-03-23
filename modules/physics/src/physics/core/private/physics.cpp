@@ -112,7 +112,7 @@ namespace era_engine::physics
 
 		dispatcher = PxDefaultCpuDispatcherCreate(nb_cpu_dispatcher_threads);
 
-		blast_core = make_ref<BlastCore>();
+		blast_core = make_ref<BlastCore>(*this);
 
 #if PX_VEHICLE
 		if (!PxInitVehicleSDK(*physics))
@@ -283,6 +283,11 @@ namespace era_engine::physics
 	physx::PxTolerancesScale Physics::get_tolerance_scale() const
 	{
 		return tolerance_scale;
+	}
+
+	ref<BlastCore> Physics::get_blast_core() const
+	{
+		return blast_core;
 	}
 
 	bool Physics::is_gpu() const

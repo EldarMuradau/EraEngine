@@ -33,22 +33,20 @@ namespace era_engine::physics
 		return px_joint;
 	}
 
-	BlastCore::BlastCore()
+	BlastCore::BlastCore(Physics& physics)
 	{
 		using namespace physx;
 		using namespace Nv::Blast;
 
 		tk_framework = NvBlastTkFrameworkCreate();
 
-		ref<Physics> physics = PhysicsEngine::get_physics_core();
-
-		task_manager = PxTaskManager::createTaskManager(NvBlastGetPxErrorCallback(), physics->get_cpu_dispatcher());
+		task_manager = PxTaskManager::createTaskManager(NvBlastGetPxErrorCallback(), physics.get_cpu_dispatcher());
 
 		TkGroupDesc group_desc{};
-		group_desc.workerCount = physics->get_cpu_dispatcher()->getWorkerCount();
+		group_desc.workerCount = physics.get_cpu_dispatcher()->getWorkerCount();
 		tk_group = tk_framework->createGroup(group_desc);
 
-		ext_px_manager = ExtPxManager::create(*physics->get_physics(), *tk_framework, createPxJointCallback);
+		ext_px_manager = ExtPxManager::create(*physics.get_physics(), *tk_framework, createPxJointCallback);
 		ext_px_manager->setActorCountLimit(actors_limit);
 
 		ext_impact_damage_manager = ExtImpactDamageManager::create(ext_px_manager, ext_impact_damage_manager_settings);

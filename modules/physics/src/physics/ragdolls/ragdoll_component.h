@@ -87,9 +87,7 @@ namespace era_engine::physics
             float clavicle_radius = 0.081f;
             float arm_radius = 0.081f;
             float forearm_radius = 0.063f;
-            float hand_x = 0.06f;
-            float hand_y = 0.04f;
-            float hand_z = 0.02f;
+            float hand_radius = 0.03f;
             float leg_radius = 0.09f;
             float calf_radius = 0.06f;
             float foot_radius = 0.1f;

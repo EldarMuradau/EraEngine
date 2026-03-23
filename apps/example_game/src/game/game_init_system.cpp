@@ -172,9 +172,7 @@ namespace era_engine
 			settings.shapes_settings.clavicle_radius = 0.071f;
 			settings.shapes_settings.arm_radius = 0.065f;
 			settings.shapes_settings.foot_radius = 0.05f;
-			settings.shapes_settings.hand_x = 0.17f;
-			settings.shapes_settings.hand_y = 0.08f;
-			settings.shapes_settings.hand_z = 0.06f;
+			settings.shapes_settings.hand_radius = 0.05f;
 
 			settings.local_shape_settings.head_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
 			//settings.local_shape_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);

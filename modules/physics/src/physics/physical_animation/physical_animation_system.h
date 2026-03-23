@@ -44,7 +44,8 @@ namespace era_engine::physics
 
 		void update_chain(const ref<PhysicsLimbChain>& chain,
 			float dt,
-			bool is_in_ragdoll) const;
+			bool is_in_ragdoll,
+			bool force_simulation = false) const;
 
 		void update_target_pose(PhysicalAnimationComponent* physical_animation_component,
 			const animation::SkeletonPose& current_animation_pose,

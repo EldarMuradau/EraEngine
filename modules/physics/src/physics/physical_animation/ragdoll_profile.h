@@ -59,17 +59,17 @@ namespace era_engine::physics
 
         float max_force = std::numeric_limits<float>::max();
 
-        float velocity_drive_modifier = 1.0f; // Only for MotorDriveType::VELOCITY or ALL
+        float velocity_drive_modifier = 0.25f; // Only for MotorDriveType::VELOCITY or ALL
 
         bool accelerated = true;
         bool enable_slerp_drive = true;
-        MotorDriveType drive_type = MotorDriveType::TRANSFORM;
+        MotorDriveType drive_type = MotorDriveType::ALL;
     };
 
     class ERA_PHYSICS_API DragForceDetails final
     {
     public:
-        float partial_angular_drive_limit = 25.0f;
+        float partial_angular_drive_limit = 100.0f;
         float partial_angular_drive = 0.5f;
 
         float partial_velocity_drive_limit = 100.0f;

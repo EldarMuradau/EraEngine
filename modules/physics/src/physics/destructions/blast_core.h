@@ -18,7 +18,7 @@ namespace Nv::Blast
 
 namespace era_engine::physics
 {
-	class BlastEventCallback : public physx::PxSimulationEventCallback
+	class ERA_PHYSICS_API BlastEventCallback : public physx::PxSimulationEventCallback
 	{
 	public:
 		BlastEventCallback(Nv::Blast::ExtImpactDamageManager* _manager) : manager(_manager) {}
@@ -38,10 +38,12 @@ namespace era_engine::physics
 		Nv::Blast::ExtImpactDamageManager* manager = nullptr;
 	};
 
+	class Physics;
+
 	class ERA_PHYSICS_API BlastCore final
 	{
 	public:
-		BlastCore();
+		BlastCore(Physics& physics);
 		~BlastCore();
 
 		uint32 actors_limit = 100000;

@@ -69,19 +69,21 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 400)
+		const float max_contact_impulse = 400.0f,
+		const float max_angular_velocity = 200.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
 		dynamic_body_component->ccd.get_for_write() = true;
-		dynamic_body_component->max_depenetration_velocity = 150.0f;
+		dynamic_body_component->max_depenetration_velocity = 15.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->linear_damping.get_for_write() = 0.15f;
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
-		dynamic_body_component->solver_position_iterations_count.get_for_write() = 16;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 2;
+		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
+		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 
 		return dynamic_body_component;
@@ -186,8 +188,8 @@ namespace era_engine::physics
 			joint_component->twist_min_limit.get_for_write() = deg2rad(twist_min_deg);
 			joint_component->twist_max_limit.get_for_write() = deg2rad(twist_max_deg);
 
-			joint_component->twist_limit_damping.get_for_write() = 100.0f;
-			joint_component->twist_limit_stiffness.get_for_write() = 1000.0f;
+			joint_component->twist_limit_damping.get_for_write() = 50.0f;
+			joint_component->twist_limit_stiffness.get_for_write() = 500.0f;
 			joint_component->twist_limit_restitution.get_for_write() = 0.0f;
 		}
 
@@ -225,8 +227,8 @@ namespace era_engine::physics
 
 		if (any_moving_swing)
 		{
-			joint_component->swing_limit_damping.get_for_write() = 100.0f;
-			joint_component->swing_limit_stiffness.get_for_write() = 1000.0f;
+			joint_component->swing_limit_damping.get_for_write() = 50.0f;
+			joint_component->swing_limit_stiffness.get_for_write() = 500.0f;
 			joint_component->swing_limit_restitution.get_for_write() = 0.0f;
 		}
 	}
@@ -298,34 +300,6 @@ namespace era_engine::physics
 			joint_component->twist_drive_force_limit.get_for_write() = motor_drive.max_force;
 			joint_component->twist_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
-	}
-
-	static void create_collision_joint(
-		const Entity& source,
-		Entity& e0,
-		Entity& e1)
-	{
-		JointComponent::BaseDescriptor descriptor;
-		descriptor.connected_entity = e0.get_data_weakref();
-		descriptor.second_connected_entity = e1.get_data_weakref();
-		descriptor.local_frame = trs::identity;
-		descriptor.second_local_frame = trs::identity;
-
-		Entity joint_entity = e0.get_world()->create_entity();
-		joint_entity.set_parent(source.get_handle());
-
-		D6JointComponent* joint_component = joint_entity.add_component<D6JointComponent>(descriptor);
-
-		joint_component->disable_preprocessing = true;
-		joint_component->enable_collision.get_for_write() = false;
-
-		joint_component->linear_x_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
-		joint_component->linear_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
-		joint_component->linear_z_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
-
-		joint_component->twist_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
-		joint_component->swing_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
-		joint_component->swing_z_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 	}
 
 	// Return bottom of the box, used for creating d6s
@@ -937,9 +911,9 @@ namespace era_engine::physics
 				DistanceJointComponent* joint_component = body_lower_ghost.add_component<DistanceJointComponent>(descriptor);
 				joint_component->enable_collision.get_for_write() = false;
 				joint_component->spring_enabled.get_for_write() = true;
-				joint_component->stiffness.get_for_write() = 800.0f;
-				joint_component->damping.get_for_write() = 80.0f;
-				joint_component->max_distance.get_for_write() = 0.1f;
+				joint_component->stiffness.get_for_write() = 500.0f;
+				joint_component->damping.get_for_write() = 50.0f;
+				joint_component->max_distance.get_for_write() = 0.3f;
 				joint_component->min_distance.get_for_write() = 0.0f;
 			}
 
@@ -1003,7 +977,7 @@ namespace era_engine::physics
 			settings.local_shape_settings.left_hand_joint_spin
 		);
 
-		create_box_limb_between_joints(
+		create_capsule_limb_between_joints(
 			ctx.ragdoll_component->joint_init_ids.hand_l_idx,
 			ctx.enable_physical_animation ? &ctx.default_profile->hand_limb_details : nullptr,
 			settings.mass_settings.hand_mass_percentage,
@@ -1011,7 +985,9 @@ namespace era_engine::physics
 			RagdollLimbType::HAND,
 			structure.left_hand_joint,
 			structure.left_hand_end_joint,
-			vec3(settings.shapes_settings.hand_x, settings.shapes_settings.hand_y, settings.shapes_settings.hand_z),
+			settings.shapes_settings.hand_radius,
+			1.0f,
+			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
 			settings.object_space_settings.left_hand_joint_adjastment,
@@ -1077,7 +1053,7 @@ namespace era_engine::physics
 			settings.local_shape_settings.right_hand_joint_spin
 		);
 
-		create_box_limb_between_joints(
+		create_capsule_limb_between_joints(
 			ctx.ragdoll_component->joint_init_ids.hand_r_idx,
 			ctx.enable_physical_animation ? &ctx.default_profile->hand_limb_details : nullptr,
 			settings.mass_settings.hand_mass_percentage,
@@ -1085,7 +1061,9 @@ namespace era_engine::physics
 			RagdollLimbType::HAND,
 			structure.right_hand_joint,
 			structure.right_hand_end_joint,
-			vec3(settings.shapes_settings.hand_x, settings.shapes_settings.hand_y, settings.shapes_settings.hand_z),
+			settings.shapes_settings.hand_radius,
+			1.0f,
+			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
 			settings.object_space_settings.right_hand_joint_adjastment,
@@ -1360,7 +1338,7 @@ namespace era_engine::physics
 			body_middle_d6_swing_y_deg, 10.0f);
 
 		// Body upper -> left clavicle
-		const float clavicle_d6_swing_y_deg = 20.0f;
+		const float clavicle_d6_swing_y_deg = 40.0f;
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
@@ -1368,8 +1346,8 @@ namespace era_engine::physics
 			structure.left_clavicle_joint,
 			left_clavicle_joint_transform,
 			left_clavicle_joint_transform,
-			-25.0f, 25.0f,
-			clavicle_d6_swing_y_deg, 20.0f);
+			-35.0f, 35.0f,
+			clavicle_d6_swing_y_deg, 30.0f);
 
 		// Left clavicle -> left arm
 		float arm_forward_angle_deg = 90.0f;  // How far an arm can be rotated forward around Y axis
@@ -1386,7 +1364,7 @@ namespace era_engine::physics
 			arm_d6_swing_y_deg, 60.0f);
 
 		// Left arm -> left forearm
-		const float forearm_d6_swing_y_deg = 55.0f;
+		const float forearm_d6_swing_y_deg = 70.0f;
 		const vec3 left_forearm_capsule_y_axis = left_forearm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
 		const trs left_forearm_d6_transform = trs(
 			left_forearm_capsule_bottom_transform.position,
@@ -1408,10 +1386,10 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.left_forearm_joint,
 			structure.left_hand_joint,
-			structure.left_hand_joint.joint_object_space_transform,
 			left_hand_capsule_bottom_transform,
-			-180.0f, 180.0f,
-			180.0f, 180.0f);
+			left_hand_capsule_bottom_transform,
+			-25.0f, 25.0f,
+			40.0f, 30.0f);
 
 		// Body upper -> right clavicle
 		create_d6_joint(
@@ -1421,8 +1399,8 @@ namespace era_engine::physics
 			structure.right_clavicle_joint,
 			right_clavicle_joint_transform,
 			right_clavicle_joint_transform,
-			-25.0f, 25.0f,
-			clavicle_d6_swing_y_deg, 20.0f);
+			-35.0f, 35.0f,
+			clavicle_d6_swing_y_deg, 30.0f);
 
 		// Right clavicle -> right arm
 		create_d6_joint(
@@ -1457,10 +1435,10 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.right_forearm_joint,
 			structure.right_hand_joint,
-			structure.right_hand_joint.joint_object_space_transform,
 			right_hand_capsule_bottom_transform,
-			-180.0f, 180.0f,
-			180.0f, 180.0f);
+			right_hand_capsule_bottom_transform,
+			-25.0f, 25.0f,
+			40.0f, 30.0f);
 
 		// Pelvis -> left up leg
 		const float up_leg_back_angle_deg = 5.0; // How far up leg can be rotated around y axis in backwards direction

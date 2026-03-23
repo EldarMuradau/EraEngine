@@ -48,8 +48,8 @@ namespace era_engine::physics
 	public:
 		struct CollisionData
 		{
-			constexpr static float MAX_COLLISION_TIME = 0.5f;
-			constexpr static float MAX_FREQUENT_COLLISION_TIME = 0.3f;
+			constexpr static float MAX_COLLISION_TIME = 1.0f;
+			constexpr static float MAX_FREQUENT_COLLISION_TIME = 0.8f;
 
 			bool was_in_collision = false;
 			bool is_colliding = false;
