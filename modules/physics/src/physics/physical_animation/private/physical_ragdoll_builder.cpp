@@ -69,7 +69,7 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 400.0f,
+		const float max_contact_impulse = 200.0f,
 		const float max_angular_velocity = 200.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
@@ -83,7 +83,7 @@ namespace era_engine::physics
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
 		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
 		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 
 		return dynamic_body_component;

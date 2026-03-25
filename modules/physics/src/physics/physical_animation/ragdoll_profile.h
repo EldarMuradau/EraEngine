@@ -59,7 +59,7 @@ namespace era_engine::physics
 
         float max_force = std::numeric_limits<float>::max();
 
-        float velocity_drive_modifier = 0.25f; // Only for MotorDriveType::VELOCITY or ALL
+        float velocity_drive_modifier = 1.0f; // Only for MotorDriveType::VELOCITY or ALL
 
         bool accelerated = true;
         bool enable_slerp_drive = true;

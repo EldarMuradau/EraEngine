@@ -53,7 +53,7 @@ namespace era_engine::physics
 	static DebugVar<bool> force_disable_ragdoll = DebugVar<bool>("physics.physical_animation.force_disable_ragdoll", false);
 
 	static DebugVar<float> running_speed = DebugVar<float>("physics.physical_animation.debug_demo.running_speed", 1.0f);
-	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 5.0f);
+	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 20.0f);
 
 	PhysicalAnimationSystem::PhysicalAnimationSystem(World* _world)
 		: System(_world)
@@ -94,7 +94,6 @@ namespace era_engine::physics
 			idle_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
 			idle_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
 			idle_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
-			idle_profile->body_middle_limb_details.drag_force = DragForceDetails();
 
 			idle_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_lower_limb_details.motor_drive = MotorDriveDetails();
@@ -160,7 +159,6 @@ namespace era_engine::physics
 			running_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
 			running_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
 			running_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
-			running_profile->body_middle_limb_details.drag_force = DragForceDetails();
 
 			running_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			running_profile->body_lower_limb_details.motor_drive = MotorDriveDetails();
@@ -340,11 +338,6 @@ namespace era_engine::physics
 		}
 
 		filter_states_by_collisions(dt);
-
-		for (PhysicalAnimationComponent* physical_animation_component : active_ragdolls)
-		{
-			update_chains_states(physical_animation_component, dt);
-		}
 	}
 
 	void PhysicalAnimationSystem::update_normal(float dt)
@@ -471,6 +464,8 @@ namespace era_engine::physics
 			const SkeletonPose& current_animation_pose = animation_component.current_animation_pose;
 			update_target_pose(&physical_animation_component, current_animation_pose, skeleton.get(), world_transform);
 
+			update_chains_states(&physical_animation_component, dt);
+
 			for (const EntityPtr& limb_ptr : physical_animation_component.limbs)
 			{
 				Entity limb = limb_ptr.get();
@@ -538,7 +533,7 @@ namespace era_engine::physics
 
 	void PhysicalAnimationSystem::update_chains_states(const PhysicalAnimationComponent* physical_animation_component, float dt) const
 	{
-		bool has_any_up_collided_limbs = physical_animation_component->body_chain->has_any_colliding_limb() || force_simulate;
+		bool has_any_up_collided_limbs = physical_animation_component->body_chain->has_any_colliding_limb();
 		if (!has_any_up_collided_limbs)
 		{
 			has_any_up_collided_limbs |= physical_animation_component->neck_chain->has_any_colliding_limb();
@@ -554,7 +549,7 @@ namespace era_engine::physics
 
 		const bool is_in_ragdoll = physical_animation_component->is_in_ragdoll();
 
-		update_chain(physical_animation_component->body_chain, dt, is_in_ragdoll);
+		update_chain(physical_animation_component->body_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 		update_chain(physical_animation_component->neck_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 		update_chain(physical_animation_component->left_arm_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 		update_chain(physical_animation_component->right_arm_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
@@ -569,7 +564,7 @@ namespace era_engine::physics
 		bool is_in_ragdoll,
 		bool force_simulation/* = false*/) const
 	{
-		const bool should_update_as_simulated = chain->has_any_colliding_limb() || force_simulation;
+		const bool should_update_as_simulated = chain->has_any_colliding_limb() || force_simulation || force_simulate;
 
 		for (EntityPtr limb_ptr : chain->connected_limbs)
 		{
@@ -583,8 +578,7 @@ namespace era_engine::physics
 			{
 				desired_chain_state = PhysicalLimbStateType::RAGDOLL;
 			}
-			else if (limb_data_component->collision.collision_time > 0.0f ||
-				limb_data_component->collision.is_colliding)
+			else if (should_update_as_simulated)
 			{
 				desired_chain_state = PhysicalLimbStateType::SIMULATION;
 			}

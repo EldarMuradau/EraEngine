@@ -37,16 +37,14 @@ namespace era_engine::physics
         const ref<RagdollProfile> profile = physical_animation_component->get_ragdoll_profile();
         ASSERT(profile != nullptr);
 
+		const PhysicalLimbDetails& limb_details = profile->get_limb_details_by_type(limb_component->type);
+
 		const quat delta_rotation = normalize(limb_component->target_pose.rotation * conjugate(limb_component->physics_pose.rotation));
 		const vec3 delta_position = limb_component->target_pose.position - limb_component->physics_pose.position;
 
 		float delta_angle = 0.0f;
 		vec3 delta_axis = vec3::zero;
 		get_axis_rotation(delta_rotation, delta_axis, delta_angle);
-
-		const vec3 angular_drive_velocity = normalize(delta_axis) * delta_angle / dt;
-
-		const PhysicalLimbDetails& limb_details = profile->get_limb_details_by_type(limb_component->type);
 
 		// Motors drive for limb.
 		if (limb_details.motor_drive.has_value())
@@ -63,16 +61,16 @@ namespace era_engine::physics
 			const bool has_transform_drive = has_flag(limb_details.motor_drive->drive_type, MotorDriveType::TRANSFORM);
 			const bool has_velocity_drive = has_flag(limb_details.motor_drive->drive_type, MotorDriveType::VELOCITY);
 
+			const trs& constraint_frame_in_actor1_local = drive_joint_component->get_second_local_frame();
+
+			const trs constraint_frame_actor0_local = parent_local_transform * constraint_frame_in_actor0_local;
+			const trs constraint_frame_target_local = limb_component->target_pose * constraint_frame_in_actor1_local;
+
+			trs target_pose_in_constraint_space = invert(constraint_frame_actor0_local) * constraint_frame_target_local;
+			target_pose_in_constraint_space.rotation = normalize(target_pose_in_constraint_space.rotation);
+
 			if (has_transform_drive)
 			{
-				const trs& constraint_frame_in_actor1_local = drive_joint_component->get_second_local_frame();
-
-				const trs constraint_frame_actor0_local = parent_local_transform * constraint_frame_in_actor0_local;
-				const trs constraint_frame_target_local = limb_component->target_pose * constraint_frame_in_actor1_local;
-
-				trs target_pose_in_constraint_space = invert(constraint_frame_actor0_local) * constraint_frame_target_local;
-				target_pose_in_constraint_space.rotation = normalize(target_pose_in_constraint_space.rotation);
-
 				drive_joint_component->drive_transform = target_pose_in_constraint_space;
 
 				if(!has_velocity_drive)
@@ -84,15 +82,15 @@ namespace era_engine::physics
 
 			if (has_velocity_drive)
 			{
-				const quat parent_constraint_frame_rotation = normalize(parent_local_transform.rotation * constraint_frame_in_actor0_local.rotation);
-				const quat inv_parent_constraint_frame_rotation = conjugate(parent_constraint_frame_rotation);
+				float drive_delta_angle = 0.0f;
+				vec3 drive_delta_axis = vec3::zero;
+				get_axis_rotation(target_pose_in_constraint_space.rotation, drive_delta_axis, drive_delta_angle);
 
-				const vec3 angular_velocity_constraint_space = inv_parent_constraint_frame_rotation * angular_drive_velocity;
-				drive_joint_component->angular_drive_velocity = angular_velocity_constraint_space * limb_details.motor_drive->velocity_drive_modifier;
+				const vec3 angular_drive_velocity = normalize(drive_delta_axis) * drive_delta_angle / dt;
+				drive_joint_component->angular_drive_velocity = angular_drive_velocity * limb_details.motor_drive->velocity_drive_modifier;
 
-				const vec3 desired_linear_velocity = delta_position / dt;
-				const vec3 linear_velocity_constraint_space = inv_parent_constraint_frame_rotation * desired_linear_velocity;
-				drive_joint_component->linear_drive_velocity = linear_velocity_constraint_space * limb_details.motor_drive->velocity_drive_modifier;
+				const vec3 desired_linear_velocity = target_pose_in_constraint_space.position / dt;
+				drive_joint_component->linear_drive_velocity = desired_linear_velocity * limb_details.motor_drive->velocity_drive_modifier;
 
 				if (!has_transform_drive)
 				{
@@ -122,6 +120,8 @@ namespace era_engine::physics
 			const DragForceDetails& drag_details = limb_details.drag_force.value();
 			DynamicBodyComponent* dynamic_body = limb.get_component<DynamicBodyComponent>();
 
+			const vec3 angular_drag_velocity = normalize(delta_axis) * delta_angle / dt;
+
 			// Keyframe controller stage.
 			{
 				const vec3& raw_root_velocity = physical_animation_component->velocity;
@@ -147,7 +147,7 @@ namespace era_engine::physics
 				dynamic_body->linear_velocity = drive_linear_velocity;
 			}
 
-			vec3 desired_angular_velocity = angular_drive_velocity;
+			vec3 desired_angular_velocity = angular_drag_velocity;
 			const float angular_velocity_magnitude = length(desired_angular_velocity);
 			if (angular_velocity_magnitude > drag_details.partial_angular_drive_limit)
 			{
