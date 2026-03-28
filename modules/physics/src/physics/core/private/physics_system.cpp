@@ -221,6 +221,12 @@ namespace era_engine::physics
 
 			if (dynamic_body.ccd.is_changed())
 			{
+				if (dynamic_body.ccd && 
+					dynamic_body.kinematic.is_changed())
+				{
+					body->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, dynamic_body.kinematic);
+					dynamic_body.kinematic.sync_changes();
+				}
 				body->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, dynamic_body.ccd);
 				dynamic_body.ccd.sync_changes();
 			}

@@ -63,6 +63,8 @@ namespace era_engine::physics
         blend_time = physical_animation_component->blend_weight * physical_animation_component->blend_in_time;
         time_range = vec2(0.0f, physical_animation_component->blend_in_time);
 
+        PhysicalAnimationUtils::set_attachment_active(physical_animation_component, true);
+
 		if (!physical_animation_component->simulated)
 		{
 			const trs& ragdoll_transform = physical_animation_component->get_entity().get_component<TransformComponent>()->get_world_transform();
@@ -72,7 +74,6 @@ namespace era_engine::physics
 
 			auto process_limb = [&skeleton_component, &ragdoll_transform](PhysicalAnimationLimbComponent* limb_component)
 				{
-					PhysicalAnimationUtils::reset_motor_drive(limb_component);
 					PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
 					PhysicalAnimationUtils::force_sync_limb_to_skeleton(limb_component, skeleton_component, ragdoll_transform);
 				};

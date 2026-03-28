@@ -47,7 +47,7 @@ namespace era_engine::physics
                     limb_component->collision.reset();
                     limb_component->force_switch_state(PhysicalLimbStateType::KINEMATIC);
 
-                    PhysicalAnimationUtils::reset_motor_drive(limb_component);
+                    PhysicalAnimationUtils::set_motor_drive_active(limb_component, false);
                     PhysicalAnimationUtils::set_simulation_for_limb(limb_component, false, false);
                 };
 

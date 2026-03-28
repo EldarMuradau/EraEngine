@@ -11,5 +11,7 @@ namespace era_engine::physics
     {
     public:
         RagdollLimbState(ComponentPtr _limb_component_ptr);
+
+        void on_enter() override;
     };
 }

@@ -41,27 +41,13 @@ namespace era_engine::physics
 
 		physical_animation_component->blend_weight = 1.0f;
 
-		if (physical_animation_component->use_fixed_pelvis_attachment)
-		{
-			physical_animation_component->attachment_body.get().get_component<FixedJointComponent>()->disabled = true;
-		}
-		else
-		{
-			physical_animation_component->attachment_body.get().get_component<DistanceJointComponent>()->disabled = true;
-		}
+		PhysicalAnimationUtils::set_attachment_active(physical_animation_component, false);
 		const SkeletonComponent* skeleton_component = ragdoll.get_component<SkeletonComponent>();
 
 		auto process_limb = [&skeleton_component, &ragdoll_transform](PhysicalAnimationLimbComponent* limb_component)
 			{
 				PhysicalAnimationUtils::force_sync_limb_to_skeleton(limb_component, skeleton_component, ragdoll_transform);
-				PhysicalAnimationUtils::reset_motor_drive(limb_component);
 				PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
-
-				if(limb_component->drive_joint_component.get()!= nullptr)
-				{
-					D6JointComponent* drive_joint_component = dynamic_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
-					drive_joint_component->disabled = true;
-				}
 			};
 
 		traverse_simulation_graph(process_limb);
@@ -84,25 +70,7 @@ namespace era_engine::physics
 
 		const trs& ragdoll_transform = ragdoll.get_component<TransformComponent>()->get_world_transform();
 
-		if (physical_animation_component->use_fixed_pelvis_attachment)
-		{
-			physical_animation_component->attachment_body.get().get_component<FixedJointComponent>()->disabled = false;
-		}
-		else
-		{
-			physical_animation_component->attachment_body.get().get_component<DistanceJointComponent>()->disabled = false;
-		}
-
-		auto process_limb = [&ragdoll_transform](PhysicalAnimationLimbComponent* limb_component)
-			{
-				if (limb_component->drive_joint_component.get() != nullptr)
-				{
-					D6JointComponent* drive_joint_component = dynamic_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
-					drive_joint_component->disabled = false;
-				}
-			};
-
-		traverse_simulation_graph(process_limb);
+		PhysicalAnimationUtils::set_attachment_active(physical_animation_component, true);
 
 		AnimationComponent* animation_component = ragdoll.get_component<AnimationComponent>();
 		animation_component->play = true;

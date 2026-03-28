@@ -103,7 +103,7 @@ namespace era_engine
 			tiran.add_component<MeshComponent>(mesh);
 
 			TransformComponent* transform_component = tiran.get_component<TransformComponent>();
-			transform_component->set_world_transform(trs{vec3(-5.0f, -4.95f, 5.0f), quat::identity, vec3(1.0f)});
+			transform_component->set_world_transform(trs{vec3(-5.0f, -4.9f, 5.0f), quat::identity, vec3(1.0f)});
 
 			mesh->loadJob.wait_for_completion();
 

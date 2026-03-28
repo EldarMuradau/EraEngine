@@ -80,6 +80,45 @@ namespace era_engine::physics
         }
     }
 
+    void PhysicalAnimationUtils::set_limb_kinematic(PhysicalAnimationLimbComponent* limb_component, bool is_kinematic)
+    {
+        ASSERT(limb_component != nullptr);
+
+        DynamicBodyComponent* dynamic_body_component = limb_component->get_entity().get_component<DynamicBodyComponent>();
+        ASSERT(dynamic_body_component != nullptr);
+
+        dynamic_body_component->kinematic = is_kinematic;
+        dynamic_body_component->ccd = !is_kinematic;
+        dynamic_body_component->kinematic_motion_type = KinematicMotionType::VELOCITY;
+    }
+
+    void PhysicalAnimationUtils::set_attachment_active(PhysicalAnimationComponent* ragdoll_component, bool active)
+    {
+        ASSERT(ragdoll_component != nullptr);
+
+        if (ragdoll_component->use_fixed_pelvis_attachment)
+        {
+            ragdoll_component->attachment_body.get().get_component<FixedJointComponent>()->disabled = !active;
+        }
+        else
+        {
+            ragdoll_component->attachment_body.get().get_component<DistanceJointComponent>()->disabled = !active;
+        }
+    }
+
+    void PhysicalAnimationUtils::set_motor_drive_active(PhysicalAnimationLimbComponent* limb_component, bool active)
+    {
+        ASSERT(limb_component != nullptr);
+
+        if (limb_component->drive_joint_component.is_empty())
+        {
+            return;
+        }
+
+        D6JointComponent* drive_joint_component = dynamic_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
+        drive_joint_component->disabled = !active;
+    }
+
     void PhysicalAnimationUtils::set_simulation_for_limb(const PhysicalAnimationLimbComponent* limb_component,
         bool enable_simulation,
         bool enable_gravity /*= false*/)

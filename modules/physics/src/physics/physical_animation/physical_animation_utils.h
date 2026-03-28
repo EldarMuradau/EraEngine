@@ -26,6 +26,10 @@ namespace era_engine::physics
 		static bool is_arm_limb(RagdollLimbType type);
 
 		static void reset_motor_drive(PhysicalAnimationLimbComponent* limb_component);
+		static void set_limb_kinematic(PhysicalAnimationLimbComponent* limb_component, bool is_kinematic);
+
+		static void set_attachment_active(PhysicalAnimationComponent* ragdoll_component, bool active);
+		static void set_motor_drive_active(PhysicalAnimationLimbComponent* limb_component, bool active);
 
 		static void set_simulation_for_limb(const PhysicalAnimationLimbComponent* limb_component,
 			bool enable_simulation,

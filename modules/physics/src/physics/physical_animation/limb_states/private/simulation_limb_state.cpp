@@ -170,15 +170,15 @@ namespace era_engine::physics
         return desired_state;
     }
 
-	void SimulationLimbState::on_exit()
+	void SimulationLimbState::on_enter()
 	{
 		ASSERT(!physical_animation_limb_component_ptr.is_empty());
 
 		PhysicalAnimationLimbComponent* limb_component = static_cast<PhysicalAnimationLimbComponent*>(physical_animation_limb_component_ptr.get_for_write());
 
 		PhysicalAnimationUtils::reset_motor_drive(limb_component);
+		PhysicalAnimationUtils::set_motor_drive_active(limb_component, true);
 
-		BaseLimbState::on_exit();
+		BaseLimbState::on_enter();
 	}
-
 }
