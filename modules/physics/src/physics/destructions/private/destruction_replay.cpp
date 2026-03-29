@@ -89,12 +89,12 @@ namespace era_engine::physics
 		}
 
 		const ExtSyncEvent* const* temp_buffer = nullptr;
-		uint32_t size = 0;
+		uint32 size = 0;
 		sync->acquireSyncBuffer(temp_buffer, size);
 
 		clear_buffer();
 		buffer.resize(size);
-		for (uint32_t i = 0; i < size; ++i)
+		for (uint32 i = 0; i < size; ++i)
 		{
 			buffer[i] = temp_buffer[i]->clone();
 		}
@@ -149,7 +149,7 @@ namespace era_engine::physics
 			{
 				const ExtSyncEvent* current_event = buffer[next_event_index];
 				auto dt = current_event->timestamp - first_event_ts;
-				if (dt < (uint64_t)mil.count())
+				if (dt < (uint64)mil.count())
 				{
 					sync->applySyncBuffer(px_manager->getFramework(), &current_event, 1, group, px_manager);
 					next_event_index++;

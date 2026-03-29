@@ -58,6 +58,7 @@ namespace era_engine::physics
 			PxRigidActor* rigid_actor = PhysicsUtils::get_body_component(entity)->get_rigid_actor();
 			if (rigid_actor == nullptr)
 			{
+				++iter;
 				continue;
 			}
 
