@@ -1,5 +1,6 @@
 #include "ecs/rendering/world_renderer.h"
 #include "ecs/rendering/mesh_component.h"
+#include "ecs/rendering/cloth_render_component.h"
 #include "ecs/base_components/base_components.h"
 
 #include "core/cpu_profiling.h"
@@ -531,6 +532,11 @@ namespace era_engine
 
 		uint32 groupSize = (uint32)group.size();
 
+		if (groupSize == 0)
+		{
+			return;
+		}
+
 		dx_allocation transformAllocation = dxContext.allocateDynamicBuffer(groupSize * sizeof(mat4) * 2, 4);
 		mat4* transforms = (mat4*)transformAllocation.cpuPtr;
 		mat4* prevFrameTransforms = transforms + groupSize;
@@ -665,6 +671,11 @@ namespace era_engine
 
 		uint32 groupSize = (uint32)group.size();
 
+		if (groupSize == 0)
+		{
+			return;
+		}
+
 		std::unordered_map<multi_mesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
 
 		dx_allocation transformAllocation = dxContext.allocateDynamicBuffer(groupSize * sizeof(mat4), 4);
@@ -718,74 +729,82 @@ namespace era_engine
 	{
 		CPU_PROFILE_BLOCK("Cloth");
 
-		//uint32 groupSize = (uint32)group.size();
+		auto group = world->group(
+			components_group<TransformComponent, ClothRenderComponent>);
 
-		//dx_allocation transformAllocation = dxContext.allocateDynamicBuffer(1 * sizeof(mat4), 4);
-		//*(mat4*)transformAllocation.cpuPtr = mat4::identity;
+		uint32 groupSize = (uint32)group.size();
 
-		//dx_allocation objectIDAllocation = dxContext.allocateDynamicBuffer(groupSize * sizeof(uint32), 4);
-		//uint32* objectIDs = (uint32*)objectIDAllocation.cpuPtr;
+		if (groupSize == 0)
+		{
+			return;
+		}
 
-		//D3D12_GPU_VIRTUAL_ADDRESS objectIDAddress = objectIDAllocation.gpuPtr;
+		dx_allocation transformAllocation = dxContext.allocateDynamicBuffer(1 * sizeof(mat4), 4);
+		*(mat4*)transformAllocation.cpuPtr = mat4::identity;
 
-		//uint32 index = 0;
-		//for (auto [entityHandle, cloth, render] : scene.group<physics::px_cloth_component, physics::px_cloth_render_component>().each())
-		//{
-		//	pbr_material_desc desc;
-		//	// TODO: change it. Temporal solution
-		//	desc.albedo = getAssetPath("/resources/assets/Sponza/textures/sponza_curtain_diff.png");
-		//	desc.normal = getAssetPath("/resources/assets/Sponza/textures/sponza_fabric_ddn.jpg");
-		//	desc.roughness = getAssetPath("/resources/assets/Sponza/textures/sponza_curtain_diff.png");
-		//	desc.metallic = "";
-		//	desc.shader = pbr_material_shader_double_sided;
+		dx_allocation objectIDAllocation = dxContext.allocateDynamicBuffer(groupSize * sizeof(uint32), 4);
+		uint32* objectIDs = (uint32*)objectIDAllocation.cpuPtr;
 
-		//	static auto clothMaterial = createPBRMaterial(desc);
+		D3D12_GPU_VIRTUAL_ADDRESS objectIDAddress = objectIDAllocation.gpuPtr;
 
-		//	objectIDs[index] = (uint32)entityHandle;
-		//	D3D12_GPU_VIRTUAL_ADDRESS baseObjectID = objectIDAddress + (index * sizeof(uint32));
+		PbrMaterialDesc desc;
+		// TODO: change it. Temporal solution
+		desc.albedo = get_asset_path("/resources/assets/Sponza/textures/sponza_curtain_diff.png");
+		desc.normal = get_asset_path("/resources/assets/Sponza/textures/sponza_fabric_ddn.jpg");
+		desc.roughness = get_asset_path("/resources/assets/Sponza/textures/sponza_curtain_diff.png");
+		desc.metallic = "";
+		desc.shader = pbr_material_shader_double_sided;
 
-		//	auto [vb, prevFrameVB, ib, sm] = render.getRenderData(cloth);
+		static auto cloth_material = createPBRMaterial(desc);
 
-		//	pbr_render_data data;
-		//	data.transformPtr = transformAllocation.gpuPtr;
-		//	data.vertexBuffer = vb;
-		//	data.indexBuffer = ib;
-		//	data.submesh = sm;
-		//	data.material = clothMaterial;
-		//	data.numInstances = 1;
+		uint32 index = 0;
+		for (auto [entity_handle, cloth, render] : group.each())
+		{
+			objectIDs[index] = (uint32)entity_handle;
+			D3D12_GPU_VIRTUAL_ADDRESS baseObjectID = objectIDAddress + (index * sizeof(uint32));
 
-		//	depth_prepass_data depthPrepassData;
-		//	depthPrepassData.transformPtr = transformAllocation.gpuPtr;
-		//	depthPrepassData.prevFrameTransformPtr = transformAllocation.gpuPtr;
-		//	depthPrepassData.objectIDPtr = baseObjectID;
-		//	depthPrepassData.vertexBuffer = vb;
-		//	depthPrepassData.prevFrameVertexBuffer = prevFrameVB.positions ? prevFrameVB.positions : vb.positions;
-		//	depthPrepassData.indexBuffer = ib;
-		//	depthPrepassData.submesh = sm;
-		//	depthPrepassData.numInstances = 1;
-		//	depthPrepassData.alphaCutoutTextureSRV = (clothMaterial && clothMaterial->albedo) ? clothMaterial->albedo->defaultSRV : dx_cpu_descriptor_handle{};
+			auto [vb, prevFrameVB, ib, sm] = render.get_render_data();
 
-		//	addToRenderPass(clothMaterial->shader, data, depthPrepassData, opaqueRenderPass, transparentRenderPass);
+			pbr_render_data data;
+			data.transformPtr = transformAllocation.gpuPtr;
+			data.vertexBuffer = vb;
+			data.indexBuffer = ib;
+			data.submesh = sm;
+			data.material = cloth_material;
+			data.numInstances = 1;
 
-		//	if (sunShadowRenderPass)
-		//	{
-		//		shadow_render_data shadowData;
-		//		shadowData.transformPtr = transformAllocation.gpuPtr;
-		//		shadowData.vertexBuffer = vb.positions;
-		//		shadowData.indexBuffer = ib;
-		//		shadowData.numInstances = 1;
-		//		shadowData.submesh = data.submesh;
+			depth_prepass_data depthPrepassData;
+			depthPrepassData.transformPtr = transformAllocation.gpuPtr;
+			depthPrepassData.prevFrameTransformPtr = transformAllocation.gpuPtr;
+			depthPrepassData.objectIDPtr = baseObjectID;
+			depthPrepassData.vertexBuffer = vb;
+			depthPrepassData.prevFrameVertexBuffer = prevFrameVB.positions ? prevFrameVB.positions : vb.positions;
+			depthPrepassData.indexBuffer = ib;
+			depthPrepassData.submesh = sm;
+			depthPrepassData.numInstances = 1;
+			depthPrepassData.alphaCutoutTextureSRV = (cloth_material && cloth_material->albedo) ? cloth_material->albedo->defaultSRV : dx_cpu_descriptor_handle{};
 
-		//		addToDynamicRenderPass(clothMaterial->shader, shadowData, &sunShadowRenderPass->cascades[0], false);
-		//	}
+			addToRenderPass(cloth_material->shader, data, depthPrepassData, opaqueRenderPass, transparentRenderPass);
 
-		//	if (entityHandle == selectedObjectID)
-		//	{
-		//		renderOutline(ldrRenderPass, mat4::identity, vb, ib, sm);
-		//	}
+			if (sunShadowRenderPass)
+			{
+				shadow_render_data shadowData;
+				shadowData.transformPtr = transformAllocation.gpuPtr;
+				shadowData.vertexBuffer = vb.positions;
+				shadowData.indexBuffer = ib;
+				shadowData.numInstances = 1;
+				shadowData.submesh = data.submesh;
 
-		//	++index;
-		//}
+				addToDynamicRenderPass(cloth_material->shader, shadowData, &sunShadowRenderPass->cascades[0], false);
+			}
+
+			if (entity_handle == selectedObjectID)
+			{
+				renderOutline(ldrRenderPass, mat4::identity, vb, ib, sm);
+			}
+
+			++index;
+		}
 	}
 
 	static void setupSunShadowPass(directional_light& sun, sun_shadow_render_pass* sunShadowRenderPass, bool invalidateShadowMapCache)
@@ -943,7 +962,7 @@ namespace era_engine
 		renderTerrain(camera, world, arena, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass, sunRenderStaticGeometry ? sunShadowRenderPass : 0,
 			computePass, dt);
 		renderTrees(world, frustum, arena, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass, sunShadowRenderPass, dt);
-		//renderCloth(world, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass, sunShadowRenderPass);
+		renderCloth(world, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass, sunShadowRenderPass);
 
 		arena.reset_to_marker(tempMemoryMarker);
 	}

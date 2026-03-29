@@ -4,10 +4,14 @@
 
 #include "dx/dx_context.h"
 
+#include <core/debug/debug_var.h>
+
 #include <rttr/registration>
 
 namespace era_engine
 {
+	static DebugVar<bool> enable_vsynk = DebugVar<bool>("engine.enable_vsynk", false);
+
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
@@ -216,6 +220,11 @@ namespace era_engine
 		}
 	}
 
+	dx_window::dx_window()
+	{
+		vSync = enable_vsynk;
+	}
+
 	dx_window::~dx_window()
 	{
 		dxContext.flushApplication();
@@ -381,5 +390,6 @@ namespace era_engine
 	void dx_window::toggleVSync()
 	{
 		vSync = !vSync;
+		enable_vsynk = vSync;
 	}
 }

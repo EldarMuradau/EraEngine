@@ -11,7 +11,7 @@ namespace era_engine
 	{
 	public:
 		MeshComponent(ref<Entity::EcsData> _data, ref<multi_mesh> _mesh, bool _is_hidden = false);
-		virtual ~MeshComponent();
+		~MeshComponent() override;
 
 		ERA_VIRTUAL_REFLECT(Component)
 

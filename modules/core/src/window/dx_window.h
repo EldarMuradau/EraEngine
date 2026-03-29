@@ -17,7 +17,7 @@ namespace era_engine
 {
 	struct ERA_CORE_API dx_window : win32_window
 	{
-		dx_window() = default;
+		dx_window();
 		dx_window(dx_window&) = delete;
 		dx_window(dx_window&&) = default;
 
