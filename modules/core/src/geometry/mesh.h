@@ -18,7 +18,7 @@ namespace era_engine
 
 	struct submesh
 	{
-		submesh_info info;
+		SubmeshInfo info;
 		bounding_box aabb; // local space.
 		trs transform;
 

@@ -584,8 +584,23 @@ namespace era_engine
 		frameDescriptorAllocator.newFrame(bufferedFrameID);
 	}
 
+	ERA_CORE_API std::pair<dx_dynamic_vertex_buffer, void*> create_dynamic_vertex_buffer(uint32 element_size, uint32 element_count)
+	{
+		return dxContext.createDynamicVertexBuffer(element_size, element_count);
+	}
+
+	ERA_CORE_API std::pair<dx_dynamic_index_buffer, void*> create_dynamic_index_buffer(uint32 element_size, uint32 element_count)
+	{
+		return dxContext.createDynamicIndexBuffer(element_size, element_count);
+	}
+
 	dx_memory_usage get_dx_mem_usage()
 	{
 		return dxContext.getMemoryUsage();
+	}
+
+	ERA_CORE_API dx_context* get_dx_context()
+	{
+		return &dxContext;
 	}
 }

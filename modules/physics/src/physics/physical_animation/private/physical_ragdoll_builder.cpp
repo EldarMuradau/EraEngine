@@ -75,16 +75,23 @@ namespace era_engine::physics
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
 		dynamic_body_component->ccd.get_for_write() = true;
-		dynamic_body_component->max_depenetration_velocity = 15.0f;
+		dynamic_body_component->max_depenetration_velocity = 25.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->linear_damping.get_for_write() = 0.15f;
 		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
-		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 4;
-		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
+		dynamic_body_component->solver_position_iterations_count.get_for_write() = 64;
+
+		if(PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver)
+		{
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 8;
+		}
+		else
+		{
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 32;
+		}
 
 		return dynamic_body_component;
 	}
@@ -131,10 +138,10 @@ namespace era_engine::physics
 		RagdollSkeletonStructure::JointStructure& e1_joint,
 		const trs& e0_joint_transform,
 		const trs& e1_joint_transform,
-		float twist_min_deg = -180.0f,
-		float twist_max_deg = 180.0f,
-		float swing_y_deg = 180.0f,
-		float swing_z_deg = 180.0f)
+		float twist_min_deg = -M_PI,
+		float twist_max_deg = M_PI,
+		float swing_y_deg = M_PI,
+		float swing_z_deg = M_PI)
 	{
 		trs e0_to_e0_joint_transform = invert(e0_joint.joint_object_space_transform) * e0_joint_transform;
 		e0_to_e0_joint_transform.rotation = normalize(e0_to_e0_joint_transform.rotation);
@@ -174,7 +181,7 @@ namespace era_engine::physics
 			e0.get_component<RagdollLimbComponent>()->joint_entity_ptr = EntityPtr{ joint_entity };
 		}
 
-		if (fuzzy_equals(twist_max_deg, 180.0f) && fuzzy_equals(twist_min_deg, -180.0f))
+		if (fuzzy_equals(twist_max_deg, M_PI) && fuzzy_equals(twist_min_deg, -M_PI))
 		{
 			joint_component->twist_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		}
@@ -185,17 +192,17 @@ namespace era_engine::physics
 		else
 		{
 			joint_component->twist_motion_type.get_for_write() = D6JointComponent::Motion::LIMITED;
-			joint_component->twist_min_limit.get_for_write() = deg2rad(twist_min_deg);
-			joint_component->twist_max_limit.get_for_write() = deg2rad(twist_max_deg);
+			joint_component->twist_min_limit.get_for_write() = twist_min_deg;
+			joint_component->twist_max_limit.get_for_write() = twist_max_deg;
 
-			joint_component->twist_limit_damping.get_for_write() = 50.0f;
-			joint_component->twist_limit_stiffness.get_for_write() = 500.0f;
+			joint_component->twist_limit_damping.get_for_write() = 75.0f;
+			joint_component->twist_limit_stiffness.get_for_write() = 750.0f;
 			joint_component->twist_limit_restitution.get_for_write() = 0.0f;
 		}
 
 		bool any_moving_swing = false;
 
-		if (fuzzy_equals(swing_y_deg, 180.0f))
+		if (fuzzy_equals(swing_y_deg, M_PI))
 		{
 			joint_component->swing_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		}
@@ -206,11 +213,11 @@ namespace era_engine::physics
 		else
 		{
 			joint_component->swing_y_motion_type.get_for_write() = D6JointComponent::Motion::LIMITED;
-			joint_component->swing_y_limit.get_for_write() = deg2rad(swing_y_deg);
+			joint_component->swing_y_limit.get_for_write() = swing_y_deg;
 			any_moving_swing = true;
 		}
 
-		if (fuzzy_equals(swing_z_deg, 180.0f))
+		if (fuzzy_equals(swing_z_deg, M_PI))
 		{
 			joint_component->swing_z_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		}
@@ -221,14 +228,14 @@ namespace era_engine::physics
 		else
 		{
 			joint_component->swing_z_motion_type.get_for_write() = D6JointComponent::Motion::LIMITED;
-			joint_component->swing_z_limit.get_for_write() = deg2rad(swing_z_deg);
+			joint_component->swing_z_limit.get_for_write() = swing_z_deg;
 			any_moving_swing = true;
 		}
 
 		if (any_moving_swing)
 		{
-			joint_component->swing_limit_damping.get_for_write() = 50.0f;
-			joint_component->swing_limit_stiffness.get_for_write() = 500.0f;
+			joint_component->swing_limit_damping.get_for_write() = 75.0f;
+			joint_component->swing_limit_stiffness.get_for_write() = 750.0f;
 			joint_component->swing_limit_restitution.get_for_write() = 0.0f;
 		}
 	}
@@ -264,6 +271,7 @@ namespace era_engine::physics
 		joint_component->perform_slerp_drive = motor_drive.enable_slerp_drive;
 
 		joint_component->enable_collision.get_for_write() = false;
+		joint_component->improved_slerp.get_for_write() = true;
 		joint_component->drive_limits_are_forces.get_for_write() = true;
 
 		joint_component->linear_x_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
@@ -323,7 +331,7 @@ namespace era_engine::physics
 
 		const trs box_transform(
 			center_between_joints + local_position_adjustment,
-			shortest_arc(vec3(1.0f, 0.0f, 0.0f), direction) * local_rotation_spin,
+			shortest_arc(vec3::right, direction) * local_rotation_spin,
 			vec3(1.0f));
 		const trs box_transform_relative_to_owner = invert(owner_joint_transform) * box_transform;
 
@@ -359,7 +367,7 @@ namespace era_engine::physics
 
 		const trs capsule_transform(
 			center_between_joints + local_position_adjustment,
-			shortest_arc(vec3(1.0f, 0.0f, 0.0f), direction) * local_rotation_spin,
+			shortest_arc(vec3::right, direction) * local_rotation_spin,
 			vec3(1.0f));
 		const trs capsule_transform_relative_to_owner = invert(owner_joint_transform) * capsule_transform;
 
@@ -394,7 +402,7 @@ namespace era_engine::physics
 
 		const trs capsule_transform(
 			center_between_joints + local_position_adjustment,
-			shortest_arc(vec3(1.0f, 0.0f, 0.0f), direction) * local_rotation_spin,
+			shortest_arc(vec3::right, direction) * local_rotation_spin,
 			vec3(1.0f));
 		const trs capsule_transform_relative_to_owner = invert(owner_joint_transform) * capsule_transform;
 
@@ -434,14 +442,14 @@ namespace era_engine::physics
 
 		const trs capsule_transform(
 			center_between_joints  + local_position_adjustment,
-			shortest_arc(vec3(0.0f, 1.0f, 0.0f), direction) * local_rotation_spin,
+			shortest_arc(vec3::up, direction) * local_rotation_spin,
 			vec3(1.0f));
 		const trs capsule_transform_relative_to_owner = invert(owner_joint_transform) * capsule_transform;
 
 		capsule_shape_component->local_position.get_for_write() = capsule_transform_relative_to_owner.position;
 		capsule_shape_component->local_rotation.get_for_write() = capsule_transform_relative_to_owner.rotation;
 
-		const vec3 capsule_x_axis = capsule_transform.rotation * vec3(1.0f, 0.0f, 0.0f);
+		const vec3 capsule_x_axis = capsule_transform.rotation * vec3::right;
 		return trs(capsule_transform.position - direction * radius, capsule_transform.rotation, capsule_transform.scale) * trs(vec3::zero, shortest_arc(capsule_x_axis, direction), vec3(1.0f));
 	}
 
@@ -1283,8 +1291,8 @@ namespace era_engine::physics
 			structure.head_joint,
 			head_capsule_bottom_transform,
 			head_capsule_bottom_transform,
-			-25.0f, 25.0f,
-			20.0f, 20.0f);
+			deg2rad(-25.0f), deg2rad(25.0f),
+			deg2rad(20.0f), deg2rad(20.0f));
 
 		// Body upper -> neck
 		create_d6_joint(
@@ -1294,17 +1302,17 @@ namespace era_engine::physics
 			structure.neck_joint,
 			neck_capsule_bottom_transform,
 			neck_capsule_bottom_transform,
-			-15.0f, 15.0f,
-			15.0f, 15.0f);
+			deg2rad(-15.0f), deg2rad(15.0f),
+			deg2rad(15.0f), deg2rad(15.0f));
 
 		// Body middle -> body upper
-		const float body_upper_forward_angle_deg = 25.0f;
-		const float body_upper_backward_angle_deg = 10.0f;
-		const float body_upper_d6_swing_y_deg = (body_upper_forward_angle_deg + body_upper_backward_angle_deg) / 2.0f;
-		const vec3 body_upper_capsule_y_axis = body_upper_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		constexpr float body_upper_forward_angle_deg = deg2rad(25.0f);
+		constexpr float body_upper_backward_angle_deg = deg2rad(10.0f);
+		constexpr float body_upper_d6_swing_y_deg = (body_upper_forward_angle_deg + body_upper_backward_angle_deg) / 2.0f;
+		const vec3 body_upper_capsule_y_axis = body_upper_capsule_bottom_transform.rotation * vec3::up;
 		const trs body_middle_d6_transform = trs(
 			body_upper_capsule_bottom_transform.position,
-			quat(body_upper_capsule_y_axis, deg2rad(body_upper_d6_swing_y_deg - body_upper_backward_angle_deg)) * body_upper_capsule_bottom_transform.rotation,
+			quat(body_upper_capsule_y_axis, body_upper_d6_swing_y_deg - body_upper_backward_angle_deg) * body_upper_capsule_bottom_transform.rotation,
 			body_upper_capsule_bottom_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1313,18 +1321,17 @@ namespace era_engine::physics
 			structure.thorax_joint,
 			body_middle_d6_transform,
 			body_upper_capsule_bottom_transform,
-			-10.0f,
-			10.0f,
-			body_upper_d6_swing_y_deg, 15.0f);
+			deg2rad(-10.0f), deg2rad(10.0f),
+			body_upper_d6_swing_y_deg, deg2rad(15.0f));
 
 		// Body lower -> body middle
-		const float body_middle_forward_angle_deg = 12.0f;
-		const float body_middle_backward_angle_deg = 8.0f;
-		const float body_middle_d6_swing_y_deg = (body_middle_forward_angle_deg + body_middle_backward_angle_deg) / 2.0f;
-		const vec3 body_middle_capsule_y_axis = middle_default_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		constexpr float body_middle_forward_angle_deg = deg2rad(12.0f);
+		constexpr float body_middle_backward_angle_deg = deg2rad(8.0f);
+		constexpr float body_middle_d6_swing_y_deg = (body_middle_forward_angle_deg + body_middle_backward_angle_deg) / 2.0f;
+		const vec3 body_middle_capsule_y_axis = middle_default_transform.rotation * vec3::up;
 		const trs body_lower_d6_transform = trs(
 			middle_default_transform.position,
-			quat(body_middle_capsule_y_axis, deg2rad(body_middle_d6_swing_y_deg - body_middle_backward_angle_deg)) * middle_default_transform.rotation,
+			quat(body_middle_capsule_y_axis, body_middle_d6_swing_y_deg - body_middle_backward_angle_deg) * middle_default_transform.rotation,
 			middle_default_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1333,12 +1340,11 @@ namespace era_engine::physics
 			structure.abdomen_joint,
 			body_lower_d6_transform,
 			middle_default_transform,
-			-10.0f,
-			10.0f,
-			body_middle_d6_swing_y_deg, 10.0f);
+			deg2rad(-10.0f), deg2rad(10.0f),
+			body_middle_d6_swing_y_deg, deg2rad(10.0f));
 
 		// Body upper -> left clavicle
-		const float clavicle_d6_swing_y_deg = 40.0f;
+		constexpr float clavicle_d6_swing_y_deg = deg2rad(40.0f);
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
@@ -1346,13 +1352,13 @@ namespace era_engine::physics
 			structure.left_clavicle_joint,
 			left_clavicle_joint_transform,
 			left_clavicle_joint_transform,
-			-35.0f, 35.0f,
-			clavicle_d6_swing_y_deg, 30.0f);
+			deg2rad(-35.0f), deg2rad(35.0f),
+			clavicle_d6_swing_y_deg, deg2rad(30.0f));
 
 		// Left clavicle -> left arm
-		float arm_forward_angle_deg = 90.0f;  // How far an arm can be rotated forward around Y axis
-		const float arm_backward_angle_deg = 22.5f; // How far an arm can be rotated backwards around Y axis
-		const float arm_d6_swing_y_deg = (arm_forward_angle_deg + arm_backward_angle_deg) / 2.0f;
+		constexpr float arm_forward_angle_deg = deg2rad(90.0f);  // How far an arm can be rotated forward around Y axis
+		constexpr float arm_backward_angle_deg = deg2rad(22.5f); // How far an arm can be rotated backwards around Y axis
+		constexpr float arm_d6_swing_y_deg = (arm_forward_angle_deg + arm_backward_angle_deg) / 2.0f;
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
@@ -1360,12 +1366,12 @@ namespace era_engine::physics
 			structure.left_arm_joint,
 			left_arm_capsule_bottom_transform,
 			left_arm_capsule_bottom_transform,
-			-55.0f, 55.0f,
-			arm_d6_swing_y_deg, 60.0f);
+			deg2rad(-55.0f), deg2rad(55.0f),
+			arm_d6_swing_y_deg, deg2rad(60.0f));
 
 		// Left arm -> left forearm
-		const float forearm_d6_swing_y_deg = 70.0f;
-		const vec3 left_forearm_capsule_y_axis = left_forearm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		constexpr float forearm_d6_swing_y_deg = deg2rad(70.0f);
+		const vec3 left_forearm_capsule_y_axis = left_forearm_capsule_bottom_transform.rotation * vec3::up;
 		const trs left_forearm_d6_transform = trs(
 			left_forearm_capsule_bottom_transform.position,
 			quat(left_forearm_capsule_y_axis, deg2rad(35.0f)) * left_forearm_capsule_bottom_transform.rotation,
@@ -1377,8 +1383,8 @@ namespace era_engine::physics
 			structure.left_forearm_joint,
 			left_forearm_d6_transform,
 			left_forearm_capsule_bottom_transform,
-			-5.0f, 5.0f,
-			forearm_d6_swing_y_deg, 6.0f);
+			deg2rad(-5.0f), deg2rad(5.0f),
+			forearm_d6_swing_y_deg, deg2rad(6.0f));
 
 		// Left forearm -> left hand
 		create_d6_joint(
@@ -1388,8 +1394,8 @@ namespace era_engine::physics
 			structure.left_hand_joint,
 			left_hand_capsule_bottom_transform,
 			left_hand_capsule_bottom_transform,
-			-25.0f, 25.0f,
-			40.0f, 30.0f);
+			deg2rad(-25.0f), deg2rad(25.0f),
+			deg2rad(40.0f), deg2rad(30.0f));
 
 		// Body upper -> right clavicle
 		create_d6_joint(
@@ -1399,8 +1405,8 @@ namespace era_engine::physics
 			structure.right_clavicle_joint,
 			right_clavicle_joint_transform,
 			right_clavicle_joint_transform,
-			-35.0f, 35.0f,
-			clavicle_d6_swing_y_deg, 30.0f);
+			deg2rad(-35.0f), deg2rad(35.0f),
+			clavicle_d6_swing_y_deg, deg2rad(30.0f));
 
 		// Right clavicle -> right arm
 		create_d6_joint(
@@ -1410,11 +1416,11 @@ namespace era_engine::physics
 			structure.right_arm_joint,
 			right_arm_capsule_bottom_transform,
 			right_arm_capsule_bottom_transform,
-			-55.0f, 55.0f,
-			arm_d6_swing_y_deg, 60.0f);
+			deg2rad(-55.0f), deg2rad(55.0f),
+			arm_d6_swing_y_deg, deg2rad(60.0f));
 
 		// Right arm -> right forearm
-		const vec3 right_forearm_capsule_y_axis = right_forearm_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		const vec3 right_forearm_capsule_y_axis = right_forearm_capsule_bottom_transform.rotation * vec3::up;
 		const trs right_forearm_d6_transform = trs(
 			right_forearm_capsule_bottom_transform.position,
 			quat(right_forearm_capsule_y_axis, deg2rad(35.0f)) * right_forearm_capsule_bottom_transform.rotation,
@@ -1426,8 +1432,8 @@ namespace era_engine::physics
 			structure.right_forearm_joint,
 			right_forearm_d6_transform,
 			right_forearm_capsule_bottom_transform,
-			-5.0f, 5.0f,
-			forearm_d6_swing_y_deg, 6.0f);
+			deg2rad(-5.0f), deg2rad(5.0f),
+			forearm_d6_swing_y_deg, deg2rad(6.0f));
 
 		// Right forearm -> right hand
 		create_d6_joint(
@@ -1437,17 +1443,17 @@ namespace era_engine::physics
 			structure.right_hand_joint,
 			right_hand_capsule_bottom_transform,
 			right_hand_capsule_bottom_transform,
-			-25.0f, 25.0f,
-			40.0f, 30.0f);
+			deg2rad(-25.0f), deg2rad(25.0f),
+			deg2rad(40.0f), deg2rad(30.0f));
 
 		// Pelvis -> left up leg
-		const float up_leg_back_angle_deg = 5.0; // How far up leg can be rotated around y axis in backwards direction
-		const float up_leg_forward_angle_deg = 55.0f; // How far up leg can be rotated around y axis in forward direction
-		const float up_leg_d6_swing_y_deg = (up_leg_forward_angle_deg + up_leg_back_angle_deg) / 2.0f;
-		const vec3 left_up_leg_capsule_y_axis = left_up_leg_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		constexpr  float up_leg_back_angle_deg = deg2rad(5.0); // How far up leg can be rotated around y axis in backwards direction
+		constexpr  float up_leg_forward_angle_deg = deg2rad(55.0f); // How far up leg can be rotated around y axis in forward direction
+		constexpr  float up_leg_d6_swing_y_deg = (up_leg_forward_angle_deg + up_leg_back_angle_deg) / 2.0f;
+		const vec3 left_up_leg_capsule_y_axis = left_up_leg_capsule_bottom_transform.rotation * vec3::up;
 		const trs left_up_leg_d6_transform = trs(
 			left_up_leg_capsule_bottom_transform.position,
-			quat(left_up_leg_capsule_y_axis, deg2rad(up_leg_d6_swing_y_deg - up_leg_back_angle_deg)) * left_up_leg_capsule_bottom_transform.rotation,
+			quat(left_up_leg_capsule_y_axis, up_leg_d6_swing_y_deg - up_leg_back_angle_deg) * left_up_leg_capsule_bottom_transform.rotation,
 			left_up_leg_capsule_bottom_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1456,15 +1462,15 @@ namespace era_engine::physics
 			structure.left_leg_joint,
 			left_up_leg_d6_transform,
 			left_up_leg_capsule_bottom_transform,
-			-6.0f, 6.0f,
-			up_leg_d6_swing_y_deg, 35.0f);
+			deg2rad(-6.0f), deg2rad(6.0f),
+			up_leg_d6_swing_y_deg, deg2rad(35.0f));
 
 		// Left up leg -> left leg
-		const float leg_d6_swing_y_deg = 45.0f;
-		const vec3 left_leg_capsule_y_axis = left_leg_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		constexpr float leg_d6_swing_y_deg = deg2rad(45.0f);
+		const vec3 left_leg_capsule_y_axis = left_leg_capsule_bottom_transform.rotation * vec3::up;
 		const trs left_leg_d6_transform = trs(
 			left_leg_capsule_bottom_transform.position,
-			quat(left_leg_capsule_y_axis, deg2rad(leg_d6_swing_y_deg)) * left_leg_capsule_bottom_transform.rotation,
+			quat(left_leg_capsule_y_axis, leg_d6_swing_y_deg) * left_leg_capsule_bottom_transform.rotation,
 			left_leg_capsule_bottom_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1473,8 +1479,8 @@ namespace era_engine::physics
 			structure.left_calf_joint,
 			left_leg_d6_transform,
 			left_leg_capsule_bottom_transform,
-			-3.0f, 3.0f,
-			leg_d6_swing_y_deg, 5.0f);
+			deg2rad(-3.0f), deg2rad(3.0f),
+			leg_d6_swing_y_deg, deg2rad(5.0f));
 
 		// Left leg -> left foot
 		create_d6_joint(
@@ -1484,14 +1490,14 @@ namespace era_engine::physics
 			structure.left_foot_joint,
 			left_foot_capsule_bottom_transform,
 			left_foot_capsule_bottom_transform,
-			-17.0f, 17.0f,
-			35.0f, 22.5f);
+			deg2rad(-17.0f), deg2rad(17.0f),
+			deg2rad(35.0f), deg2rad(22.5f));
 
 		// Pelvis -> right up leg
-		const vec3 right_up_leg_capsule_y_axis = right_up_leg_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		const vec3 right_up_leg_capsule_y_axis = right_up_leg_capsule_bottom_transform.rotation * vec3::up;
 		const trs right_up_leg_d6_transform = trs(
 			right_up_leg_capsule_bottom_transform.position,
-			quat(right_up_leg_capsule_y_axis, deg2rad(up_leg_d6_swing_y_deg - up_leg_back_angle_deg)) * right_up_leg_capsule_bottom_transform.rotation,
+			quat(right_up_leg_capsule_y_axis, up_leg_d6_swing_y_deg - up_leg_back_angle_deg) * right_up_leg_capsule_bottom_transform.rotation,
 			right_up_leg_capsule_bottom_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1500,14 +1506,14 @@ namespace era_engine::physics
 			structure.right_leg_joint,
 			right_up_leg_d6_transform,
 			right_up_leg_capsule_bottom_transform,
-			-6.0f, 6.0f,
-			up_leg_d6_swing_y_deg, 35.0f);
+			deg2rad(-6.0f), deg2rad(6.0f),
+			up_leg_d6_swing_y_deg, deg2rad(35.0f));
 
 		// Right up leg -> right leg
-		const vec3 right_leg_capsule_y_axis = right_leg_capsule_bottom_transform.rotation * vec3(0.0f, 1.0f, 0.0f);
+		const vec3 right_leg_capsule_y_axis = right_leg_capsule_bottom_transform.rotation * vec3::up;
 		const trs right_leg_d6_transform = trs(
 			right_leg_capsule_bottom_transform.position,
-			quat(right_leg_capsule_y_axis, deg2rad(leg_d6_swing_y_deg)) * right_leg_capsule_bottom_transform.rotation,
+			quat(right_leg_capsule_y_axis, leg_d6_swing_y_deg) * right_leg_capsule_bottom_transform.rotation,
 			right_leg_capsule_bottom_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
@@ -1516,8 +1522,8 @@ namespace era_engine::physics
 			structure.right_calf_joint,
 			right_leg_d6_transform,
 			right_leg_capsule_bottom_transform,
-			-3.0f, 3.0f,
-			leg_d6_swing_y_deg, 5.0f);
+			deg2rad(-3.0f), deg2rad(3.0f),
+			leg_d6_swing_y_deg, deg2rad(5.0f));
 
 		// Right leg -> right foot
 		create_d6_joint(
@@ -1527,8 +1533,8 @@ namespace era_engine::physics
 			structure.right_foot_joint,
 			right_foot_capsule_bottom_transform,
 			right_foot_capsule_bottom_transform,
-			-17.0f, 17.0f,
-			35.0f, 22.5f);
+			deg2rad(-17.0f), deg2rad(17.0f),
+			deg2rad(35.0f), deg2rad(22.5f));
 
 		return true;
 	}

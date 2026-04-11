@@ -172,7 +172,7 @@ namespace era_engine
 			pbr_material_cb(mat->albedoTint, mat->emission.xyz, mat->roughnessOverride, mat->metallicOverride, flags, 1.f, mat->translucency, mat->uvScale)
 		);
 
-		const submesh_info& submesh = data.submesh;
+		const SubmeshInfo& submesh = data.submesh;
 
 		cl->setRootGraphicsSRV(DEFAULT_PBR_RS_TRANSFORM, data.transformPtr);
 

@@ -264,6 +264,10 @@ struct ERA_CORE_API vec3
 	vec3(vec2 xy, float z) : x(xy.x), y(xy.y), z(z) {}
 
 	static const vec3 zero;
+	static const vec3 right;
+	static const vec3 up;
+	static const vec3 forward;
+
 };
 
 struct ERA_CORE_API vec4

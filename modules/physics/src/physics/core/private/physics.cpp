@@ -142,7 +142,7 @@ namespace era_engine::physics
 		ScopedSpinLock lock{ sync };
 
 		PxSceneDesc scene_desc(tolerance_scale);
-		scene_desc.gravity = gravity;
+		scene_desc.gravity = PX_GRAVITY;
 		scene_desc.cpuDispatcher = dispatcher;
 		if (descriptor.enable_tgs_solver)
 		{
@@ -258,6 +258,11 @@ namespace era_engine::physics
 	ref<PhysicsMaterial> Physics::get_default_material() const
 	{
 		return default_material;
+	}
+
+	const PhysicsDescriptor& Physics::get_descriptor() const
+	{
+		return descriptor;
 	}
 
 	ref<PhysicsMaterial> Physics::create_material(float restitution, float static_friction, float dynamic_friction)

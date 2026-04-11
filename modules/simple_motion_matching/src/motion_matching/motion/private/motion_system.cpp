@@ -64,7 +64,7 @@ namespace era_engine
 		using namespace animation;
 		ZoneScopedN("MotionSystem::update");
 
-        for (auto [handle, transform_component, motion_component]
+        for (auto&& [handle, transform_component, motion_component]
 			: world->group(components_group<TransformComponent, MotionComponent>).each())
         {
 			MotionUtils::simulation_positions_update(

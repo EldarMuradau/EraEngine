@@ -1322,12 +1322,12 @@ namespace era_engine
 		}
 	}
 
-	submesh_info mesh_builder::endSubmesh()
+	SubmeshInfo mesh_builder::endSubmesh()
 	{
 		uint32 firstVertex = totalNumVertices;
 		uint32 firstTriangle = totalNumTriangles;
 
-		submesh_info result;
+		SubmeshInfo result;
 		result.firstIndex = firstTriangle * 3;
 		result.numIndices = numTrianglesInCurrentSubmesh * 3;
 		result.baseVertex = firstVertex;

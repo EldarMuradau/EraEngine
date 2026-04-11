@@ -30,6 +30,8 @@ namespace era_engine::physics
 
 		static void manual_clear_force_and_torque(DynamicBodyComponent* body_component);
 
+		static trs get_actor_world_pose_locked(Entity entity);
+
 		static void update_mass_and_inertia(DynamicBodyComponent* body_component, float density);
 
 		static void move_cct(CharacterControllerComponent* cct_component, const vec3& offset);

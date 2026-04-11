@@ -69,7 +69,7 @@ namespace era_engine
         {
             ASSERT(blas->geometries[i].type == raytracing_mesh_geometry); // For now we only support meshes, not procedurals.
 
-            submesh_info submesh = blas->geometries[i].submesh;
+            SubmeshInfo submesh = blas->geometries[i].submesh;
             const ref<pbr_material>& material = materials[i];
 
             dx_gpu_descriptor_handle base = descriptorHeap.currentGPU;

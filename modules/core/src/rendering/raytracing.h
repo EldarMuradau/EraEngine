@@ -32,7 +32,7 @@ namespace era_engine
 		// Only valid for mesh geometry
 		vertex_buffer_group vertexBuffer;
 		ref<dx_index_buffer> indexBuffer;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 	};
 
 	struct raytracing_blas
@@ -45,7 +45,7 @@ namespace era_engine
 
 	struct raytracing_blas_builder
 	{
-		raytracing_blas_builder& push(vertex_buffer_group vertexBuffer, ref<dx_index_buffer> indexBuffer, submesh_info submesh, bool opaque = true, const trs& localTransform = trs::identity);
+		raytracing_blas_builder& push(vertex_buffer_group vertexBuffer, ref<dx_index_buffer> indexBuffer, SubmeshInfo submesh, bool opaque = true, const trs& localTransform = trs::identity);
 		raytracing_blas_builder& push(const std::vector<bounding_box>& boundingBoxes, bool opaque);
 		NODISCARD ref<raytracing_blas> finish(bool keepScratch = false);
 

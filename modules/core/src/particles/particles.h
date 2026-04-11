@@ -49,12 +49,12 @@ namespace era_engine
 		};
 
 		void initializeAsBillboard(uint32 particleStructSize, uint32 maxNumParticles, sort_mode sortMode = sort_mode_none);
-		void initializeAsMesh(uint32 particleStructSize, dx_mesh mesh, submesh_info submesh, uint32 maxNumParticles, sort_mode sortMode = sort_mode_none);
+		void initializeAsMesh(uint32 particleStructSize, dx_mesh mesh, SubmeshInfo submesh, uint32 maxNumParticles, sort_mode sortMode = sort_mode_none);
 
 		particle_draw_info getDrawInfo(const struct dx_pipeline& renderPipeline);
 
 		static dx_mesh billboardMesh;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 
 	protected:
 		void updateInternal(struct dx_command_list* cl, float newParticles, float dt, const dx_pipeline& emitPipeline, const dx_pipeline& simulatePipeline, particle_parameter_setter* parameterSetter);
@@ -62,7 +62,7 @@ namespace era_engine
 	private:
 		static void initializePipeline();
 
-		void initializeInternal(uint32 particleStructSize, uint32 maxNumParticles, submesh_info submesh, sort_mode sortMode);
+		void initializeInternal(uint32 particleStructSize, uint32 maxNumParticles, SubmeshInfo submesh, sort_mode sortMode);
 
 		template <typename T>
 		void setResources(dx_command_list* cl, const T& cb, uint32 offset, particle_parameter_setter* parameterSetter)

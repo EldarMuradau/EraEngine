@@ -73,11 +73,14 @@ namespace era_engine
 		cpu_profiling_resolve_time_stamps();
 
 		{
-			CPU_PROFILE_BLOCK("Wait for queued frame to finish rendering");
+			ZoneScopedN("Wait for queued frame to finish rendering");
 			dxContext.renderQueue.waitForFence(fenceValues[window.currentBackbufferIndex]);
 		}
 
-		dxContext.newFrame(frameID);
+		{
+			ZoneScopedN("dxContext.newFrame");
+			dxContext.newFrame(frameID);
+		}
 
 		return result;
 	}

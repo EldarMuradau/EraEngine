@@ -38,7 +38,7 @@ namespace era_engine
 		billboardMesh = builder.createDXMesh();
 	}
 
-	void particle_system::initializeInternal(uint32 particleStructSize, uint32 maxNumParticles, submesh_info submesh, sort_mode sortMode)
+	void particle_system::initializeInternal(uint32 particleStructSize, uint32 maxNumParticles, SubmeshInfo submesh, sort_mode sortMode)
 	{
 		this->maxNumParticles = maxNumParticles;
 		this->index = atomic_increment(particleSystemCounter);
@@ -82,11 +82,11 @@ namespace era_engine
 
 	void particle_system::initializeAsBillboard(uint32 particleStructSize, uint32 maxNumParticles, sort_mode sortMode)
 	{
-		submesh_info submesh = { 6, 0, 0, 4 };
+		SubmeshInfo submesh = { 6, 0, 0, 4 };
 		initializeInternal(particleStructSize, maxNumParticles, submesh, sortMode);
 	}
 
-	void particle_system::initializeAsMesh(uint32 particleStructSize, dx_mesh mesh, submesh_info submesh, uint32 maxNumParticles, sort_mode sortMode)
+	void particle_system::initializeAsMesh(uint32 particleStructSize, dx_mesh mesh, SubmeshInfo submesh, uint32 maxNumParticles, sort_mode sortMode)
 	{
 		initializeInternal(particleStructSize, maxNumParticles, submesh, sortMode);
 	}

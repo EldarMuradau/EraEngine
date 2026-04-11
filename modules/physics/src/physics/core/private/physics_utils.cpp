@@ -252,6 +252,31 @@ namespace era_engine::physics
 		}
 	}
 
+	trs PhysicsUtils::get_actor_world_pose_locked(Entity entity)
+	{
+		using namespace physx;
+
+		BodyComponent* body_component = get_body_component(entity);
+
+		if (body_component == nullptr)
+		{
+			return trs::identity;
+		}
+
+		if (body_component->actor == nullptr)
+		{
+			return trs::identity;
+		}
+
+		trs result_world_pose;
+		PhysicsEngine::execute_read([&]() {
+			PxTransform pose = body_component->actor->getGlobalPose();
+			result_world_pose = create_trs(pose);
+			});
+
+		return result_world_pose;
+	}
+
 	void PhysicsUtils::update_mass_and_inertia(DynamicBodyComponent* body_component, float density)
 	{
 		using namespace physx;

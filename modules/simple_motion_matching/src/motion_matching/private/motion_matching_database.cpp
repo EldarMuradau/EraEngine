@@ -264,10 +264,10 @@ namespace era_engine
     {
         std::vector<float> result;
         result.resize(mat.cols);
-        for (uint32 column = 0; column < mat.cols; ++column)
+        for (int32 column = 0; column < mat.cols; ++column)
         {
             float sum = 0.0f;
-            for (uint32 row = 0; row < mat.rows; ++row)
+            for (int32 row = 0; row < mat.rows; ++row)
             {
                 sum += mat(row, column);
             }
@@ -280,10 +280,10 @@ namespace era_engine
 
     static void substract_column_means(array2d<float>& mat, const std::vector<float>& column_means)
     {
-        for (uint32 column = 0; column < mat.cols; ++column)
+        for (int32 column = 0; column < mat.cols; ++column)
         {
             float mean_value = column_means[column];
-            for (uint32 row = 0; row < mat.rows; ++row)
+            for (int32 row = 0; row < mat.rows; ++row)
             {
                 mat(row, column) -= mean_value;
             }
@@ -298,9 +298,9 @@ namespace era_engine
         output1 = array2d<float>(mat.rows, column_count1);
         output2 = array2d<float>(mat.rows, column_count2);
 
-        for (uint32 row = 0; row < mat.rows; ++row)
+        for (int32 row = 0; row < mat.rows; ++row)
         {
-            for (uint32 column = 0; column < mat.cols; ++column)
+            for (int32 column = 0; column < mat.cols; ++column)
             {
                 if (column < output1_column_count)
                 {

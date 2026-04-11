@@ -13,6 +13,7 @@
 #include <simple_motion_matching_module.h>
 
 #include <ecs/world.h>
+#include <ecs/world_system_scheduler.h>
 
 namespace era_engine
 {
@@ -43,6 +44,7 @@ namespace era_engine
 		window->maximize();
 
 		World* game_world = new World(World::GAMEPLAY_WORLD_NAME);
+		game_world->get_system_scheduler()->set_fixed_update_rate(30.0f);
 		game_world->init();
 
 		game_world->add_tag("physics");

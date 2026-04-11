@@ -16,7 +16,7 @@
 
 namespace era_engine
 {
-	raytracing_blas_builder& raytracing_blas_builder::push(vertex_buffer_group vertexBuffer, ref<dx_index_buffer> indexBuffer, submesh_info submesh, bool opaque, const trs& localTransform)
+	raytracing_blas_builder& raytracing_blas_builder::push(vertex_buffer_group vertexBuffer, ref<dx_index_buffer> indexBuffer, SubmeshInfo submesh, bool opaque, const trs& localTransform)
 	{
 		D3D12_RAYTRACING_GEOMETRY_DESC geomDesc;
 

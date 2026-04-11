@@ -17,7 +17,7 @@ namespace era_engine
 		dx_vertex_buffer_view prevFrameVertexBuffer;
 		dx_index_buffer_view indexBuffer;
 
-		submesh_info submesh;
+		SubmeshInfo submesh;
 
 		uint32 numInstances;
 

@@ -7,6 +7,8 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -250,6 +252,8 @@ class basic_registry {
         } else {
             using storage_type = storage_for_type<Type>;
 
+            std::lock_guard<std::recursive_mutex> lock{mutex};
+
             if(auto it = pools.find(id); it != pools.cend()) {
                 ENTT_ASSERT(it->second->type() == type_id<Type>(), "Unexpected type");
                 return static_cast<storage_type &>(*it->second);
@@ -280,6 +284,8 @@ class basic_registry {
             ENTT_ASSERT(id == type_hash<Type>::value(), "User entity storage not allowed");
             return &entities;
         } else {
+            std::lock_guard<std::recursive_mutex> lock{mutex};
+
             if(const auto it = pools.find(id); it != pools.cend()) {
                 ENTT_ASSERT(it->second->type() == type_id<Type>(), "Unexpected type");
                 return static_cast<const storage_for_type<Type> *>(it->second.get());
@@ -959,6 +965,8 @@ public:
     template<typename... Type>
     void clear() {
         if constexpr(sizeof...(Type) == 0u) {
+            std::lock_guard<std::recursive_mutex> lock{mutex};
+
             for(size_type pos = pools.size(); pos; --pos) {
                 pools.begin()[static_cast<typename pool_container_type::difference_type>(pos - 1u)].second->clear();
             }
@@ -1086,6 +1094,8 @@ public:
         using group_type = basic_group<owned_t<storage_for_type<Owned>...>, get_t<storage_for_type<Get>...>, exclude_t<storage_for_type<Exclude>...>>;
         using handler_type = typename group_type::handler;
 
+        std::lock_guard<std::recursive_mutex> lock{mutex};
+
         if(auto it = groups.find(group_type::group_id()); it != groups.cend()) {
             return {*std::static_pointer_cast<handler_type>(it->second)};
         }
@@ -1109,6 +1119,8 @@ public:
     group_if_exists(get_t<Get...> = get_t{}, exclude_t<Exclude...> = exclude_t{}) const {
         using group_type = basic_group<owned_t<storage_for_type<const Owned>...>, get_t<storage_for_type<const Get>...>, exclude_t<storage_for_type<const Exclude>...>>;
         using handler_type = typename group_type::handler;
+
+        std::lock_guard<std::recursive_mutex> lock{mutex};
 
         if(auto it = groups.find(group_type::group_id()); it != groups.cend()) {
             return {*std::static_pointer_cast<handler_type>(it->second)};
@@ -1212,6 +1224,8 @@ private:
     pool_container_type pools;
     group_container_type groups;
     storage_for_type<entity_type> entities;
+
+    mutable std::recursive_mutex mutex;
 };
 
 } // namespace entt

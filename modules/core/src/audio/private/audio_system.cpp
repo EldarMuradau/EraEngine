@@ -20,12 +20,12 @@ namespace era_engine
 	AudioSystem::AudioSystem(World* _world)
 		: System(_world)
 	{
-		//initializeAudio();
+		initializeAudio();
 	}
 
 	AudioSystem::~AudioSystem()
 	{
-		//shutdownAudio();
+		shutdownAudio();
 	}
 
 	void AudioSystem::init()
@@ -34,7 +34,7 @@ namespace era_engine
 
 	void AudioSystem::update(float dt)
 	{
-		//updateAudio(dt);
+		updateAudio(dt);
 	}
 
 }

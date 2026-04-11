@@ -26,7 +26,7 @@ namespace era_engine
 		return result;
 	}
 
-	NODISCARD void* mapBuffer(const ref<dx_buffer>& buffer, bool intentsReading, map_range readRange)
+	void* mapBuffer(const ref<dx_buffer>& buffer, bool intentsReading, map_range readRange)
 	{
 		D3D12_RANGE range = { 0, 0 };
 		D3D12_RANGE* r = 0;
@@ -278,28 +278,28 @@ namespace era_engine
 		ASSERT(index == numDescriptors);
 	}
 
-	NODISCARD ref<dx_buffer> createBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing, D3D12_RESOURCE_STATES initialState)
+	ref<dx_buffer> createBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing, D3D12_RESOURCE_STATES initialState)
 	{
 		ref<dx_buffer> result = make_ref<dx_buffer>();
 		initializeBuffer(result, elementSize, elementCount, data, allowUnorderedAccess, allowClearing, false, initialState, D3D12_HEAP_TYPE_DEFAULT);
 		return result;
 	}
 
-	NODISCARD ref<dx_buffer> createUploadBuffer(uint32 elementSize, uint32 elementCount, void* data)
+	ref<dx_buffer> createUploadBuffer(uint32 elementSize, uint32 elementCount, void* data)
 	{
 		ref<dx_buffer> result = make_ref<dx_buffer>();
 		initializeBuffer(result, elementSize, elementCount, data, false, false, false, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
 		return result;
 	}
 
-	NODISCARD ref<dx_buffer> createReadbackBuffer(uint32 elementSize, uint32 elementCount, D3D12_RESOURCE_STATES initialState)
+	ref<dx_buffer> createReadbackBuffer(uint32 elementSize, uint32 elementCount, D3D12_RESOURCE_STATES initialState)
 	{
 		ref<dx_buffer> result = make_ref<dx_buffer>();
 		initializeBuffer(result, elementSize, elementCount, 0, false, false, false, initialState, D3D12_HEAP_TYPE_READBACK);
 		return result;
 	}
 
-	NODISCARD ref<dx_vertex_buffer> createVertexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing)
+	ref<dx_vertex_buffer> createVertexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing)
 	{
 		ref<dx_vertex_buffer> result = make_ref<dx_vertex_buffer>();
 		initializeBuffer(result, elementSize, elementCount, data, true, allowClearing);
@@ -309,7 +309,7 @@ namespace era_engine
 		return result;
 	}
 
-	NODISCARD ref<dx_vertex_buffer> createUploadVertexBuffer(uint32 elementSize, uint32 elementCount, void* data)
+	ref<dx_vertex_buffer> createUploadVertexBuffer(uint32 elementSize, uint32 elementCount, void* data)
 	{
 		ref<dx_vertex_buffer> result = make_ref<dx_vertex_buffer>();
 		initializeBuffer(result, elementSize, elementCount, data, false, false, false, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
@@ -319,7 +319,7 @@ namespace era_engine
 		return result;
 	}
 
-	NODISCARD ref<dx_index_buffer> createIndexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing)
+	ref<dx_index_buffer> createIndexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess, bool allowClearing)
 	{
 		ref<dx_index_buffer> result = make_ref<dx_index_buffer>();
 		initializeBuffer(result, elementSize, elementCount, data, allowUnorderedAccess, allowClearing);
@@ -329,7 +329,7 @@ namespace era_engine
 		return result;
 	}
 
-	NODISCARD ref<dx_buffer> createRaytracingTLASBuffer(uint32 size)
+	ref<dx_buffer> createRaytracingTLASBuffer(uint32 size)
 	{
 		ref<dx_buffer> result = make_ref<dx_buffer>();
 		initializeBuffer(result, size, 1, nullptr, true, false, true, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);

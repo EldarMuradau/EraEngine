@@ -6,6 +6,7 @@
 #include "physics/core/physics_utils.h"
 #include "physics/shape_utils.h"
 #include "physics/collisions_holder_root_component.h"
+#include "physics/cct_component.h"
 #include "physics/physical_animation/physical_ragdoll_builder.h"
 #include "physics/scene_queries.h"
 #include "physics/shape_component.h"
@@ -240,7 +241,7 @@ namespace era_engine::physics
 
 		process_added_pacs();
 
-		for (auto&& [entity_handle, changed_flag, physical_animation_component] : world->group(components_group<TransformComponent, PhysicalAnimationComponent>).each())
+		for (auto&& [entity_handle, transform_component, physical_animation_component] : world->group(components_group<TransformComponent, PhysicalAnimationComponent>).each())
 		{
 			if (physical_animation_component.simulated.is_changed())
 			{
@@ -253,7 +254,7 @@ namespace era_engine::physics
 			}
 		}
 
-		for (auto&& [entity_handle, changed_flag, physical_animation_limb_component] : world->group(components_group<TransformComponent, PhysicalAnimationLimbComponent>).each())
+		for (auto&& [entity_handle, transform_component, physical_animation_limb_component] : world->group(components_group<TransformComponent, PhysicalAnimationLimbComponent>).each())
 		{
 			if (physical_animation_limb_component.simulated.is_changed())
 			{
@@ -331,6 +332,8 @@ namespace era_engine::physics
 
 				limb_data_component->prev_physics_pose = limb_data_component->physics_pose;
 				limb_data_component->physics_pose = inverse_world_transform * limb.get_component<TransformComponent>()->get_world_transform();
+				limb_data_component->collision.is_colliding = false;
+				limb_data_component->collision.impulse = vec3::zero;
 			}
 
 			physical_animation_component->reached_physics_pose = false;
@@ -346,39 +349,26 @@ namespace era_engine::physics
 
 		ZoneScopedN("PhysicalAnimationSystem::update_normal");
 
-		for (auto&& [entity_handle,
-			transform_component,
-			physical_animation_component,
-			animation_component,
-			skeleton_component] : ragdolls_group.each())
+		if (active_ragdolls.empty())
 		{
-			if (!physical_animation_component.loaded)
+			return;
+		}
+
+		for (PhysicalAnimationComponent* physical_animation_component : active_ragdolls)
+		{
+			Entity ragdoll = physical_animation_component->get_entity();
+			SkeletonComponent* skeleton_component = ragdoll.get_component<SkeletonComponent>();
+
+			ref<Skeleton> skeleton = skeleton_component->skeleton;
+			if (skeleton == nullptr)
 			{
 				continue;
 			}
 
-			const trs& world_transform = transform_component.get_world_transform();
+			AnimationComponent* animation_component = ragdoll.get_component<AnimationComponent>();
 
-			const vec3 root_delta_motion = world_transform.position - physical_animation_component.prev_world_transform.position;
-			physical_animation_component.velocity = root_delta_motion / dt;
-
-			physical_animation_component.prev_world_transform = world_transform;
-
-			const bool is_simulated = physical_animation_component.get_current_state_type() != SimulationStateType::DISABLED;
-
-			if (is_simulated)
-			{
-				ref<Skeleton> skeleton = skeleton_component.skeleton;
-				if (skeleton == nullptr)
-				{
-					continue;
-				}
-
-				const SkeletonPose& current_animation_pose = animation_component.current_animation_pose;
-
-				// Sample only if simulation enabled.
-				pose_sampler->sample_pose(&physical_animation_component, &skeleton_component, current_animation_pose, dt);
-			}
+			const SkeletonPose& current_animation_pose = animation_component->current_animation_pose;
+			pose_sampler->sample_pose(physical_animation_component, skeleton_component, current_animation_pose, dt);
 		}
 	}
 
@@ -416,6 +406,11 @@ namespace era_engine::physics
 			Entity simulated_body = world->get_entity(entity_handle);
 
 			const trs& world_transform = transform_component.get_world_transform();
+
+			const vec3 root_delta_motion = world_transform.position - physical_animation_component.prev_world_transform.position;
+			physical_animation_component.velocity = root_delta_motion / dt;
+
+			physical_animation_component.prev_world_transform = world_transform;
 
 			const bool is_should_be_simulated = should_be_simulated(simulated_body);
 
@@ -465,17 +460,6 @@ namespace era_engine::physics
 			update_target_pose(&physical_animation_component, current_animation_pose, skeleton.get(), world_transform);
 
 			update_chains_states(&physical_animation_component, dt);
-
-			for (const EntityPtr& limb_ptr : physical_animation_component.limbs)
-			{
-				Entity limb = limb_ptr.get();
-				PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
-
-				ASSERT(limb_data_component != nullptr);
-
-				limb_data_component->collision.is_colliding = false;
-				limb_data_component->collision.impulse = vec3::zero;
-			}
 		}
 	}
 

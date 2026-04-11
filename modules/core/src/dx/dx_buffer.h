@@ -71,7 +71,7 @@ namespace era_engine
 		ref<dx_vertex_buffer> others; // Uvs, normals, tangents, etc.
 	};
 
-	struct dx_vertex_buffer_view
+	struct ERA_CORE_API dx_vertex_buffer_view
 	{
 		dx_vertex_buffer_view() { view.SizeInBytes = 0; }
 		dx_vertex_buffer_view(const ref<dx_vertex_buffer>& vb) : view(vb ? vb->view : D3D12_VERTEX_BUFFER_VIEW{ 0 }) {}
@@ -88,7 +88,7 @@ namespace era_engine
 		D3D12_VERTEX_BUFFER_VIEW view;
 	};
 
-	struct dx_vertex_buffer_group_view
+	struct ERA_CORE_API dx_vertex_buffer_group_view
 	{
 		dx_vertex_buffer_group_view() { positions.view.SizeInBytes = 0; others.view.SizeInBytes = 0; }
 		dx_vertex_buffer_group_view(const dx_vertex_buffer_view& positions, const dx_vertex_buffer_view& others = {}) : positions(positions), others(others) {}
@@ -145,7 +145,7 @@ namespace era_engine
 		dx_descriptor_allocation shaderVisibleDescriptorAllocation = {};
 	};
 
-	DXGI_FORMAT getIndexBufferFormat(uint32 elementSize);
+	ERA_CORE_API DXGI_FORMAT getIndexBufferFormat(uint32 elementSize);
 
 	struct ERA_CORE_API map_range
 	{
@@ -153,20 +153,20 @@ namespace era_engine
 		uint32 numElements = (uint32)-1;
 	};
 
-	NODISCARD void* mapBuffer(const ref<dx_buffer>& buffer, bool intentsReading, map_range readRange = { });
-	void unmapBuffer(const ref<dx_buffer>& buffer, bool hasWritten, map_range writtenRange = { });
+	ERA_CORE_API void* mapBuffer(const ref<dx_buffer>& buffer, bool intentsReading, map_range readRange = { });
+	ERA_CORE_API void unmapBuffer(const ref<dx_buffer>& buffer, bool hasWritten, map_range writtenRange = { });
 
-	void updateBufferDataRange(ref<dx_buffer> buffer, const void* data, uint32 offset, uint32 size);
-	void updateUploadBufferData(const ref<dx_buffer>& buffer, void* data, uint32 size);
+	ERA_CORE_API void updateBufferDataRange(ref<dx_buffer> buffer, const void* data, uint32 offset, uint32 size);
+	ERA_CORE_API void updateUploadBufferData(const ref<dx_buffer>& buffer, void* data, uint32 size);
 
-	NODISCARD ref<dx_buffer> createBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
-	NODISCARD ref<dx_buffer> createUploadBuffer(uint32 elementSize, uint32 elementCount, void* data);
-	NODISCARD ref<dx_buffer> createReadbackBuffer(uint32 elementSize, uint32 elementCount, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COPY_DEST);
-	NODISCARD ref<dx_vertex_buffer> createVertexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false);
-	NODISCARD ref<dx_vertex_buffer> createUploadVertexBuffer(uint32 elementSize, uint32 elementCount, void* data);
-	NODISCARD ref<dx_index_buffer> createIndexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false);
+	ERA_CORE_API ref<dx_buffer> createBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
+	ERA_CORE_API ref<dx_buffer> createUploadBuffer(uint32 elementSize, uint32 elementCount, void* data);
+	ERA_CORE_API ref<dx_buffer> createReadbackBuffer(uint32 elementSize, uint32 elementCount, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COPY_DEST);
+	ERA_CORE_API ref<dx_vertex_buffer> createVertexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false);
+	ERA_CORE_API ref<dx_vertex_buffer> createUploadVertexBuffer(uint32 elementSize, uint32 elementCount, void* data);
+	ERA_CORE_API ref<dx_index_buffer> createIndexBuffer(uint32 elementSize, uint32 elementCount, void* data, bool allowUnorderedAccess = false, bool allowClearing = false);
 
-	NODISCARD ref<dx_buffer> createRaytracingTLASBuffer(uint32 size);
+	ERA_CORE_API ref<dx_buffer> createRaytracingTLASBuffer(uint32 size);
 
-	void resizeBuffer(ref<dx_buffer> buffer, uint32 newElementCount, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
+	ERA_CORE_API void resizeBuffer(ref<dx_buffer> buffer, uint32 newElementCount, D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON);
 }

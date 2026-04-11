@@ -7,6 +7,8 @@
 #include "physics/body_component.h"
 #include "physics/collision_types.h"
 
+#include "core/traits.h"
+
 #include "ecs/component.h"
 
 namespace era_engine::physics
@@ -24,6 +26,7 @@ namespace era_engine::physics
         UP = 1 << 1,
         DOWN = 1 << 2
     };
+    DEFINE_BITWISE_OPERATORS_FOR_ENUM(CharacterControllerCollisionFlags)
 
     class ERA_PHYSICS_API CharacterControllerComponent final : public Component
     {

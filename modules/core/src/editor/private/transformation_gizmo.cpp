@@ -27,14 +27,14 @@ namespace era_engine
 	{
 		struct
 		{
-			submesh_info translationSubmesh;
-			submesh_info rotationSubmesh;
-			submesh_info scaleSubmesh;
-			submesh_info planeSubmesh;
-			submesh_info boxSubmesh;
+			SubmeshInfo translationSubmesh;
+			SubmeshInfo rotationSubmesh;
+			SubmeshInfo scaleSubmesh;
+			SubmeshInfo planeSubmesh;
+			SubmeshInfo boxSubmesh;
 		};
 
-		submesh_info submeshes[5];
+		SubmeshInfo submeshes[5];
 	};
 
 	static bounding_cylinder cylinders[3] =

@@ -195,7 +195,7 @@ namespace era_engine::physics
 				w4_vehicle_component->vehicle_simulation_context->frame.latAxis = PxVehicleAxes::ePosX;
 				w4_vehicle_component->vehicle_simulation_context->frame.vrtAxis = PxVehicleAxes::ePosY;
 				w4_vehicle_component->vehicle_simulation_context->scale.scale = 1.0f;
-				w4_vehicle_component->vehicle_simulation_context->gravity = gravity;
+				w4_vehicle_component->vehicle_simulation_context->gravity = PX_GRAVITY;
 				w4_vehicle_component->vehicle_simulation_context->physxScene = physics->get_scene();
 				w4_vehicle_component->vehicle_simulation_context->physxActorUpdateMode = PxVehiclePhysXActorUpdateMode::eAPPLY_ACCELERATION;
 			}

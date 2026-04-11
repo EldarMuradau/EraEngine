@@ -36,7 +36,7 @@ namespace era_engine
 		mat4 transform;
 		dx_vertex_buffer_view vertexBuffer;
 		dx_index_buffer_view indexBuffer;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 	};
 
 	struct outline_pipeline
@@ -59,7 +59,7 @@ namespace era_engine
 		}
 	};
 
-	void renderOutline(ldr_render_pass* renderPass, const mat4& transform, dx_vertex_buffer_view vertexBuffer, dx_index_buffer_view indexBuffer, submesh_info submesh)
+	void renderOutline(ldr_render_pass* renderPass, const mat4& transform, dx_vertex_buffer_view vertexBuffer, dx_index_buffer_view indexBuffer, SubmeshInfo submesh)
 	{
 		outline_render_data data = {
 			transform,
@@ -71,7 +71,7 @@ namespace era_engine
 		renderPass->renderOutline<outline_pipeline>(data);
 	}
 
-	void renderOutline(ldr_render_pass* renderPass, const mat4& transform, dx_vertex_buffer_group_view vertexBuffer, dx_index_buffer_view indexBuffer, submesh_info submesh)
+	void renderOutline(ldr_render_pass* renderPass, const mat4& transform, dx_vertex_buffer_group_view vertexBuffer, dx_index_buffer_view indexBuffer, SubmeshInfo submesh)
 	{
 		renderOutline(renderPass, transform, vertexBuffer.positions, indexBuffer, submesh);
 	}

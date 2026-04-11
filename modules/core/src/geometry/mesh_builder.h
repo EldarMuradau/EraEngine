@@ -13,7 +13,7 @@
 
 namespace era_engine
 {
-	struct ERA_CORE_API submesh_info
+	struct ERA_CORE_API SubmeshInfo
 	{
 		uint32 numIndices;
 		uint32 firstIndex;
@@ -187,7 +187,7 @@ namespace era_engine
 
 		void pushMesh(const struct SubmeshAsset& mesh, float scale, bounding_box* aabb = 0);
 
-		submesh_info endSubmesh();
+		SubmeshInfo endSubmesh();
 
 		dx_mesh createDXMesh();
 

@@ -36,7 +36,7 @@ namespace era_engine
 		uint32 count;
 	};
 
-	struct mesh_shader_submesh_info
+	struct mesh_shader_SubmeshInfo
 	{
 		uint32 firstVertex;
 		uint32 numVertices;
@@ -56,7 +56,7 @@ namespace era_engine
 
 	struct mesh_shader_mesh
 	{
-		::std::vector<mesh_shader_submesh_info> submeshes;
+		::std::vector<mesh_shader_SubmeshInfo> submeshes;
 		::std::vector<subset> subsets;
 
 		ref<dx_buffer> vertices;
@@ -408,7 +408,7 @@ namespace era_engine
 
 		stream.close();
 
-		std::vector<mesh_shader_submesh_info> submeshes(meshHeaders.size());
+		std::vector<mesh_shader_SubmeshInfo> submeshes(meshHeaders.size());
 
 		//std::vector<uint32> indices;
 		//std::vector<subset> indexSubsets;
@@ -421,7 +421,7 @@ namespace era_engine
 		for (uint32_t i = 0; i < (uint32)meshHeaders.size(); ++i)
 		{
 			mesh_header& meshView = meshHeaders[i];
-			mesh_shader_submesh_info& sm = submeshes[i];
+			mesh_shader_SubmeshInfo& sm = submeshes[i];
 
 #if 0
 			// Index data

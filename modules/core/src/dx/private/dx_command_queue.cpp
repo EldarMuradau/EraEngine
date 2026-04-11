@@ -26,18 +26,27 @@ namespace era_engine
 
 		timeStampFrequency = 0; // Default value, if timing is not supported on this queue.
 		timeStampToCPU = 0;
-		if (SUCCEEDED(commandQueue->GetTimestampFrequency(&timeStampFrequency)))
+
+		D3D12_FEATURE_DATA_D3D12_OPTIONS3 options3 = {};
+		if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS3, &options3, sizeof(options3))))
 		{
-			uint64 gpuTimestamp, cpuTimestamp;
-			if (SUCCEEDED(commandQueue->GetClockCalibration(&gpuTimestamp, &cpuTimestamp)))
+			if (type == D3D12_COMMAND_LIST_TYPE_COPY &&
+				options3.CopyQueueTimestampQueriesSupported)
 			{
-				if (gpuTimestamp > cpuTimestamp)
+				if (SUCCEEDED(commandQueue->GetTimestampFrequency(&timeStampFrequency)))
 				{
-					timeStampToCPU = (int64)(gpuTimestamp - cpuTimestamp);
-				}
-				else
-				{
-					timeStampToCPU = -(int64)(cpuTimestamp - gpuTimestamp);
+					uint64 gpuTimestamp, cpuTimestamp;
+					if (SUCCEEDED(commandQueue->GetClockCalibration(&gpuTimestamp, &cpuTimestamp)))
+					{
+						if (gpuTimestamp > cpuTimestamp)
+						{
+							timeStampToCPU = (int64)(gpuTimestamp - cpuTimestamp);
+						}
+						else
+						{
+							timeStampToCPU = -(int64)(cpuTimestamp - gpuTimestamp);
+						}
+					}
 				}
 			}
 		}

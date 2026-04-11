@@ -144,7 +144,7 @@ namespace era_engine
 
 			for (auto& sm : this->mesh->submeshes)
 			{
-				submesh_info submesh = sm.info;
+				SubmeshInfo submesh = sm.info;
 				const ref<pbr_material>& material = sm.material;
 
 				data.material = material;

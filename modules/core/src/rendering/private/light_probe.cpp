@@ -29,7 +29,7 @@ namespace era_engine
 	static dx_pipeline testSamplePipeline;
 
 	static dx_mesh sphereMesh;
-	static submesh_info sphereSubmesh;
+	static SubmeshInfo sphereSubmesh;
 
 	static const DXGI_FORMAT irradianceFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;// DXGI_FORMAT_R11G11B10_FLOAT;
 	static const DXGI_FORMAT depthFormat = DXGI_FORMAT_R16G16_FLOAT;
@@ -244,7 +244,7 @@ namespace era_engine
 		mat4 transform;
 		dx_vertex_buffer_group_view vertexBuffer;
 		dx_index_buffer_view indexBuffer;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 
 		float cellSize;
 		uint32 countX;

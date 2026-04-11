@@ -24,7 +24,7 @@ namespace era_engine
 		mat4 transform;
 		dx_vertex_buffer_group_view vertexBuffer;
 		dx_index_buffer_view indexBuffer;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 
 		vec4 color;
 	};
@@ -68,7 +68,7 @@ namespace era_engine
 	static void renderDebug(const mat4& transform, const struct dx_dynamic_vertex_buffer& vb, const struct dx_dynamic_index_buffer& ib, vec4 color,
 		ldr_render_pass* renderPass, bool overlay = false)
 	{
-		submesh_info sm;
+		SubmeshInfo sm;
 		sm.baseVertex = 0;
 		sm.numVertices = vb.view.SizeInBytes / vb.view.StrideInBytes;
 		sm.firstIndex = 0;

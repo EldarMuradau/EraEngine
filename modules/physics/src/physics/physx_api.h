@@ -88,15 +88,6 @@
 			results[i] = hit.shape ? *reinterpret_cast<Entity::Handle*>(hit.shape->userData) : Entity::NullHandle; \
 		}
 
-#if 0
-#include <vehicle/PxVehicleUtil.h>
-#include <snippetutils/SnippetUtils.h>
-#include <snippetvehicle2common/enginedrivetrain/EngineDrivetrain.h>
-#include <snippetvehicle2common/serialization/BaseSerialization.h>
-#include <snippetvehicle2common/serialization/EngineDrivetrainSerialization.h>
-#include <snippetvehicle2common/SnippetVehicleHelpers.h>
-#endif
-
 #include <core/math.h>
 #include <core/math_simd.h>
 
@@ -198,5 +189,5 @@ namespace physx
 
 namespace era_engine::physics
 {
-	static inline physx::PxVec3 gravity(0.0f, -9.81f, 0.0f);
+	static inline physx::PxVec3 PX_GRAVITY(0.0f, -9.81f, 0.0f);
 }

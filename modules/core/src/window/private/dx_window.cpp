@@ -10,7 +10,7 @@
 
 namespace era_engine
 {
-	static DebugVar<bool> enable_vsynk = DebugVar<bool>("engine.enable_vsynk", false);
+	static DebugVar<bool> enable_vsynk = DebugVar<bool>("engine.enable_vsynk", true);
 
 	RTTR_REGISTRATION
 	{

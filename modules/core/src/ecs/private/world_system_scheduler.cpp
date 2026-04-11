@@ -43,8 +43,6 @@ namespace era_engine
 		running = true;
 		fixed_update_thread = std::thread(&WorldSystemScheduler::fixed_update_loop, this);
 
-		set_fixed_update_rate(60.0f);
-
 		for (size_t i = 0; i < normal_threads; ++i)
 		{
 			normal_thread_pool.emplace_back(&WorldSystemScheduler::normal_worker, this);
@@ -73,6 +71,10 @@ namespace era_engine
 		{
 			std::unique_lock<std::mutex> lock(queue_mutex);
 			normal_condition.notify_all();
+		}
+
+		{
+			std::unique_lock<std::mutex> lock(fixed_queue_mutex);
 			fixed_condition.notify_all();
 		}
 
@@ -176,43 +178,40 @@ namespace era_engine
 	void WorldSystemScheduler::update_normal(float dt)
 	{
 		{
-			std::unique_lock<std::mutex> lock(queue_mutex);
 			for (auto& group_name : UpdatesHolder::update_order)
 			{
 				UpdateGroup* group = find_group(group_name);
-				auto found_group_iter = grouped_ordered_tasks.find(group_name);
-				if (found_group_iter != grouped_ordered_tasks.end())
+
+				if (group != nullptr)
 				{
-					auto& group_tasks = found_group_iter->second;
-					if (group)
+					auto& group_tasks = get_group_tasks(group_name);
+
+					if (!group->main_thread)
 					{
-						if (!group->main_thread)
+						for (auto& task : group_tasks)
 						{
-							for (auto& task : group_tasks)
-							{
-								normal_task_queue.push({ task, dt });
-							}
+							std::unique_lock<std::mutex> lock(queue_mutex);
+							normal_task_queue.push({ task, dt });
+							normal_condition.notify_one();
 						}
-						else
+					}
+					else
+					{
+						for (auto& task : group_tasks)
 						{
-							for (auto& task : group_tasks)
-							{
-								auto type_name = task->system->get_type().get_name().data();
-								auto method_name = task->method.get_name().data();
-
-								std::stringstream stream{};
-								stream << type_name << ": " << method_name;
-
-								CPU_PROFILE_BLOCK(stream.str().c_str());
-
-								task->method.invoke(*task->system, dt);
-							}
+							task->method.invoke(*task->system, dt);
 						}
 					}
 				}
 			}
 		}
-		normal_condition.notify_all();
+		
+		{
+			std::unique_lock<std::mutex> lock(queue_mutex);
+			tasks_done_cv.wait(lock, [this] {
+				return active_normal_tasks == 0 && normal_task_queue.empty();
+				});
+		}
 	}
 
 	void WorldSystemScheduler::add_task(ref<Task> task, UpdateType type)
@@ -246,14 +245,30 @@ namespace era_engine
 		}
 	}
 
-	UpdateGroup* find_group(const std::string& name)
+	const std::vector<ref<Task>>& WorldSystemScheduler::get_fixed_group_tasks(const std::string& name) const
 	{
-		auto iter = UpdatesHolder::global_groups.find(name);
-		if (iter == UpdatesHolder::global_groups.end())
+		ScopedSpinLock lock{ fixed_group_cycle_sync };
+
+		auto found_group_iter = fixed_grouped_ordered_tasks.find(name);
+		if (found_group_iter == fixed_grouped_ordered_tasks.end())
 		{
-			return nullptr;
+			static std::vector<ref<Task>> dummy;
+			return dummy;
 		}
-		return iter->second;
+		return found_group_iter->second;
+	}
+
+	const std::vector<ref<Task>>& WorldSystemScheduler::get_group_tasks(const std::string& name) const
+	{
+		ScopedSpinLock lock{ group_cycle_sync };
+
+		auto found_group_iter = grouped_ordered_tasks.find(name);
+		if (found_group_iter == grouped_ordered_tasks.end())
+		{
+			static std::vector<ref<Task>> dummy;
+			return dummy;
+		}
+		return found_group_iter->second;
 	}
 
 	void WorldSystemScheduler::normal_worker()
@@ -263,14 +278,10 @@ namespace era_engine
 			TaskItem item;
 			{
 				std::unique_lock<std::mutex> lock(queue_mutex);
-				auto timeout = std::chrono::milliseconds(100);
-				if (!normal_condition.wait_for(lock, timeout, [this]
+				normal_condition.wait(lock, [this]
 					{
 						return !normal_task_queue.empty() || !running;
-					}))
-				{
-					continue;
-				}
+					});
 
 				if (!running)
 				{
@@ -279,25 +290,23 @@ namespace era_engine
 
 				item = normal_task_queue.front();
 				normal_task_queue.pop();
+
+				++active_normal_tasks;
 			}
 
-			auto type_name = item.task->system->get_type().get_name().data();
-			auto method_name = item.task->method.get_name().data();
-
-			std::stringstream stream{};
-			stream << type_name << ": " << method_name;
-
-			CPU_PROFILE_BLOCK(stream.str().c_str());
-
 			item.task->method.invoke(*item.task->system, item.dt);
+
+			{
+				std::lock_guard<std::mutex> lock(queue_mutex);
+				--active_normal_tasks;
+			}
+			tasks_done_cv.notify_one();
 		}
 	}
 
 	void WorldSystemScheduler::update_fixed(float dt)
 	{
 		{
-			std::lock_guard<std::mutex> lock(queue_mutex);
-
 			const std::vector<std::string>& order = UpdatesHolder::update_order;
 			for (auto& group_name : order)
 			{
@@ -306,41 +315,32 @@ namespace era_engine
 					continue;
 				}
 				UpdateGroup* group = find_group(group_name);
-				auto found_group_iter = fixed_grouped_ordered_tasks.find(group_name);
-				if(found_group_iter != fixed_grouped_ordered_tasks.end())
+
+				if (group != nullptr)
 				{
-					auto& group_tasks = found_group_iter->second;
+					auto& group_tasks = get_fixed_group_tasks(group_name);
 
-					if (group)
+					if (!group->main_thread)
 					{
-						if (!group->main_thread)
+						for (auto& task : group_tasks)
 						{
-							for (auto& task : group_tasks)
-							{
-								fixed_task_queue.push({ task, dt });
-							}
+							std::lock_guard<std::mutex> lock(fixed_queue_mutex);
+
+							fixed_task_queue.push({ task, dt });
+							fixed_condition.notify_one();
 						}
-						else
+					}
+					else
+					{
+						for (auto& task : group_tasks)
 						{
-							for (auto& task : group_tasks)
-							{
-								auto type_name = task->system->get_type().get_name().data();
-								auto method_name = task->method.get_name().data();
-
-								std::stringstream stream{};
-								stream << type_name << ": " << method_name;
-
-								CPU_PROFILE_BLOCK(stream.str().c_str());
-
-								task->method.invoke(*task->system, dt);
-							}
+							task->method.invoke(*task->system, dt);
 						}
 					}
 				}
 			}
 		}
-
-		fixed_condition.notify_all();
+		fixed_tasks_done_cv.notify_one();
 	}
 
 	void WorldSystemScheduler::fixed_worker()
@@ -349,15 +349,11 @@ namespace era_engine
 		{
 			TaskItem item;
 			{
-				std::unique_lock<std::mutex> lock(queue_mutex);
-				auto timeout = std::chrono::milliseconds(100);
-				if (!fixed_condition.wait_for(lock, timeout, [this]
+				std::unique_lock<std::mutex> lock(fixed_queue_mutex);
+				fixed_condition.wait(lock, [this]
 					{
 						return !fixed_task_queue.empty() || !running;
-					})) 
-				{
-					continue;
-				}
+					});
 
 				if (!running)
 				{
@@ -370,21 +366,13 @@ namespace era_engine
 				++active_fixed_tasks;
 			}
 
-			auto type_name = item.task->system->get_type().get_name().data();
-			auto method_name = item.task->method.get_name().data();
-
-			std::stringstream stream{};
-			stream << type_name << ": " << method_name;
-
-			CPU_PROFILE_BLOCK(stream.str().c_str());
-
 			item.task->method.invoke(*item.task->system, item.dt);
 
 			{
-				std::lock_guard<std::mutex> lock(queue_mutex);
+				std::lock_guard<std::mutex> lock(fixed_queue_mutex);
 				--active_fixed_tasks;
 			}
-			tasks_done_cv.notify_one();
+			fixed_tasks_done_cv.notify_one();
 		}
 	}
 
@@ -405,13 +393,11 @@ namespace era_engine
 				update_fixed(fixed_dt);
 
 				{
-					std::unique_lock<std::mutex> lock(queue_mutex);
-					tasks_done_cv.wait(lock, [this] {
+					std::unique_lock<std::mutex> lock(fixed_queue_mutex);
+					fixed_tasks_done_cv.wait(lock, [this] {
 						return active_fixed_tasks == 0 && fixed_task_queue.empty();
 						});
 				}
-
-				ObservableStorage::sync_all_changes(world);
 
 				++world->fixed_frame_id;
 

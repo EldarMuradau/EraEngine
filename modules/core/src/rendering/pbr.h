@@ -14,7 +14,7 @@ namespace era_engine
 		D3D12_GPU_VIRTUAL_ADDRESS transformPtr;
 		dx_vertex_buffer_group_view vertexBuffer;
 		dx_index_buffer_view indexBuffer;
-		submesh_info submesh;
+		SubmeshInfo submesh;
 
 		ref<pbr_material> material;
 

@@ -21,7 +21,7 @@ namespace era_engine::physics
 		DestructibleBoxAsset(const Desc& desc);
 		~DestructibleBoxAsset() override;
 
-		DestructibleFamilyPtr createFamily(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc) override;
+		DestructibleFamilyPtr create_family(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc) override;
 
 	private:
 		physx::PxConvexMesh* box_mesh = nullptr;

@@ -1,6 +1,6 @@
 // Copyright (c) 2023-present Eldar Muradov. All rights reserved.
 
-#include "proc_placement.h"
+#include "terrain/proc_placement.h"
 
 #include "dx/dx_command_list.h"
 #include "dx/dx_pipeline.h"
@@ -28,7 +28,7 @@ namespace era_engine
 	static dx_pipeline visualizePointsPipeline;
 
 	static dx_mesh visualizePointsMesh;
-	static submesh_info visualizePointsSubmesh;
+	static SubmeshInfo visualizePointsSubmesh;
 	static dx_command_signature visualizePointsCommandSignature;
 
 	void initializeProceduralPlacementPipelines()

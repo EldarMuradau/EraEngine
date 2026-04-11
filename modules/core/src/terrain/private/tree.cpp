@@ -37,7 +37,7 @@ namespace era_engine
         D3D12_GPU_VIRTUAL_ADDRESS transformPtr;
         dx_vertex_buffer_group_view vertexBuffer;
         dx_index_buffer_view indexBuffer;
-        submesh_info submesh;
+        SubmeshInfo submesh;
 
         ref<pbr_material> material;
 
@@ -112,7 +112,7 @@ namespace era_engine
                 pbr_material_cb(mat->albedoTint, mat->emission.xyz, mat->roughnessOverride, mat->metallicOverride, flags, 1.f, mat->translucency, mat->uvScale)
             );
 
-            const submesh_info& submesh = data.submesh;
+            const SubmeshInfo& submesh = data.submesh;
 
             cl->setRootGraphicsSRV(TREE_RS_TRANSFORM, data.transformPtr);
             cl->setGraphics32BitConstants(TREE_RS_CB, tree_cb{ data.time });
@@ -151,7 +151,7 @@ namespace era_engine
 
         for (auto& sm : mesh->submeshes)
         {
-            submesh_info submesh = sm.info;
+            SubmeshInfo submesh = sm.info;
             const ref<pbr_material>& material = sm.material;
 
             tree_render_data data;

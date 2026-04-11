@@ -17,12 +17,12 @@ namespace era_engine
 	{
 	}
 
-	std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, submesh_info> era_engine::ClothRenderComponent::get_render_data()
+	std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, SubmeshInfo> era_engine::ClothRenderComponent::get_render_data()
 	{
 		if (get_data_internal != nullptr)
 		{
 			return get_data_internal(this);
 		}
-		return std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, submesh_info>();
+		return std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, SubmeshInfo>();
 	}
 }

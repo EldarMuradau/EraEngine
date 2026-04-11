@@ -29,6 +29,7 @@
 #include <physics/joint.h>
 #include <physics/ragdolls/ragdoll_component.h>
 #include <physics/physical_animation/physical_animation_component.h>
+#include "physics/collisions_holder_root_component.h"
 #include <physics/vehicles/w4_vehicle_component.h>
 
 #include <motion_matching/trajectory/trajectory_component.h>
@@ -54,7 +55,7 @@ namespace era_engine
 			.method("update", &GameInitSystem::update)(metadata("update_group", update_types::GAMEPLAY_NORMAL_CONCURRENT));
 	}
 
-	static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 50000.0f);
+	static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 30000.0f);
 
 	GameInitSystem::GameInitSystem(World* _world)
 		: System(_world)
@@ -72,6 +73,9 @@ namespace era_engine
 
 		RendererHolderRootComponent* renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
 		ASSERT(renderer_holder_rc != nullptr);
+
+		CollisionsHolderRootComponent* collisions_holder_rc = world->add_root_component<CollisionsHolderRootComponent>();
+		ASSERT(collisions_holder_rc != nullptr);
 
 		camera_entity = world->create_entity("CameraEntity");
 		CameraHolderComponent* camera_holder_component = camera_entity.add_component<CameraHolderComponent>();
@@ -103,7 +107,7 @@ namespace era_engine
 			tiran.add_component<MeshComponent>(mesh);
 
 			TransformComponent* transform_component = tiran.get_component<TransformComponent>();
-			transform_component->set_world_transform(trs{vec3(-5.0f, -4.9f, 5.0f), quat::identity, vec3(1.0f)});
+			transform_component->set_world_transform(trs{vec3(-5.0f, -4.8f, 5.0f), quat::identity, vec3(1.0f)});
 
 			mesh->loadJob.wait_for_completion();
 
@@ -288,7 +292,7 @@ namespace era_engine
 
 			DynamicBodyComponent* dynamic_body_component = sphere.add_component<DynamicBodyComponent>();
 			dynamic_body_component->ccd.get_for_write() = true;
-			dynamic_body_component->mass.get_for_write() = 50.0f;
+			dynamic_body_component->mass.get_for_write() = 30.0f;
 			dynamic_body_component->simulated.get_for_write() = true;
 			dynamic_body_component->use_gravity.get_for_write() = true;
 			dynamic_body_component->sleep_threshold.get_for_write() = 0.1f;

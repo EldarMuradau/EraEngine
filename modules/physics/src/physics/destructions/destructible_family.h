@@ -2,6 +2,7 @@
 
 #include "physics_api.h"
 
+#include "physics/physx_api.h"
 #include "physics/destructions/destruction_types.h"
 
 #include <core/math.h>
@@ -25,7 +26,6 @@ namespace Nv
 namespace physx
 {
 	class PxGeometry;
-	class PxTransform;
 }
 
 namespace era_engine::physics

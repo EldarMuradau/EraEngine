@@ -82,7 +82,7 @@ namespace era_engine::physics
 		px_asset->release();
 	}
 
-	DestructibleFamilyPtr DestructibleBoxAsset::createFamily(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc)
+	DestructibleFamilyPtr DestructibleBoxAsset::create_family(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc)
 	{
 		return DestructibleFamilyPtr();
 	}

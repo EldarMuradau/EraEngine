@@ -122,7 +122,7 @@ namespace era_engine::animation
 
 	static volatile uint32 totalNumVertices;
 
-	void initializeSkinning()
+	ERA_CORE_API void initializeSkinning()
 	{
 		skinningMatricesBuffer = createUploadBuffer(sizeof(mat4), MAX_NUM_SKINNING_MATRICES_PER_FRAME * NUM_BUFFERED_FRAMES, 0);
 
@@ -138,7 +138,7 @@ namespace era_engine::animation
 		clothSkinningPipeline = createReloadablePipeline("cloth_skinning_cs");
 	}
 
-	NODISCARD std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, vertex_range range, uint32 numJoints)
+	ERA_CORE_API  std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, vertex_range range, uint32 numJoints)
 	{
 		uint32 jointOffset = atomic_add(numSkinningMatricesThisFrame, numJoints);
 		ASSERT(jointOffset + numJoints <= MAX_NUM_SKINNING_MATRICES_PER_FRAME);
@@ -174,20 +174,20 @@ namespace era_engine::animation
 		return { result, skinningMatrices + jointOffset };
 	}
 
-	NODISCARD std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, uint32 numVertices, uint32 numJoints)
+	ERA_CORE_API  std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, uint32 numVertices, uint32 numJoints)
 	{
 		auto [vb, mats] = skinObject(vertexBuffer, vertex_range{ 0, numVertices }, numJoints);
 		return { vb, mats };
 	}
 
-	NODISCARD std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, submesh_info submesh, uint32 numJoints)
+	ERA_CORE_API  std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, SubmeshInfo submesh, uint32 numJoints)
 	{
 		auto [vb, mats] = skinObject(vertexBuffer, vertex_range{ submesh.baseVertex, submesh.numVertices }, numJoints);
 
 		return { vb, mats };
 	}
 
-	NODISCARD dx_vertex_buffer_group_view skinCloth(const dx_vertex_buffer_view& inpositions, uint32 gridSizeX, uint32 gridSizeY)
+	ERA_CORE_API  dx_vertex_buffer_group_view skinCloth(const dx_vertex_buffer_view& inpositions, uint32 gridSizeX, uint32 gridSizeY)
 	{
 		uint32 numVertices = gridSizeX * gridSizeY;
 		uint32 vertexOffset = atomic_add(totalNumVertices, numVertices);
@@ -217,7 +217,7 @@ namespace era_engine::animation
 		return result;
 	}
 
-	void performSkinning(compute_pass* computePass)
+	ERA_CORE_API void performSkinning(compute_pass* computePass)
 	{
 		// TODO: We currently make no attempt to ensure that all draw calls have actually been written completely, if executed on another thread. 
 		if (numCalls > 0 || numClothCalls > 0)

@@ -12,11 +12,11 @@ namespace era_engine
 	public:
 		ClothRenderComponent(ref<Entity::EcsData> _data);
 
-		std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, submesh_info> get_render_data();
+		std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, SubmeshInfo> get_render_data();
 
 		ERA_VIRTUAL_REFLECT(Component)
 	public:
-		std::function<std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, submesh_info>(ClothRenderComponent*)> get_data_internal;
+		std::function<std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, SubmeshInfo>(ClothRenderComponent*)> get_data_internal;
 
 		ref<dx_index_buffer> indexBuffer;
 		dx_vertex_buffer_group_view prevFrameVB;

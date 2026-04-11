@@ -3,7 +3,9 @@
 #include "core_api.h"
 
 #include "ecs/system.h"
+
 #include "core/job_system.h"
+#include "core/sync.h"
 
 #include <rttr/type>
 
@@ -44,8 +46,6 @@ namespace era_engine
 		std::vector<std::string> dependents;
 	};
 
-    ERA_CORE_API UpdateGroup* find_group(const std::string& name);
-
     class ERA_CORE_API WorldSystemScheduler
     {
     public:
@@ -84,16 +84,23 @@ namespace era_engine
 
         void add_task(ref<Task> task, UpdateType type);
 
+        const std::vector<ref<Task>>& get_fixed_group_tasks(const std::string& name) const;
+        const std::vector<ref<Task>>& get_group_tasks(const std::string& name) const;
+
+    protected:
         std::vector<std::thread> normal_thread_pool;
         std::queue<TaskItem> normal_task_queue;
+        std::atomic<int> active_normal_tasks = 0;
+        std::condition_variable tasks_done_cv;
 
         std::atomic<int> active_fixed_tasks = 0;
-        std::condition_variable tasks_done_cv;
+        std::condition_variable fixed_tasks_done_cv;
 
         std::vector<std::thread> fixed_thread_pool;
         std::queue<TaskItem> fixed_task_queue;
 
         std::mutex queue_mutex;
+        std::mutex fixed_queue_mutex;
         std::condition_variable normal_condition;
         std::condition_variable fixed_condition;
         std::atomic<bool> running = false;
@@ -106,13 +113,16 @@ namespace era_engine
         std::vector<System*> systems;
         std::set<rttr::type> system_types;
 
+        mutable SpinLock fixed_group_cycle_sync;
+        mutable SpinLock group_cycle_sync;
+
         std::unordered_map<std::string, ref<Task>> tasks;
         std::unordered_map<std::string, std::vector<std::string>> adj_list;
-        std::unordered_map<std::string, int> in_degree;
+        std::unordered_map<std::string, int32> in_degree;
 
         std::unordered_map<std::string, ref<Task>> fixed_tasks;
         std::unordered_map<std::string, std::vector<std::string>> fixed_adj_list;
-        std::unordered_map<std::string, int> fixed_in_degree;
+        std::unordered_map<std::string, int32> fixed_in_degree;
 
         std::unordered_map<std::string, std::vector<ref<Task>>> grouped_ordered_tasks;
         std::unordered_map<std::string, std::vector<ref<Task>>> fixed_grouped_ordered_tasks;
