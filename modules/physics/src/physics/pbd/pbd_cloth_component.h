@@ -35,16 +35,21 @@ namespace era_engine::physics
 		uint32 num_x = 0;
 		uint32 num_z = 0;
 
+		float spacing = 0.2f;
+		float total_mass = 10.0f;
+
 	private:
 		vec3* view_pos_buffer = nullptr;
 		physx::PxVec4* native_pos_buffer = nullptr;
 		physx::PxU32 num_particles = 0;
 
 	private:
-		Allocator allocator;
+		ref<Allocator> allocator = nullptr;
 
 		physx::PxPBDMaterial* material = nullptr;
 		physx::PxPBDParticleSystem* particle_system = nullptr;
 		physx::PxParticleClothBuffer* cloth_buffer = nullptr;
+
+		friend class PBDClothSystem;
 	};
 }

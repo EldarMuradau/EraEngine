@@ -29,7 +29,8 @@
 #include <physics/joint.h>
 #include <physics/ragdolls/ragdoll_component.h>
 #include <physics/physical_animation/physical_animation_component.h>
-#include "physics/collisions_holder_root_component.h"
+#include <physics/collisions_holder_root_component.h>
+#include <physics/pbd/pbd_cloth_component.h>
 #include <physics/vehicles/w4_vehicle_component.h>
 
 #include <motion_matching/trajectory/trajectory_component.h>
@@ -231,6 +232,17 @@ namespace era_engine
 			ragdoll_component->joint_init_ids = joint_init_ids;
 			ragdoll_component->settings = settings;
 		}
+
+		//{
+		//	Entity cloth = world->create_entity("Cloth");
+
+		//	TransformComponent* transform_component = cloth.get_component<TransformComponent>();
+		//	transform_component->set_world_transform(trs{ vec3(0.0f, 20.0f, 10.0f), quat::identity, vec3(1.0f) });
+
+		//	physics::PBDClothComponent* cloth_component = cloth.add_component<physics::PBDClothComponent>();
+		//	cloth_component->num_x = 30;
+		//	cloth_component->num_z = 30;
+		//}
 
 		/*if (auto mesh = loadMeshFromFileAsync(get_asset_path("/resources/assets/Sponza/sponza.obj"), mesh_creation_flags_unreal_asset))
 		{

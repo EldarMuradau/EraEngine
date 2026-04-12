@@ -175,7 +175,7 @@ namespace era_engine::animation
 		uint32 root_joint_id = 0;
 
 	private:
-		mutable SkeletonPose default_pose;
+		mutable SkeletonPose default_pose = SkeletonPose();
 	};
 
 	class ERA_CORE_API SkeletonUtils final

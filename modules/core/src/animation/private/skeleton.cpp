@@ -298,7 +298,7 @@ namespace era_engine::animation
 
 	const SkeletonPose& Skeleton::get_default_pose() const
 	{
-		if (!default_pose.is_valid())
+		if (default_pose.local_transforms.size() == 0)
 		{
 			default_pose = SkeletonPose(joints.size());
 			for (uint32 i = 0; i < joints.size(); ++i)

@@ -7,11 +7,21 @@
 
 #include <dx/dx_context.h>
 
+#include <rttr/registration>
+
 namespace era_engine::physics
 {
+	RTTR_REGISTRATION
+	{
+		using namespace rttr;
+		registration::class_<ClothRenderComponent>("ClothRenderComponent")
+			.constructor<ref<Entity::EcsData>>();
+	}
+
 	PBDClothComponent::PBDClothComponent(ref<Entity::EcsData> _data)
 		: Component(_data)
 	{
+		allocator = make_ref<Allocator>();
 	}
 
 	vec3* PBDClothComponent::get_positions() const
@@ -54,7 +64,7 @@ namespace era_engine::physics
 		auto [position_vertex_buffer, position_ptr] = create_dynamic_vertex_buffer(sizeof(vec3), num_vertices);
 		memcpy(position_ptr, get_positions(), num_vertices * sizeof(vec3));
 
-		dx_vertex_buffer_group_view vb = era_engine::animation::skinCloth(position_vertex_buffer, num_x, num_z);
+		dx_vertex_buffer_group_view vb = animation::skinCloth(position_vertex_buffer, num_x, num_z);
 		SubmeshInfo sm{};
 		sm.baseVertex = 0;
 		sm.firstIndex = 0;
@@ -82,7 +92,7 @@ namespace era_engine::physics
 				}
 			}
 
-			//render_component->indexBuffer = createIndexBuffer(sizeof(uint16), (uint32)triangles.size() * 3, triangles.data());
+			render_component->indexBuffer = createIndexBuffer(sizeof(uint16), (uint32)triangles.size() * 3, triangles.data());
 		}
 
 		return { vb, prev, render_component->indexBuffer, sm };
