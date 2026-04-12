@@ -45,31 +45,18 @@ namespace era_engine
 
 	void InputSystem::update(float dt)
 	{
-		ZoneScopedN("InputSystem::render");
+		ZoneScopedN("InputSystem::update");
 
 		static bool app_focused_last_frame = true;
-
-		ImGui::BeginWindowHiddenTabBar("Scene Viewport");
-		ImVec2 resolution = ImGui::GetContentRegionAvail();
-
-		if (resolution.x > 0 && resolution.y > 0)
-		{
-			renderer_holder_rc->width = (uint32)resolution.x;
-			renderer_holder_rc->height = (uint32)resolution.y;
-		}
-
-		uint32 render_width = renderer_holder_rc->width;
-		uint32 render_height = renderer_holder_rc->height;
-
-		main_renderer* renderer = renderer_holder_rc->renderer;
-
-		ImGui::Image(renderer->frameResult, render_width, render_height);
 
 		static UserInput input{};
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (ImGui::IsItemHovered())
 		{
+			uint32 render_width = renderer_holder_rc->width;
+			uint32 render_height = renderer_holder_rc->height;
+
 			ImVec2 relative_mouse = ImGui::GetMousePos() - ImGui::GetItemRectMin();
 			vec2 mouse_mos = { relative_mouse.x, relative_mouse.y };
 			if (app_focused_last_frame)

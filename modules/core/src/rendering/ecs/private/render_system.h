@@ -25,6 +25,7 @@ namespace era_engine
 		~RenderSystem();
 
 		void init() override;
+		void begin_frame(float dt);
 		void before_render(float dt);
 		void update(float dt) override;
 		void after_render(float dt);

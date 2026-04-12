@@ -33,6 +33,8 @@ namespace era_engine
 
 		registration::class_<RenderSystem>("RenderSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("render")))
+			.method("begin_frame", &RenderSystem::begin_frame)(metadata("update_group", update_types::INPUT),
+				metadata("Before", std::vector<std::string>{"InputSystem::update"}))
 			.method("before_render", &RenderSystem::before_render)(metadata("update_group", update_types::BEFORE_RENDER))
 			.method("update", &RenderSystem::update)(metadata("update_group", update_types::RENDER))
 			.method("after_render", &RenderSystem::after_render)(metadata("update_group", update_types::AFTER_RENDER));
@@ -91,6 +93,27 @@ namespace era_engine
 
 	void RenderSystem::init()
 	{
+	}
+
+	void RenderSystem::begin_frame(float dt)
+	{
+		ZoneScopedN("RenderSystem::begin_frame");
+
+		ImGui::BeginWindowHiddenTabBar("Scene Viewport");
+		ImVec2 resolution = ImGui::GetContentRegionAvail();
+
+		if (resolution.x > 0 && resolution.y > 0)
+		{
+			renderer_holder_rc->width = (uint32)resolution.x;
+			renderer_holder_rc->height = (uint32)resolution.y;
+		}
+
+		uint32 render_width = renderer_holder_rc->width;
+		uint32 render_height = renderer_holder_rc->height;
+
+		main_renderer* renderer = renderer_holder_rc->renderer;
+
+		ImGui::Image(renderer->frameResult, render_width, render_height);
 	}
 
 	void RenderSystem::before_render(float dt)
