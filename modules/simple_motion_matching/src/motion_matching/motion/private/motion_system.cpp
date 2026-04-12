@@ -38,9 +38,9 @@ namespace era_engine
 
 		registration::class_<MotionSystem>("MotionSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
-			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS_CONCURRENT))
-			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS_CONCURRENT))
-			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END))
+			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS))
+			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::BEGIN_FIXED))
+			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END_FIXED))
 			.method("debug_draw_update", &MotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
 	}
 
@@ -61,7 +61,6 @@ namespace era_engine
 
 	void MotionSystem::update(float dt)
 	{
-		using namespace animation;
 		ZoneScopedN("MotionSystem::update");
 
         for (auto&& [handle, transform_component, motion_component]
@@ -99,7 +98,7 @@ namespace era_engine
 	{
 		ZoneScopedN("MotionSystem::update_base");
 
-		for (auto [handle, transform_component, motion_component, reciever_component] : world->group(components_group<TransformComponent, MotionComponent, InputReceiverComponent>).each())
+		for (auto&& [handle, transform_component, motion_component, reciever_component] : world->group(components_group<TransformComponent, MotionComponent, InputReceiverComponent>).each())
 		{
 			Entity movable = world->get_entity(handle);
 
@@ -114,7 +113,7 @@ namespace era_engine
 	{
 		ZoneScopedN("MotionSystem::reset_input");
 
-		for (auto [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
+		for (auto&& [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
 		{
 			motion_component.apply_desired_input();
 		}
@@ -126,13 +125,13 @@ namespace era_engine
 
 		if (draw_motion)
 		{
-			for (auto [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
+			for (auto&& [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
 			{
 				renderWireSphere(motion_component.simulation_position, 0.05f, vec4(0.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
 
-				vec3 sim_dir_ = (
+				vec3 sim_dir = (
 					motion_component.simulation_position + 0.6f * (motion_component.simulation_rotation * vec3(0.0f, 0.0f, 1.0f)));
-				renderLine(motion_component.simulation_position, sim_dir_, vec4(0.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
+				renderLine(motion_component.simulation_position, sim_dir, vec4(0.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
 			}
 		}
 	}

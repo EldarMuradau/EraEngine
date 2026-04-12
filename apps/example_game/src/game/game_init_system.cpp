@@ -55,7 +55,7 @@ namespace era_engine
 			.method("update", &GameInitSystem::update)(metadata("update_group", update_types::GAMEPLAY_NORMAL_CONCURRENT));
 	}
 
-	static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 30000.0f);
+	static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 15000.0f);
 
 	GameInitSystem::GameInitSystem(World* _world)
 		: System(_world)

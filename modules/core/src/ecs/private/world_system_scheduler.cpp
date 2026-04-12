@@ -41,6 +41,9 @@ namespace era_engine
 		: world(_world), running(false)
 	{
 		running = true;
+
+		update_types::register_default_order();
+
 		fixed_update_thread = std::thread(&WorldSystemScheduler::fixed_update_loop, this);
 
 		for (size_t i = 0; i < normal_threads; ++i)
@@ -53,8 +56,6 @@ namespace era_engine
 			fixed_thread_pool.emplace_back(&WorldSystemScheduler::fixed_worker, this);
 			set_high_priority(fixed_thread_pool.back(), true);
 		}
-
-		update_types::register_default_order();
 	}
 
 	WorldSystemScheduler::~WorldSystemScheduler()

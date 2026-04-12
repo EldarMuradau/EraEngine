@@ -144,7 +144,8 @@ namespace era_engine
 
 		registration::class_<TrajectoryMotionSystem>("TrajectoryMotionSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
-			.method("update", &TrajectoryMotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_AFTER_PHYSICS_CONCURRENT), metadata("Before", std::vector<std::string>{"MotionSystem::update"}))
+			.method("update", &TrajectoryMotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
+                metadata("Before", std::vector<std::string>{"MotionSystem::update"}))
             .method("debug_draw_update", &TrajectoryMotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
 	}
 

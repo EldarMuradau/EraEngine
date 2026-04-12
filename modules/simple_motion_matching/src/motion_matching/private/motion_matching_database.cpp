@@ -335,55 +335,92 @@ namespace era_engine
         const std::vector<float>& normalized_query,
         const SearchParams& params) const
     {
-        std::optional<std::shared_ptr<MotionMatchingDatabase::Sample>> result_candidate;
-        if (!broadphase_candidates.empty())
+        std::vector<std::shared_ptr<Sample>> resulted_candidates = broadphase_candidates;
+
+        if (has_flag(narrow_phase_params.flags, NarrowPhaseFlags::STATIC_THRESHOLDS_CHECK))
         {
-            result_candidate = broadphase_candidates.front();
+            for (auto iter = resulted_candidates.begin(); iter != resulted_candidates.end();)
+            {
+                const std::vector<float> candidates_features = iter->get()->features;
+
+                if (candidates_features.size() != params.query.size())
+                {
+                    ASSERT(false);
+                    iter = resulted_candidates.erase(iter);
+                    continue;
+                }
+
+                bool is_valid_by_threshold = true;
+                for (uint32 i = 0; i < params.query.size(); ++i)
+                {
+                    const StaticThreshold& threshold = static_thresholds[i];
+                    if (!threshold.enabled)
+                    {
+                        continue;
+                    }
+
+                    const float diff = params.query[i] - candidates_features[i];
+
+                    if (diff > threshold.max_diff ||
+                        diff < threshold.min_diff)
+                    {
+                        is_valid_by_threshold = false;
+                        break;
+                    }
+                }
+
+                if (!is_valid_by_threshold)
+                {
+                    iter = resulted_candidates.erase(iter);
+                    continue;
+                }
+
+                ++iter;
+            }
+        }
+
+        if (resulted_candidates.empty())
+        {
+            return SearchResult();
         }
 
         if (has_flag(narrow_phase_params.flags, NarrowPhaseFlags::EUCLIDIAN_DISTANCE_CHECK))
         {
-            if (result_candidate.has_value())
+            for (auto iter = resulted_candidates.begin(); iter != resulted_candidates.end();)
             {
-                const float result_candidate_to_query_distance_sqr = square_distance(normalized_query, normalize_query(result_candidate.value()->features));
+                const float result_candidate_to_query_distance_sqr = square_distance(params.query, normalize_query(iter->get()->features));
 
                 const float max_euclidean_distance_sqr = squaref(narrow_phase_params.max_euclidean_distance);
-                if (result_candidate.has_value() && result_candidate_to_query_distance_sqr >= max_euclidean_distance_sqr)
+                if (result_candidate_to_query_distance_sqr >= max_euclidean_distance_sqr)
                 {
-                    result_candidate.reset();
+                    iter = resulted_candidates.erase(iter);
+                    continue;
                 }
             }
         }
 
-        if (!result_candidate.has_value())
-		{
-			return SearchResult();
-		}
-
-        if (has_flag(narrow_phase_params.flags, NarrowPhaseFlags::SAME_FRAME_CHECK) &&
-            params.current_animation == animations[result_candidate.value()->anim_index])
-        {
-            const float anim_position_diff = result_candidate.value()->anim_position - params.current_anim_position;
-
-            if (abs(anim_position_diff) < narrow_phase_params.same_frame_time_threshold)
-            {
-                return SearchResult(params.current_animation, database_id, params.current_features, params.current_anim_position);
-
-            }
-        }
-
-        if (result_candidate.has_value())
-        {
-            ref<Sample> sample = result_candidate.value();
-            return SearchResult(animations[sample->anim_index], database_id, sample->features, sample->anim_position);
-        }
-        else
+        if (resulted_candidates.empty())
         {
             return SearchResult();
         }
-    }
 
-    MotionMatchingDatabase::MotionMatchingDatabase(KnnStructureType _knn_type /*= KnnStructureType::DEFAULT*/)
+        const std::shared_ptr<MotionMatchingDatabase::Sample>& result_candidate = resulted_candidates.front();
+
+        if (has_flag(narrow_phase_params.flags, NarrowPhaseFlags::SAME_FRAME_CHECK) &&
+            params.current_animation == animations[result_candidate->anim_index])
+        {
+            const float anim_position_diff = result_candidate->anim_position - params.current_anim_position;
+
+            if (abs(anim_position_diff) < narrow_phase_params.same_frame_time_threshold)
+			{
+				return SearchResult(params.current_animation, database_id, params.current_features, params.current_anim_position);
+			}
+		}
+
+		return SearchResult(animations[result_candidate->anim_index], database_id, result_candidate->features, result_candidate->anim_position);
+	}
+
+	MotionMatchingDatabase::MotionMatchingDatabase(KnnStructureType _knn_type /*= KnnStructureType::DEFAULT*/)
     {
         knn_type = _knn_type;
         if (knn_type == KnnStructureType::HNSW)
@@ -586,6 +623,8 @@ namespace era_engine
                 IO::write_value(os, narrow_phase_params.flags);
                 IO::write_value(os, narrow_phase_params.same_frame_time_threshold);
                 IO::write_value(os, narrow_phase_params.max_euclidean_distance);
+
+                IO::write_value(os, BinarySerializer::serialize(static_thresholds));
             }
 
             // Transform
@@ -677,6 +716,11 @@ namespace era_engine
                 IO::read_value(is, narrow_phase_params.flags);
                 IO::read_value(is, narrow_phase_params.same_frame_time_threshold);
                 IO::read_value(is, narrow_phase_params.max_euclidean_distance);
+
+                BinaryDataArchive binary_static_thresholds;
+                IO::read_value(is, binary_static_thresholds);
+
+                BinarySerializer::deserialize(binary_static_thresholds.raw_data(), binary_static_thresholds.size(), static_thresholds);
             }
 
             // Transform

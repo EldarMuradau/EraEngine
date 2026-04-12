@@ -54,7 +54,7 @@ namespace era_engine::physics
 	static DebugVar<bool> force_disable_ragdoll = DebugVar<bool>("physics.physical_animation.force_disable_ragdoll", false);
 
 	static DebugVar<float> running_speed = DebugVar<float>("physics.physical_animation.debug_demo.running_speed", 1.0f);
-	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 20.0f);
+	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 7.0f);
 
 	PhysicalAnimationSystem::PhysicalAnimationSystem(World* _world)
 		: System(_world)

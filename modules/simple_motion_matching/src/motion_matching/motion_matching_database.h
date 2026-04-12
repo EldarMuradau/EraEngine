@@ -28,11 +28,12 @@ namespace era_engine
 
 	enum class NarrowPhaseFlags : uint8
 	{
-		NONE = 0,
-		SAME_FRAME_CHECK = 1,
-		EUCLIDIAN_DISTANCE_CHECK = 2,
+		NONE = 0x0,
+		SAME_FRAME_CHECK = 0x1,
+		EUCLIDIAN_DISTANCE_CHECK = 0x2,
+		STATIC_THRESHOLDS_CHECK = 0x4,
 
-		ALL = SAME_FRAME_CHECK | EUCLIDIAN_DISTANCE_CHECK
+		ALL = SAME_FRAME_CHECK | EUCLIDIAN_DISTANCE_CHECK | STATIC_THRESHOLDS_CHECK
 	};
 	DEFINE_BITWISE_OPERATORS_FOR_ENUM(NarrowPhaseFlags);
 
@@ -54,6 +55,16 @@ namespace era_engine
 			float anim_position = 0.0f;
 
 			ERA_BINARY_SERIALIZE(features, anim_index, anim_position)
+		};
+
+		struct StaticThreshold
+		{
+			float min_diff = std::numeric_limits<float>::lowest();
+			float max_diff = std::numeric_limits<float>::max();
+
+			bool enabled = false;
+
+			ERA_BINARY_SERIALIZE(min_diff, max_diff, enabled)
 		};
 
 		MotionMatchingDatabase(KnnStructureType _knn_type = KnnStructureType::DEFAULT);
@@ -111,6 +122,8 @@ namespace era_engine
 
 		std::vector<uint64> animations_asset_handles;
 		std::vector<uint32> animations_hashes;
+
+		std::vector<StaticThreshold> static_thresholds;
 
 		std::vector<MotionMatchingFeature*> features;
 	};
