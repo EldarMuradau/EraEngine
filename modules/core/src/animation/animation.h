@@ -110,30 +110,32 @@ namespace era_engine::animation
 		AnimationClip* clip = nullptr;
 	};
 
-	struct AnimationState : era_engine::ai::StateBase<AnimationBlackboard>
+	struct ERA_CORE_API AnimationState : ai::StateBase<AnimationBlackboard>
 	{
 		AnimationState(ref<AnimationInstance> inst) : instance(inst)
 		{
 		}
 
-		virtual void enter(AnimationBlackboard& state) override
+		void enter(AnimationBlackboard& state) override
 		{
 			instance->set(state.clip);
 			instance->finished = false;
 		}
 
-		virtual void exit(AnimationBlackboard& state) override
+		void exit(AnimationBlackboard& state) override
 		{
 			if (instance->clip == state.clip)
+			{
 				instance->clip = nullptr;
+			}
 		}
 
-		virtual void pause(AnimationBlackboard& state) override
+		void pause(AnimationBlackboard& state) override
 		{
 			instance->paused = true;
 		}
 
-		virtual void resume(AnimationBlackboard& state) override
+		void resume(AnimationBlackboard& state) override
 		{
 			instance->paused = false;
 		}
@@ -161,34 +163,6 @@ namespace era_engine::animation
 		std::stack<AnimationBlackboard> input;
 		bool paused = false;
 	};
-
-	struct ERA_CORE_API AnimationController
-	{
-		AnimationStateMachine state_machine;
-	};
-
-#if 0
-	struct ERA_CORE_API AnimationBlendTree1d
-	{
-		AnimationBlendTree1d() = default;
-		AnimationBlendTree1d(std::initializer_list<AnimationClip*> clips, float startRelTime = 0.0f, float startBlendValue = 0.0f);
-
-		void setBlendValue(float blendValue);
-		void update(const AnimationSkeleton& skeleton, float dt, trs* outLocalTransforms, trs& outDeltaRootMotion);
-
-	private:
-		AnimationClip* clips[8];
-		uint32 numClips = 0;
-
-		uint32 first;
-		uint32 second;
-		float value;
-		float relTime;
-		float blendValue;
-
-		trs lastRootMotion;
-	};
-#endif
 
 	class ERA_CORE_API AnimationComponent : public Component
 	{

@@ -17,6 +17,8 @@ namespace era_engine
 
 		void compute_features(const FeatureComputationContext& context) override;
 
+		bool mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const override;
+
 		ERA_VIRTUAL_REFLECT(MotionMatchingFeature)
 	};
 }

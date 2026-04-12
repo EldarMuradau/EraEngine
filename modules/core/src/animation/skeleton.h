@@ -172,6 +172,8 @@ namespace era_engine::animation
 		std::vector<JointTransform> local_transforms; // In parent space.
 		std::unordered_map<std::string, uint32> name_to_joint_id;
 
+		uint32 root_joint_id = 0;
+
 	private:
 		mutable SkeletonPose default_pose;
 	};

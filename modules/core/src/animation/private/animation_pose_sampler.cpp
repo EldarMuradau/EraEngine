@@ -90,4 +90,42 @@ namespace era_engine::animation
 	{
 		return animation->get_duration();
 	}
+
+	bool AnimationRootSampler::init(const Skeleton* skeleton, std::shared_ptr<AnimationAssetClip> _animation)
+	{
+		ASSERT(skeleton != nullptr);
+		animation = _animation;
+
+		const uint32 skeleton_root_index = skeleton->root_joint_id;
+
+		bind_transform = skeleton->get_default_pose().get_joint_transform(skeleton_root_index);
+		root_joint_index = skeleton_root_index;
+
+		return true;
+	}
+
+	JointTransform AnimationRootSampler::sample_root(float sample_time) const
+	{
+		if (root_joint_index != INVALID_JOINT)
+		{
+			animation->sample_joint(sample_time, root_joint_index, bind_transform, cached_root);
+		}
+
+		return cached_root;
+	}
+
+	const std::shared_ptr<AnimationAssetClip>& AnimationRootSampler::get_animation() const
+	{
+		return animation;
+	}
+
+	bool AnimationRootSampler::is_valid() const
+	{
+		return animation != nullptr;
+	}
+
+	float AnimationRootSampler::get_duration() const
+	{
+		return animation->get_duration();
+	}
 }

@@ -33,4 +33,26 @@ namespace era_engine::animation
 
 		std::vector<uint32> joint_mapping;
 	};
+
+	class ERA_CORE_API AnimationRootSampler final
+	{
+	public:
+		AnimationRootSampler() = default;
+
+		bool init(const Skeleton* skeleton, std::shared_ptr<AnimationAssetClip> _animation);
+		JointTransform sample_root(float sample_time) const;
+
+		const std::shared_ptr<AnimationAssetClip>& get_animation() const;
+
+		bool is_valid() const;
+		float get_duration() const;
+
+	private:
+		JointTransform bind_transform;
+
+		uint32 root_joint_index = INVALID_JOINT;
+		std::shared_ptr<AnimationAssetClip> animation;
+
+		mutable JointTransform cached_root;
+	};
 }
