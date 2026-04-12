@@ -4,7 +4,6 @@
 
 #include "motion_matching/array.h"
 #include "motion_matching/common.h"
-#include "motion_matching/features/motion_matching_feature.h"
 
 #include <asset/game_asset.h>
 
@@ -15,9 +14,11 @@ namespace era_engine
 	namespace animation
 	{
 		class AnimationAssetClip;
+		class SkeletonComponent;
 	}
 
 	class KnnStructure;
+	class MotionMatchingFeature;
 
 	enum class KnnStructureType : uint8
 	{
@@ -72,6 +73,8 @@ namespace era_engine
 
 		void bake();
 
+		void mark(const animation::SkeletonComponent* skeleton_component);
+
 		SearchResult search(const SearchParams& params) const;
 
 		std::vector<float> normalize_query(const std::vector<float>& query) const;
@@ -94,6 +97,7 @@ namespace era_engine
 		// Settings
 		std::string database_id;
 		KnnStructureType knn_type = KnnStructureType::DEFAULT;
+
 		std::vector<ref<animation::AnimationAssetClip>> animations;
 
 		std::vector<std::string> feature_types;
@@ -107,9 +111,7 @@ namespace era_engine
 		std::vector<float> weights;
 
 		// Generated
-		std::vector<std::shared_ptr<Sample>> samples;
-
-		std::shared_ptr<KnnStructure> knn_structure;
+		ref<KnnStructure> knn_structure;
 
 		std::vector<float> mean_values;
 		std::vector<float> normalize_factors;
@@ -126,6 +128,8 @@ namespace era_engine
 		std::vector<StaticThreshold> static_thresholds;
 
 		std::vector<MotionMatchingFeature*> features;
+
+		std::vector<ref<Sample>> samples;
 	};
 
 	class ERA_MOTION_MATCHING_API MotionDatabaseRegistry

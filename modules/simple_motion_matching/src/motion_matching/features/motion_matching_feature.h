@@ -1,8 +1,11 @@
 #pragma once
 
 #include "motion_matching_api.h"
+#include "motion_matching/motion_matching_database.h"
 
 #include <animation/animation_clip.h>
+
+#include <core/serialization/binary_serializer.h>
 
 #include <ecs/reflection.h>
 #include <ecs/entity.h>
@@ -26,11 +29,11 @@ namespace era_engine
 
 		Entity entity = Entity::Null;
 
-		animation::SkeletonComponent* skeleton_component = nullptr;
-		animation::AnimationComponent* animation_component = nullptr;
+		const animation::SkeletonComponent* skeleton_component = nullptr;
+		const animation::AnimationComponent* animation_component = nullptr;
 
-		TrajectoryComponent* trajectory_component = nullptr;
-		MotionComponent* motion_component = nullptr;
+		const TrajectoryComponent* trajectory_component = nullptr;
+		const MotionComponent* motion_component = nullptr;
 
 		float dt = 0.0f;
 	};
@@ -59,6 +62,10 @@ namespace era_engine
 		Basis basis = Basis::XYZ;
 
 		std::string name;
+
+		ERA_BINARY_SERIALIZE(type, basis, name);
+
+		ERA_REFLECT
 	};
 
 	class ERA_MOTION_MATCHING_API MotionMatchingFeature
@@ -68,19 +75,19 @@ namespace era_engine
 		MotionMatchingFeature(const MotionMatchingFeature&) = default;
 		virtual ~MotionMatchingFeature();
 
-		std::vector<float> get_values() const;
-
 		const std::vector<ref<FeatureDesc>>& get_descriptors() const;
 
-		virtual void compute_features(const FeatureComputationContext& context);
-		void store_features(std::vector<float>&& _values);
+		virtual std::vector<float> compute_features(const FeatureComputationContext& context);
 
-		virtual bool mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const;
+		virtual bool mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const;
+
+		virtual bool sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const;
 
 		ERA_REFLECT
 
 	protected:
-		std::vector<float> values;
 		std::vector<ref<FeatureDesc>> descriptors;
+
+		friend class MotionMatchingDatabase;
 	};
 }

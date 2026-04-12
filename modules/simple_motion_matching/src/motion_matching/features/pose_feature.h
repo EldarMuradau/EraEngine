@@ -17,6 +17,10 @@ namespace era_engine
 		~PoseFeatureDesc() override = default;
 
 		uint32 joint_id = INVALID_JOINT;
+
+		ERA_BINARY_SERIALIZE(FeatureDesc::type, FeatureDesc::basis, FeatureDesc::name, joint_id);
+
+		ERA_VIRTUAL_REFLECT(FeatureDesc)
 	};
 
 	class ERA_MOTION_MATCHING_API PoseFeature : public MotionMatchingFeature
@@ -26,9 +30,10 @@ namespace era_engine
 		PoseFeature(const PoseFeature&) = default;
 		~PoseFeature() override;
 
-		void compute_features(const FeatureComputationContext& context) override;
+		std::vector<float> compute_features(const FeatureComputationContext& context) override;
 
-		bool mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const override;
+		bool mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const override;
+		bool sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const override;
 
 		ERA_VIRTUAL_REFLECT(MotionMatchingFeature)
 	};

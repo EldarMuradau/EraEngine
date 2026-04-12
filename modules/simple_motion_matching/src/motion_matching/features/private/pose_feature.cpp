@@ -12,6 +12,10 @@ namespace era_engine
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
+
+		registration::class_<PoseFeatureDesc>("PoseFeatureDesc")
+			.constructor<>()(policy::ctor::as_raw_ptr);
+
 		registration::class_<PoseFeature>("PoseFeature")
 			.constructor<>()(policy::ctor::as_raw_ptr);
 	}
@@ -20,7 +24,7 @@ namespace era_engine
 	{
 	}
 
-	void PoseFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> PoseFeature::compute_features(const FeatureComputationContext& context)
 	{
 		using namespace animation;
 
@@ -28,7 +32,7 @@ namespace era_engine
 
 		const float current_time = context.animation_component->current_anim_position;
 
-		values.clear();
+		std::vector<float> values;
 
 		for (ref<FeatureDesc> descriptor : descriptors)
 		{
@@ -79,13 +83,13 @@ namespace era_engine
 				ASSERT(false);
 			}
 		}
+
+		return values;
 	}
 
-	bool PoseFeature::mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const
+	bool PoseFeature::mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const
 	{
 		using namespace animation;
-
-		SkeletonComponent* skeleton_component = entity.get_component<SkeletonComponent>();
 
 		AnimationPoseSampler sampler;
 		sampler.init(skeleton_component->skeleton.get(), clip);
@@ -164,6 +168,41 @@ namespace era_engine
 				ASSERT(false);
 				return false;
 			}
+		}
+
+		return true;
+	}
+
+	bool PoseFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
+	{
+		const uint32 num_samples = std::lrintf(sample_rate * clip->get_duration());
+
+		const float timestep = 1.0f / sample_rate;
+		float current_time = 0.0f;
+
+		for (uint32 i = 0; i < num_samples; ++i)
+		{
+			ref<MotionMatchingDatabase::Sample>& sample = out_samples[i];
+
+			for (ref<FeatureDesc> descriptor : descriptors)
+			{
+				std::string x_curve_name = descriptor->name + "_x";
+				float out_x = 0.0f;
+				clip->sample_curve(current_time, x_curve_name, out_x);
+				sample->features.emplace_back(out_x);
+
+				std::string y_curve_name = descriptor->name + "_y";
+				float out_y = 0.0f;
+				clip->sample_curve(current_time, y_curve_name, out_y);
+				sample->features.emplace_back(out_y);
+
+				std::string z_curve_name = descriptor->name + "_z";
+				float out_z = 0.0f;
+				clip->sample_curve(current_time, z_curve_name, out_z);
+				sample->features.emplace_back(out_z);
+			}
+
+			current_time += timestep;
 		}
 
 		return true;

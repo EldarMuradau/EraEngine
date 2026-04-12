@@ -18,13 +18,8 @@ namespace era_engine
 
 		~MotionMatchingComponent() override;
 
-		SearchResult search_animation(const std::string& database_id, float dt) const;
 		SearchResult search_animation(const MotionMatchingFeatureSet& feature_set, const std::string& database_id) const;
 
 		ERA_VIRTUAL_REFLECT(Component)
-
-	public:
-		float search_time = 0.1f;
-		float search_timer = search_time;
 	};
 }

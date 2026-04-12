@@ -1,5 +1,7 @@
 #include "motion_matching/motion_matching_database.h"
 #include "motion_matching/motion_matching_knn_structure.h"
+#include "motion_matching/features/motion_matching_feature.h"
+#include "motion_matching/motion_matching_anim_marker.h"
 #include "motion_matching/common.h"
 #include "motion_matching/hnsw/hnsw_knn_structure.h"
 
@@ -521,6 +523,11 @@ namespace era_engine
         transform_matrix = transpose(transform_matrix);
     }
 
+    void MotionMatchingDatabase::mark(const animation::SkeletonComponent* skeleton_component)
+    {
+        MotionMatchingAnimMarker::mark_database(skeleton_component, *this);
+    }
+
     SearchResult MotionMatchingDatabase::search(const SearchParams& params) const
     {
         std::vector<float> normalized_query_values = normalize_query(params.query);
@@ -616,6 +623,19 @@ namespace era_engine
             // Features
             {
                 IO::write_value(os, BinarySerializer::serialize(feature_types));
+
+                for (const MotionMatchingFeature* feature : features)
+                {
+                    const std::vector<ref<FeatureDesc>>& descriptors = feature->get_descriptors();
+                    IO::write_value(os, static_cast<uint32>(descriptors.size()));
+
+                    for (const ref<FeatureDesc>& desc : descriptors)
+                    {
+                        IO::write_value(os, BinarySerializer::serialize(desc->get_type().get_name().to_string()));
+
+                        IO::write_value(os, BinarySerializer::serialize(*desc.get()));
+                    }
+                }
             }
 
             // Narrow phase
@@ -708,6 +728,32 @@ namespace era_engine
 
                     rttr::type feature_type = rttr::type::get_by_name(param_name);
                     features.emplace_back(feature_type.create().get_value<MotionMatchingFeature*>());
+                }
+
+                for (MotionMatchingFeature* feature : features)
+                {
+                    uint32 descriptors_size = 0;
+                    IO::read_value(is, descriptors_size);
+
+                    feature->descriptors.reserve(descriptors_size);
+
+                    for (uint32 i = 0; i < descriptors_size; ++i)
+                    {
+                        BinaryDataArchive binary_desc_typename;
+                        IO::read_value(is, binary_desc_typename);
+
+                        std::string desc_typename;
+                        BinarySerializer::deserialize(binary_desc_typename.raw_data(), binary_desc_typename.size(), desc_typename);
+
+                        rttr::type desc_type = rttr::type::get_by_name(desc_typename);
+                        ref<FeatureDesc> descriptor = ref<FeatureDesc>(desc_type.create().get_value<FeatureDesc*>());
+
+                        BinaryDataArchive binary_desc;
+                        IO::read_value(is, binary_desc);
+                        BinarySerializer::deserialize(binary_feature_names.raw_data(), binary_feature_names.size(), *descriptor.get());
+
+                        feature->descriptors.emplace_back(descriptor);
+                    }
                 }
             }
 

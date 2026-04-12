@@ -14,6 +14,9 @@ namespace era_engine
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
+		registration::class_<FeatureDesc>("FeatureDesc")
+			.constructor<>()(policy::ctor::as_raw_ptr);
+
 		registration::class_<MotionMatchingFeature>("MotionMatchingFeature")
 			.constructor<>()(policy::ctor::as_raw_ptr);
 	}
@@ -38,24 +41,21 @@ namespace era_engine
 	{
 	}
 
-	void MotionMatchingFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> MotionMatchingFeature::compute_features(const FeatureComputationContext& context)
 	{
+		return  std::vector<float>{};
 	}
 
-	void MotionMatchingFeature::store_features(std::vector<float>&& _values)
+	bool MotionMatchingFeature::mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const
 	{
-		values = std::move(_values);
+		return true;
 	}
 
-	bool MotionMatchingFeature::mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const
+	bool MotionMatchingFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
 	{
-		return false;
+		return true;
 	}
 
-	std::vector<float> MotionMatchingFeature::get_values() const
-	{
-		return values;
-	}
 	const std::vector<ref<FeatureDesc>>& MotionMatchingFeature::get_descriptors() const
 	{
 		return descriptors;

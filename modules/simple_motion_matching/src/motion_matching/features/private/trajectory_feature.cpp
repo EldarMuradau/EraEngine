@@ -1,4 +1,5 @@
 #include "motion_matching/features/trajectory_feature.h"
+#include "motion_matching/trajectory/trajectory_component.h"
 
 #include <animation/animation_pose_sampler.h>
 #include <animation/skeleton_component.h>
@@ -20,15 +21,46 @@ namespace era_engine
 	{
 	}
 
-	void TrajectoryFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> TrajectoryFeature::compute_features(const FeatureComputationContext& context)
 	{
+		std::vector<float> values;
+		values.reserve(context.trajectory_component->number_of_trajectories * descriptors.size());
+
+		for (int32 i = 0; i < context.trajectory_component->number_of_trajectories; ++i)
+		{
+			for (ref<FeatureDesc> descriptor : descriptors)
+			{
+				if (descriptor->type == FeatureDesc::Type::LOCATION)
+				{
+					const vec3& position = context.trajectory_component->trajectory_positions(i);
+
+					values.emplace_back(position.x);
+					values.emplace_back(position.z);
+				}
+				else if (descriptor->type == FeatureDesc::Type::DIRECTION)
+				{
+					const quat& rotation = context.trajectory_component->trajectory_rotations(i);
+					const vec3 direction = noz(rotation * vec3::forward);
+
+					values.emplace_back(direction.x);
+					values.emplace_back(direction.z);
+				}
+				else if (descriptor->type == FeatureDesc::Type::VELOCITY)
+				{
+					const vec3& velocity = context.trajectory_component->trajectory_velocities(i);
+
+					values.emplace_back(velocity.x);
+					values.emplace_back(velocity.z);
+				}
+			}
+		}
+
+		return values;
 	}
 
-	bool TrajectoryFeature::mark_animation(Entity entity, ref<animation::AnimationAssetClip> clip) const
+	bool TrajectoryFeature::mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const
 	{
 		using namespace animation;
-
-		SkeletonComponent* skeleton_component = entity.get_component<SkeletonComponent>();
 
 		AnimationRootSampler sampler;
 		sampler.init(skeleton_component->skeleton.get(), clip);
@@ -59,7 +91,7 @@ namespace era_engine
 				}
 				else if (descriptor->type == FeatureDesc::Type::DIRECTION)
 				{
-					const vec3 joint_direction = noz(current_root_pose.get_translation());
+					const vec3 joint_direction = noz(current_root_pose.get_rotation() * vec3::forward);
 
 					descriptor_values_x.emplace_back(joint_direction.x);
 					descriptor_values_z.emplace_back(joint_direction.z);
@@ -84,6 +116,36 @@ namespace era_engine
 
 			descriptor_values_x.clear();
 			descriptor_values_z.clear();
+		}
+
+		return true;
+	}
+
+	bool TrajectoryFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
+	{
+		const uint32 num_samples = std::lrintf(sample_rate * clip->get_duration());
+
+		const float timestep = 1.0f / sample_rate;
+		float current_time = 0.0f;
+
+		for (uint32 i = 0; i < num_samples; ++i)
+		{
+			ref<MotionMatchingDatabase::Sample>& sample = out_samples[i];
+
+			for (ref<FeatureDesc> descriptor : descriptors)
+			{
+				std::string x_curve_name = descriptor->name + "_x";
+				float out_x = 0.0f;
+				clip->sample_curve(current_time, x_curve_name, out_x);
+				sample->features.emplace_back(out_x);
+
+				std::string z_curve_name = descriptor->name + "_z";
+				float out_z = 0.0f;
+				clip->sample_curve(current_time, z_curve_name, out_z);
+				sample->features.emplace_back(out_z);
+			}
+
+			current_time += timestep;
 		}
 
 		return true;

@@ -23,41 +23,11 @@ namespace era_engine
 
 	MotionMatchingComponent::MotionMatchingComponent(ref<Entity::EcsData> _data)
 		: Component(_data)
-	{
-		
+	{	
 	}
 
 	MotionMatchingComponent::~MotionMatchingComponent()
 	{
-	}
-
-	SearchResult MotionMatchingComponent::search_animation(const std::string& database_id, float dt) const
-	{
-		ref<MotionMatchingDatabase> database = MotionDatabaseRegistry::get_by_id(database_id);
-		if (database == nullptr)
-		{
-			return SearchResult();
-		}
-
-		FeatureComputationContext context;
-		context.fill_context(get_entity(), dt);
-
-		PoseFeature pose_feature{};
-		pose_feature.compute_features(context);
-
-		TrajectoryFeature trajectory_feature{};
-		trajectory_feature.compute_features(context);
-
-		PhaseFeature phase_feature{};
-		phase_feature.compute_features(context);
-
-		MotionMatchingFeatureSet feature_set;
-
-		feature_set.add_feature(pose_feature.get_type(), std::move(pose_feature.get_values()));
-		feature_set.add_feature(trajectory_feature.get_type(), std::move(trajectory_feature.get_values()));
-		feature_set.add_feature(phase_feature.get_type(), std::move(phase_feature.get_values()));
-
-		return search_animation(feature_set, database_id);
 	}
 
 	SearchResult MotionMatchingComponent::search_animation(const MotionMatchingFeatureSet& feature_set, const std::string& database_id) const
