@@ -48,15 +48,15 @@ namespace era_engine::physics
 			const MotorDriveDetails& motor_details = limb_details.motor_drive.value();
 			D6JointComponent* drive_joint_component = static_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
 
-			const trs& constraint_frame_actor0_local_space = drive_joint_component->get_first_local_frame();
-			const trs& constraint_frame_actor1_local_space = drive_joint_component->get_second_local_frame();
+			const trs& constraint_frame_actor0 = drive_joint_component->get_first_local_frame();
+			const trs& constraint_frame_actor1 = drive_joint_component->get_second_local_frame();
 
-			const trs& parent_local_transform = drive_joint_component->get_first_entity_ptr().get().get_component<TransformComponent>()->get_local_transform();
+			const trs& parent_world_transform = PhysicsUtils::get_actor_world_pose_locked(drive_joint_component->get_first_entity_ptr().get());
 
-			const trs constraint_frame_actor0_object_space = parent_local_transform * constraint_frame_actor0_local_space;
-			const trs constraint_frame_actor1_object_space = limb_component->physics_pose * constraint_frame_actor1_local_space;
+			const trs constraint_frame_actor0_world_space = parent_world_transform * constraint_frame_actor0;
+			const trs constraint_frame_actor1_world_space = PhysicsUtils::get_actor_world_pose_locked(limb) * constraint_frame_actor1;
 
-			const trs error_transform = invert(constraint_frame_actor1_object_space) * constraint_frame_actor0_object_space;
+			const trs error_transform = invert(constraint_frame_actor1_world_space) * constraint_frame_actor0_world_space;
 			const quat error_rotation = normalize(error_transform.rotation);
 			const vec3 error_position = error_transform.position;
 
@@ -66,7 +66,7 @@ namespace era_engine::physics
 
 			if (limb_details.motor_drive->drive_type == MotorDriveType::FULL)
 			{
-				drive_joint_component->drive_transform.get_for_write() = invert(constraint_frame_actor0_local_space) * constraint_frame_actor1_local_space;
+				drive_joint_component->drive_transform.get_for_write() = invert(constraint_frame_actor0) * constraint_frame_actor1;
 
 				// Joint drive will handle drive velocity based on current limb velocity.
 				drive_joint_component->angular_drive_velocity.get_for_write() = vec3::zero;
@@ -76,7 +76,7 @@ namespace era_engine::physics
 			{
 				if (has_flag(limb_details.motor_drive->drive_type, MotorDriveType::TRANSFORM))
 				{
-					drive_joint_component->drive_transform.get_for_write() = invert(constraint_frame_actor0_local_space) * constraint_frame_actor1_local_space;
+					drive_joint_component->drive_transform.get_for_write() = invert(constraint_frame_actor0) * constraint_frame_actor1;
 				}
 				else if (has_flag(limb_details.motor_drive->drive_type, MotorDriveType::VELOCITY))
 				{

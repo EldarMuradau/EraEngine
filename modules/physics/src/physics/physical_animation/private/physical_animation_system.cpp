@@ -517,7 +517,11 @@ namespace era_engine::physics
 
 	void PhysicalAnimationSystem::update_chains_states(const PhysicalAnimationComponent* physical_animation_component, float dt) const
 	{
-		bool has_any_up_collided_limbs = physical_animation_component->body_chain->has_any_colliding_limb();
+		bool has_any_up_collided_limbs = force_simulate;
+		if (!has_any_up_collided_limbs)
+		{
+			has_any_up_collided_limbs |= physical_animation_component->body_chain->has_any_colliding_limb();
+		}
 		if (!has_any_up_collided_limbs)
 		{
 			has_any_up_collided_limbs |= physical_animation_component->neck_chain->has_any_colliding_limb();
@@ -530,6 +534,14 @@ namespace era_engine::physics
 		{
 			has_any_up_collided_limbs |= physical_animation_component->right_arm_chain->has_any_colliding_limb();
 		}
+		if (!has_any_up_collided_limbs)
+		{
+			has_any_up_collided_limbs |= physical_animation_component->left_leg_chain->has_any_colliding_limb();
+		}
+		if (!has_any_up_collided_limbs)
+		{
+			has_any_up_collided_limbs |= physical_animation_component->right_leg_chain->has_any_colliding_limb();
+		}
 
 		const bool is_in_ragdoll = physical_animation_component->is_in_ragdoll();
 
@@ -538,8 +550,8 @@ namespace era_engine::physics
 		update_chain(physical_animation_component->left_arm_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 		update_chain(physical_animation_component->right_arm_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 
-		update_chain(physical_animation_component->left_leg_chain, dt, is_in_ragdoll);
-		update_chain(physical_animation_component->right_leg_chain, dt, is_in_ragdoll);
+		update_chain(physical_animation_component->left_leg_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
+		update_chain(physical_animation_component->right_leg_chain, dt, is_in_ragdoll, has_any_up_collided_limbs);
 
 	}
 
@@ -548,8 +560,6 @@ namespace era_engine::physics
 		bool is_in_ragdoll,
 		bool force_simulation/* = false*/) const
 	{
-		const bool should_update_as_simulated = chain->has_any_colliding_limb() || force_simulation || force_simulate;
-
 		for (EntityPtr limb_ptr : chain->connected_limbs)
 		{
 			Entity limb = limb_ptr.get();
@@ -562,7 +572,7 @@ namespace era_engine::physics
 			{
 				desired_chain_state = PhysicalLimbStateType::RAGDOLL;
 			}
-			else if (should_update_as_simulated)
+			else if (force_simulation)
 			{
 				desired_chain_state = PhysicalLimbStateType::SIMULATION;
 			}

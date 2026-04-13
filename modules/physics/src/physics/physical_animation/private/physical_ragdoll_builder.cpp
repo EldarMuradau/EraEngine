@@ -919,9 +919,9 @@ namespace era_engine::physics
 				DistanceJointComponent* joint_component = body_lower_ghost.add_component<DistanceJointComponent>(descriptor);
 				joint_component->enable_collision.get_for_write() = false;
 				joint_component->spring_enabled.get_for_write() = true;
-				joint_component->stiffness.get_for_write() = 500.0f;
-				joint_component->damping.get_for_write() = 50.0f;
-				joint_component->max_distance.get_for_write() = 0.3f;
+				joint_component->stiffness.get_for_write() = 800.0f;
+				joint_component->damping.get_for_write() = 80.0f;
+				joint_component->max_distance.get_for_write() = 0.1f;
 				joint_component->min_distance.get_for_write() = 0.0f;
 			}
 
