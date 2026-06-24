@@ -44,7 +44,7 @@ namespace era_engine
 				ASSERT(status);
 			}
 
-			database.samples.insert(database.samples.end(), animation_samples.begin(), animation_samples.end());
+			database.samples.insert(database.samples.end(), std::make_move_iterator(animation_samples.begin()), std::make_move_iterator(animation_samples.end()));
 
 			++anim_index;
 		}

@@ -55,6 +55,6 @@ namespace era_engine::physics
 
         PhysicalAnimationUtils::set_limb_kinematic(limb_component, false);
 
-        BaseLimbState::on_enter();
+        BaseLimbState::on_exit();
     }
 }

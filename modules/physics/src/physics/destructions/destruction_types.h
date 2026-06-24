@@ -27,6 +27,7 @@ class ExtDamageAccelerator;
 namespace era_engine
 {
     struct SubmeshAsset;
+    class World;
 }
 
 namespace era_engine::physics
@@ -77,7 +78,7 @@ namespace era_engine::physics
 
         size_t get_asset_size() const;
 
-        virtual DestructibleFamilyPtr create_family(Nv::Blast::ExtPxManager& manager, const ActorDesc& desc) = 0;
+        virtual DestructibleFamilyPtr create_family(World* world, Nv::Blast::ExtPxManager& manager, const ActorDesc& desc) = 0;
 
         float bond_health_max = 1.0f;
         float support_chunk_health_max = 1.0f;

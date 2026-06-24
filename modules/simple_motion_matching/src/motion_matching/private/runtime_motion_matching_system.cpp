@@ -66,8 +66,6 @@ namespace era_engine
 					motion_data_component.on_search_recuperation_func();
 				}
 
-				motion_data_component.search_timer = motion_data_component.search_time;
-
 				Entity entity = world->get_entity(handle);
 
 				FeatureComputationContext context;
@@ -76,6 +74,7 @@ namespace era_engine
 				MotionMatchingFeatureSet feature_set = motion_data_component.calculate_feature_set_func(context);
 
 				SearchResult search_result = mm_controller.search_animation(feature_set, motion_data_component.get_motion_database_id_func());
+				motion_data_component.search_timer = motion_data_component.search_time;
 				
 				if (search_result.animation != nullptr)
 				{

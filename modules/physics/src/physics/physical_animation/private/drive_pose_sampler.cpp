@@ -124,12 +124,6 @@ namespace era_engine::physics
 
 	void DrivePoseSampler::blend_with_transform(const trs& from_joint_transform, float blend_value, trs& out_transform) const
 	{
-		if (fuzzy_equals(from_joint_transform.position, vec3::zero) || 
-			fuzzy_equals(from_joint_transform.rotation, quat::identity))
-		{
-			return;
-		}
-
 		out_transform.position = lerp(from_joint_transform.position,
 			out_transform.position,
 			blend_value);

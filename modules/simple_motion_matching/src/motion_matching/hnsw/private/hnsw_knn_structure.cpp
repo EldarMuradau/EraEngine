@@ -8,10 +8,8 @@ namespace era_engine
     {
     }
 
-    void HnswKnnStructure::build_structure(const MotionMatchingDatabase& database)
+    void HnswKnnStructure::rebuild_structure(const MotionMatchingDatabase& database)
     {
-        hnsw_l2_space = hnswlib::L2Space(database.search_dimension);
-
         std::vector<float> features_array;
         features_array.reserve(database.samples.size() * database.search_dimension);
 
@@ -28,7 +26,13 @@ namespace era_engine
 
         database.subtract_column_means(features_matrix);
 
-        const array2d<float> final_features_matrix = transpose(database.transform_matrix * transpose(features_matrix));
+        array2d<float> final_features_matrix = transpose(database.transform_matrix * transpose(features_matrix));
+        build_structure_from_matrix(database, final_features_matrix);
+    }
+
+    void HnswKnnStructure::build_structure_from_matrix(const MotionMatchingDatabase& database, const array2d<float>& compressed_matrix)
+    {
+        hnsw_l2_space = hnswlib::L2Space(database.search_dimension);
 
         hnsw = std::shared_ptr<hnswlib::HierarchicalNSW<float>>(new hnswlib::HierarchicalNSW<float>(&hnsw_l2_space, database.samples.size(), max_edges_per_vertex, construction_exploration_factor));
 
@@ -38,7 +42,7 @@ namespace era_engine
 
             for (uint32 feature_index = 0; feature_index < database.search_dimension; ++feature_index)
             {
-                animation_data.push_back(final_features_matrix(point_index, feature_index));
+                animation_data.push_back(compressed_matrix(point_index, feature_index));
             }
 
             hnsw->addPoint(animation_data.data(), point_index);
@@ -85,7 +89,7 @@ namespace era_engine
 
         if (writable.empty())
         {
-            build_structure(database);
+            rebuild_structure(database);
         }
         else
         {

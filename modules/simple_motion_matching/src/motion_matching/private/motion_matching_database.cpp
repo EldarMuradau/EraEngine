@@ -450,7 +450,7 @@ namespace era_engine
         for (uint32 i = 0; i < total_features_size; i++)
         {
             min_values[i] = std::numeric_limits<float>::max();
-            max_values[i] = std::numeric_limits<float>::min();
+            max_values[i] = std::numeric_limits<float>::lowest();
         }
 
         std::vector<float> feature_sums;
@@ -521,6 +521,10 @@ namespace era_engine
         array2d<float> other;
         separate(pca_matrix, transform_matrix, other, search_dimension);
         transform_matrix = transpose(transform_matrix);
+
+        array2d<float> compressed_feature_matrix = transpose(transform_matrix * transpose(features_matrix));
+
+        knn_structure->build_structure_from_matrix(*this, compressed_feature_matrix);
     }
 
     void MotionMatchingDatabase::mark(const animation::SkeletonComponent* skeleton_component)
@@ -661,7 +665,7 @@ namespace era_engine
 
                 if (knn_structure->writable.empty())
                 {
-                    knn_structure->build_structure(*this);
+                    knn_structure->rebuild_structure(*this);
                 }
 
                 IO::write_value(os, knn_structure->writable.size());

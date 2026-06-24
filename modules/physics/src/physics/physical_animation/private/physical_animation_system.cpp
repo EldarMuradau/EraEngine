@@ -206,15 +206,65 @@ namespace era_engine::physics
 			sprint_profile = make_ref<RagdollProfile>();
 
 			sprint_profile->type = RagdollProfileType::SPRINT;
-			sprint_profile->head_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->arm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->body_upper_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->body_middle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->forearm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->hand_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->leg_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->calf_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
-			sprint_profile->foot_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE;
+			sprint_profile->head_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->head_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->head_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->head_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
+
+			sprint_profile->neck_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->neck_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 200.0f;
+
+			sprint_profile->body_upper_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->body_upper_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+
+			sprint_profile->body_middle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+
+			sprint_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->body_lower_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->body_lower_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->body_lower_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+
+			sprint_profile->clavicle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->clavicle_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->clavicle_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->clavicle_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+
+			sprint_profile->arm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->arm_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->arm_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->arm_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+
+			sprint_profile->forearm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->forearm_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->forearm_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->forearm_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+
+			sprint_profile->hand_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->hand_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->hand_limb_details.motor_drive->angular_drive_stiffness = 200.0f;
+			sprint_profile->hand_limb_details.motor_drive->linear_drive_stiffness = 400.0f;
+
+			sprint_profile->leg_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->leg_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->leg_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->leg_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+
+			sprint_profile->calf_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->calf_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->calf_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->calf_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
+
+			sprint_profile->foot_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
+			sprint_profile->foot_limb_details.motor_drive = MotorDriveDetails();
+			sprint_profile->foot_limb_details.motor_drive->angular_drive_stiffness = 400.0f;
+			sprint_profile->foot_limb_details.motor_drive->linear_drive_stiffness = 300.0f;
 		}
 		
 		{
