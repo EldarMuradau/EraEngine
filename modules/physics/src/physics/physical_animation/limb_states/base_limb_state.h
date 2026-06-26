@@ -14,7 +14,11 @@ namespace era_engine::physics
 		KINEMATIC = 0,
 		BLEND_OUT,
 		SIMULATION,
-		RAGDOLL
+		RAGDOLL,
+		PARTIAL_DISMEMBERED,
+		DISMEMBERED,
+
+		USER_STATE
 	};
 
 	class ERA_PHYSICS_API BaseLimbState

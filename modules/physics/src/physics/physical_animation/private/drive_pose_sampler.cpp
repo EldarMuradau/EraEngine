@@ -67,10 +67,12 @@ namespace era_engine::physics
 			trs limb_animation_pose = pose.get_joint_transform(simulation_joint).get_transform();
 			limb_animation_pose.scale = vec3(1.0f);
 
+			trs animation_object_space_pose = parent_local * limb_animation_pose;
+
 			auto limb_iter = physical_animation_component->simulated_joints.find(simulation_joint);
 			if (limb_iter == simulated_joints_end)
 			{
-				physical_animation_component->local_joint_poses[simulation_joint] = parent_local * limb_animation_pose;
+				physical_animation_component->local_joint_poses[simulation_joint] = animation_object_space_pose;
 			}
 			else
 			{
@@ -92,7 +94,7 @@ namespace era_engine::physics
 						limb_data_component,
 						physical_animation_component,
 						result_type,
-						limb_animation_pose,
+						animation_object_space_pose,
 						inverse_parent_local,
 						blend_value);
 
@@ -116,7 +118,7 @@ namespace era_engine::physics
 				}
 				else
 				{
-					physical_animation_component->local_joint_poses[simulation_joint] = parent_local * limb_animation_pose;
+					physical_animation_component->local_joint_poses[simulation_joint] = animation_object_space_pose;
 				}
 			}
 		}
@@ -146,32 +148,37 @@ namespace era_engine::physics
 	{
 		if (fuzzy_equals(physical_animation_component->blend_weight, 0.0f))
 		{
-			return limb_animation_transform;
+			return inverse_parent_local_transform * limb_animation_transform;
 		}
 
-		trs new_transform = inverse_parent_local_transform * limb_data_component->physics_pose;
+		trs new_object_pose = limb_data_component->physics_pose;
+
 		if (!has_flag(result_type, PhysicalLimbBlendType::PURE_PHYSICS))
 		{
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE))
 			{
-				blend_with_transform(limb_animation_transform, physical_animation_component->animation_blend_factor, new_transform);
+				blend_with_transform(limb_animation_transform,
+					physical_animation_component->animation_blend_factor,
+					new_object_pose);
 			}
 
 			if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_PREV_POSE))
 			{
-				const trs prev_local_transform = inverse_parent_local_transform * limb_data_component->prev_physics_pose;
-				blend_with_transform(prev_local_transform, blend_time, new_transform);
+				blend_with_transform(limb_data_component->prev_physics_pose,
+					blend_time,
+					new_object_pose);
 			}
 		}
 
 		if (!fuzzy_equals(physical_animation_component->blend_weight, 1.0f))
 		{
-			// Blend with animation step.
-			blend_with_transform(limb_animation_transform, physical_animation_component->blend_weight, new_transform);
+			blend_with_transform(limb_animation_transform,
+				physical_animation_component->blend_weight,
+				new_object_pose);
 		}
 
-		new_transform.rotation = normalize(new_transform.rotation);
+		new_object_pose.rotation = normalize(new_object_pose.rotation);
 
-		return new_transform;
+		return inverse_parent_local_transform * new_object_pose;
 	}
 }

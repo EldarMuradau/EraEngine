@@ -138,7 +138,7 @@ namespace era_engine::animation
 		clothSkinningPipeline = createReloadablePipeline("cloth_skinning_cs");
 	}
 
-	ERA_CORE_API  std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, vertex_range range, uint32 numJoints)
+	ERA_CORE_API std::tuple<dx_vertex_buffer_group_view, mat4*> skinObject(const dx_vertex_buffer_group_view& vertexBuffer, vertex_range range, uint32 numJoints)
 	{
 		uint32 jointOffset = atomic_add(numSkinningMatricesThisFrame, numJoints);
 		ASSERT(jointOffset + numJoints <= MAX_NUM_SKINNING_MATRICES_PER_FRAME);

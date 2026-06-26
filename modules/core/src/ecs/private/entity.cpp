@@ -21,12 +21,12 @@ namespace era_engine
 			.constructor<ref<Entity::EcsData>>();
 	}
 
-	Entity::Entity(const Entity& _entity) noexcept
+	Entity::Entity(const Entity& _entity)
 		: internal_data(_entity.internal_data)
 	{
 	}
 
-	Entity::Entity(Entity&& _entity) noexcept
+	Entity::Entity(Entity&& _entity)
 	{
 		internal_data = std::move(_entity.internal_data);
 	}
@@ -37,17 +37,17 @@ namespace era_engine
 	{
 	}
 
-	Entity::~Entity() noexcept
+	Entity::~Entity()
 	{
 	}
 
-	Entity& Entity::operator=(const Entity& _entity)  noexcept
+	Entity& Entity::operator=(const Entity& _entity)
 	{
 		internal_data = _entity.internal_data;
 		return *this;
 	}
 
-	Entity& Entity::operator=(Entity&& _entity) noexcept
+	Entity& Entity::operator=(Entity&& _entity)
 	{
 		internal_data = std::move(_entity.internal_data);
 		return *this;
@@ -68,7 +68,7 @@ namespace era_engine
 		return internal_data->entity_handle == _handle;
 	}
 
-	bool Entity::is_valid() const noexcept
+	bool Entity::is_valid() const
 	{
 		return internal_data != nullptr &&
 			   internal_data->entity_handle != Entity::NullHandle &&

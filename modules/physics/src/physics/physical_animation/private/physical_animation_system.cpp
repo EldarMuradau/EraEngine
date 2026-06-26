@@ -291,7 +291,7 @@ namespace era_engine::physics
 
 		process_added_pacs();
 
-		for (auto&& [entity_handle, transform_component, physical_animation_component] : world->group(components_group<TransformComponent, PhysicalAnimationComponent>).each())
+		for (auto&& [entity_handle, transform_component, physical_animation_component, animm, skeleton] : ragdolls_group.each())
 		{
 			if (physical_animation_component.simulated.is_changed())
 			{
@@ -304,7 +304,7 @@ namespace era_engine::physics
 			}
 		}
 
-		for (auto&& [entity_handle, transform_component, physical_animation_limb_component] : world->group(components_group<TransformComponent, PhysicalAnimationLimbComponent>).each())
+		for (auto&& [entity_handle, transform_component, physical_animation_limb_component, animm, skeleton] : ragdolls_group.each())
 		{
 			if (physical_animation_limb_component.simulated.is_changed())
 			{
@@ -380,8 +380,11 @@ namespace era_engine::physics
 
 				ASSERT(limb_data_component != nullptr);
 
+				const trs physics_world_pose = PhysicsUtils::get_actor_world_pose_locked(limb);
+
 				limb_data_component->prev_physics_pose = limb_data_component->physics_pose;
-				limb_data_component->physics_pose = inverse_world_transform * limb.get_component<TransformComponent>()->get_world_transform();
+				limb_data_component->physics_pose = inverse_world_transform * physics_world_pose;
+
 				limb_data_component->collision.is_colliding = false;
 				limb_data_component->collision.impulse = vec3::zero;
 			}
@@ -618,7 +621,14 @@ namespace era_engine::physics
 			ASSERT(limb_data_component != nullptr);
 
 			PhysicalLimbStateType desired_chain_state = PhysicalLimbStateType::KINEMATIC;
-			if (is_in_ragdoll)
+
+			if (limb_data_component->current_state_type == PhysicalLimbStateType::DISMEMBERED ||
+				limb_data_component->current_state_type == PhysicalLimbStateType::PARTIAL_DISMEMBERED ||
+				limb_data_component->current_state_type == PhysicalLimbStateType::USER_STATE)
+			{
+				desired_chain_state = limb_data_component->current_state_type;
+			}
+			else if (is_in_ragdoll)
 			{
 				desired_chain_state = PhysicalLimbStateType::RAGDOLL;
 			}
@@ -738,8 +748,9 @@ namespace era_engine::physics
 
 		ScopedSpinLock _lock{ sync };
 
-		for (Entity::Handle entity_handle : std::exchange(pacs_to_init, {}))
+		for (auto iter = pacs_to_init.begin(); iter != pacs_to_init.end();)
 		{
+			Entity::Handle entity_handle = *iter;
 			Entity entity = world->get_entity(entity_handle);
 
 			const SkeletonComponent* skeleton_component = entity.get_component<SkeletonComponent>();
@@ -747,6 +758,7 @@ namespace era_engine::physics
 			const ref<Skeleton> skeleton = skeleton_component->skeleton;
 			if (skeleton == nullptr)
 			{
+				++iter;
 				continue;
 			}
 
@@ -801,6 +813,8 @@ namespace era_engine::physics
 			physical_animation_component->local_joint_poses_for_target_calculation[0] = trs::identity;
 
 			physical_animation_component->try_to_apply_ragdoll_profile(idle_profile, RagdollProfileStrengthType::DEFAULT, true);
+
+			iter = pacs_to_init.erase(iter);
 		}
 	}
 

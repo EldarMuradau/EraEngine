@@ -44,6 +44,12 @@ namespace era_engine::physics
         {
             auto process_limb = [](PhysicalAnimationLimbComponent* limb_component)
                 {
+                    if (limb_component->get_current_state_type() == PhysicalLimbStateType::DISMEMBERED ||
+                        limb_component->get_current_state_type() == PhysicalLimbStateType::PARTIAL_DISMEMBERED)
+                    {
+                        return;
+                    }
+
                     limb_component->collision.reset();
                     limb_component->force_switch_state(PhysicalLimbStateType::KINEMATIC);
 
@@ -81,6 +87,12 @@ namespace era_engine::physics
 
         auto process_limb = [&skeleton_component, &ragdoll_transform](PhysicalAnimationLimbComponent* limb_component)
             {
+                if (limb_component->get_current_state_type() == PhysicalLimbStateType::DISMEMBERED ||
+                    limb_component->get_current_state_type() == PhysicalLimbStateType::PARTIAL_DISMEMBERED)
+                {
+                    return;
+                }
+
                 PhysicalAnimationUtils::force_sync_limb_to_skeleton(limb_component, skeleton_component, ragdoll_transform);
             };
 

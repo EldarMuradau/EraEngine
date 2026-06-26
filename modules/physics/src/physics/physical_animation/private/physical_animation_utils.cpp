@@ -119,6 +119,27 @@ namespace era_engine::physics
         drive_joint_component->disabled = !active;
     }
 
+    void PhysicalAnimationUtils::set_full_constraint_active(PhysicalAnimationLimbComponent* limb_component, bool active)
+    {
+        ASSERT(limb_component != nullptr);
+
+        if (limb_component->drive_joint_component.is_empty())
+        {
+            return;
+        }
+
+        D6JointComponent* drive_joint_component = dynamic_cast<D6JointComponent*>(limb_component->drive_joint_component.get_for_write());
+        drive_joint_component->disabled = !active;
+
+        if (limb_component->parent_joint_component.is_empty())
+        {
+            return;
+        }
+
+        D6JointComponent* parent_joint_component = dynamic_cast<D6JointComponent*>(limb_component->parent_joint_component.get_for_write());
+        parent_joint_component->disabled = !active;
+    }
+
     void PhysicalAnimationUtils::set_simulation_for_limb(const PhysicalAnimationLimbComponent* limb_component,
         bool enable_simulation,
         bool enable_gravity /*= false*/)

@@ -44,19 +44,19 @@ namespace era_engine
 
 	public:
 		Entity() = default;
-		Entity(const Entity& _entity) noexcept;
-		Entity(Entity&& _entity) noexcept;
+		Entity(const Entity& _entity);
+		Entity(Entity&& _entity);
 		Entity(ref<EcsData> _data);
-		~Entity() noexcept;
+		~Entity();
 
-		Entity& operator=(const Entity& _entity)  noexcept;
-		Entity& operator=(Entity&& _entity) noexcept;
+		Entity& operator=(const Entity& _entity);
+		Entity& operator=(Entity&& _entity);
 
 		bool operator==(const Entity& _other) const;
 		bool operator!=(const Entity& _other) const;
 		bool operator==(Entity::Handle _handle) const;
 
-		bool is_valid() const noexcept;
+		bool is_valid() const;
 
 		World* get_world() const;
 		Entity::Handle get_handle() const;

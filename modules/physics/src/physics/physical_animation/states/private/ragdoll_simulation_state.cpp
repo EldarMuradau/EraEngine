@@ -46,6 +46,11 @@ namespace era_engine::physics
 
 		auto process_limb = [&skeleton_component, &ragdoll_transform](PhysicalAnimationLimbComponent* limb_component)
 			{
+				if (limb_component->get_current_state_type() == PhysicalLimbStateType::DISMEMBERED ||
+					limb_component->get_current_state_type() == PhysicalLimbStateType::PARTIAL_DISMEMBERED)
+				{
+					return;
+				}
 				PhysicalAnimationUtils::force_sync_limb_to_skeleton(limb_component, skeleton_component, ragdoll_transform);
 				PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
 			};
@@ -87,6 +92,12 @@ namespace era_engine::physics
 		{
 			Entity limb = limb_ptr.get();
 			PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
+
+			if (limb_data_component->get_current_state_type() == PhysicalLimbStateType::DISMEMBERED ||
+				limb_data_component->get_current_state_type() == PhysicalLimbStateType::PARTIAL_DISMEMBERED)
+			{
+				return;
+			}
 
 			ASSERT(limb_data_component != nullptr);
 

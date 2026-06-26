@@ -1,4 +1,5 @@
 #include "physics/physical_animation/physical_animation_component.h"
+#include "physics/physical_animation/dismemberment/ragdoll_dismemberment_component.h"
 #include "physics/body_component.h"
 #include "physics/joint.h"
 #include "physics/physical_animation/states/blend_in_simulation_state.h"
@@ -10,6 +11,7 @@
 #include "physics/physical_animation/limb_states/kinematic_limb_state.h"
 #include "physics/physical_animation/limb_states/simulation_limb_state.h"
 #include "physics/physical_animation/limb_states/ragdoll_limb_state.h"
+#include "physics/physical_animation/dismemberment/dismembered_limb_state.h"
 
 #include <rttr/registration>
 
@@ -36,6 +38,23 @@ namespace era_engine::physics
 			ASSERT(limb_component != nullptr);
 
 			if (limb_component->collision.is_colliding || limb_component->collision.collision_time > 0.0f)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool PhysicsLimbChain::has_any_dismembered_limb() const
+	{
+		for (EntityPtr limb_ptr : connected_limbs)
+		{
+			Entity limb = limb_ptr.get();
+
+			const PhysicalAnimationLimbComponent* limb_component = limb.get_component<PhysicalAnimationLimbComponent>();
+			ASSERT(limb_component != nullptr);
+
+			if (limb_component->get_current_state_type() == PhysicalLimbStateType::DISMEMBERED)
 			{
 				return true;
 			}
@@ -93,6 +112,8 @@ namespace era_engine::physics
 		simulation_states.emplace(PhysicalLimbStateType::BLEND_OUT, std::make_shared<BlendOutLimbState>(this_component_ptr));
 		simulation_states.emplace(PhysicalLimbStateType::SIMULATION, std::make_shared<SimulationLimbState>(this_component_ptr));
 		simulation_states.emplace(PhysicalLimbStateType::RAGDOLL, std::make_shared<RagdollLimbState>(this_component_ptr));
+		simulation_states.emplace(PhysicalLimbStateType::PARTIAL_DISMEMBERED, std::make_shared<PartialDismemberedLimbState>(this_component_ptr));
+		simulation_states.emplace(PhysicalLimbStateType::DISMEMBERED, std::make_shared<DismemberedLimbState>(this_component_ptr));
 	}
 
 	PhysicalAnimationLimbComponent::~PhysicalAnimationLimbComponent()
@@ -340,6 +361,55 @@ namespace era_engine::physics
 		}
 
 		return limb_details.strength_details.default_strength_coeff;
+	}
+
+	const PhysicsLimbChain* PhysicalAnimationComponent::get_chain_by_joint_id(uint32 joint_id) const
+	{
+		auto contains_joint = [this, joint_id](const ref<PhysicsLimbChain>& chain)->bool {
+			for (EntityPtr limb_ptr : chain->connected_limbs)
+			{
+				const PhysicalAnimationLimbComponent* limb_component = limb_ptr.get().get_component<PhysicalAnimationLimbComponent>();
+
+				if (limb_component->joint_id == joint_id)
+				{
+					return true;
+				}
+			}
+
+			return false;
+			};
+
+		if (contains_joint(body_chain))
+		{
+			return body_chain.get();
+		}
+
+		if (contains_joint(neck_chain))
+		{
+			return neck_chain.get();
+		}
+
+		if (contains_joint(left_arm_chain))
+		{
+			return left_arm_chain.get();
+		}
+
+		if (contains_joint(right_arm_chain))
+		{
+			return right_arm_chain.get();
+		}
+
+		if (contains_joint(left_leg_chain))
+		{
+			return left_leg_chain.get();
+		}
+
+		if (contains_joint(right_leg_chain))
+		{
+			return right_leg_chain.get();
+		}
+
+		return nullptr;
 	}
 
 }

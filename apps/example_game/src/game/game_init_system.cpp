@@ -32,6 +32,7 @@
 #include <physics/collisions_holder_root_component.h>
 #include <physics/pbd/pbd_cloth_component.h>
 #include <physics/vehicles/w4_vehicle_component.h>
+#include <physics/physical_animation/dismemberment/ragdoll_dismemberment_component.h>
 
 #include <motion_matching/trajectory/trajectory_component.h>
 #include <motion_matching/motion/motion_component.h>
@@ -117,6 +118,7 @@ namespace era_engine
 			AnimationComponent* animation_component = tiran.add_component<AnimationComponent>();
 			animation_component->play = true;
 			animation_component->loop = true;
+			//animation_component->update_skeleton = false;
 
 			GameAssetsProvider provider;
 
@@ -231,6 +233,10 @@ namespace era_engine
 			PhysicalAnimationComponent* ragdoll_component = tiran.add_component<PhysicalAnimationComponent>();
 			ragdoll_component->joint_init_ids = joint_init_ids;
 			ragdoll_component->settings = settings;
+
+			ref<RagdollDismembermentProfile> dismemberment_profile = make_ref<RagdollDismembermentProfile>();
+
+			tiran.add_component<RagdollDismembermentComponent>();
 		}
 
 		//{

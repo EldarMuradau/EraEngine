@@ -21,6 +21,8 @@ namespace era_engine::physics
 
 		bool has_any_colliding_limb() const;
 
+		bool has_any_dismembered_limb() const;
+
 	public:
 		std::vector<EntityPtr> connected_limbs;
 	};
@@ -124,6 +126,8 @@ namespace era_engine::physics
 		void update_states(float dt, SimulationStateType desired_state);
 
 		float get_strength_value_by_limb(RagdollLimbType limb_type) const;
+
+		const PhysicsLimbChain* get_chain_by_joint_id(uint32 joint_id) const;
 
 	public:
 		constexpr static float MAX_RAGDOLL_PROFILE_TRANSITION_TIME = 0.3f;

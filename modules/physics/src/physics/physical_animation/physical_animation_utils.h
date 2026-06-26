@@ -30,6 +30,7 @@ namespace era_engine::physics
 
 		static void set_attachment_active(PhysicalAnimationComponent* ragdoll_component, bool active);
 		static void set_motor_drive_active(PhysicalAnimationLimbComponent* limb_component, bool active);
+		static void set_full_constraint_active(PhysicalAnimationLimbComponent* limb_component, bool active);
 
 		static void set_simulation_for_limb(const PhysicalAnimationLimbComponent* limb_component,
 			bool enable_simulation,
