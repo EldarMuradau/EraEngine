@@ -62,9 +62,6 @@ namespace era_engine::physics
             physical_animation_component->simulated = false;
 
             physical_animation_component->attachment_body.get().get_component<DynamicBodyComponent>()->simulated = false;
-
-            AnimationComponent* animation_component = physical_animation_component->get_entity().get_component<AnimationComponent>();
-            animation_component->update_skeleton = true;
         }
 
         BaseSimulationState::on_enter();

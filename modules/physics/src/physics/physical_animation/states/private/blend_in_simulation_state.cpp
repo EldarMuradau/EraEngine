@@ -86,9 +86,6 @@ namespace era_engine::physics
 			traverse_simulation_graph(process_limb);
 
             physical_animation_component->simulated = true;
-
-            AnimationComponent* animation_component = physical_animation_component->get_entity().get_component<AnimationComponent>();
-            animation_component->update_skeleton = false;
         }
 
         BaseSimulationState::on_enter();

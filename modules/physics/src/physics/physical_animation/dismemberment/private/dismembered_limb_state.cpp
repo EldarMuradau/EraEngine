@@ -34,8 +34,6 @@ namespace era_engine::physics
         PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
         PhysicalAnimationUtils::set_full_constraint_active(limb_component, false);
 
-        //limb_component->apply_impulse(limb_component->collision.impulse);
-
         BaseLimbState::on_enter();
     }
 
@@ -64,8 +62,6 @@ namespace era_engine::physics
         PhysicalAnimationUtils::set_limb_kinematic(limb_component, false);
         PhysicalAnimationUtils::set_motor_drive_active(limb_component, false);
         PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
-
-        //limb_component->apply_impulse(limb_component->collision.impulse);
 
         BaseLimbState::on_enter();
     }

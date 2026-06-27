@@ -12,7 +12,6 @@
 #include <animation/animation_clip.h>
 #include <animation/animation_clip_utils.h>
 
-#include <rendering/mesh_shader.h>
 #include <rendering/ecs/renderer_holder_root_component.h>
 
 #include <ecs/update_groups.h>
@@ -73,6 +72,19 @@ namespace era_engine
 		using namespace animation;
 		using namespace physics;
 
+		{
+			mesh_builder builder;
+
+			sphere_render_material = createPBRMaterialAsync({ "", "" });
+			sphere_render_material->shader = pbr_material_shader_double_sided;
+
+			sphere_mesh = make_ref<multi_mesh>();
+			builder.pushSphere({ });
+			sphere_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, sphere_render_material });
+
+			sphere_mesh->mesh = builder.createDXMesh();
+		}
+
 		RendererHolderRootComponent* renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
 		ASSERT(renderer_holder_rc != nullptr);
 
@@ -118,7 +130,6 @@ namespace era_engine
 			AnimationComponent* animation_component = tiran.add_component<AnimationComponent>();
 			animation_component->play = true;
 			animation_component->loop = true;
-			//animation_component->update_skeleton = false;
 
 			GameAssetsProvider provider;
 
@@ -126,6 +137,7 @@ namespace era_engine
 				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0"));
 				tiran_skeleton->load_job.wait_for_completion();
 				skeleton_component->skeleton = tiran_skeleton;
+				skeleton_component->draw_sceleton = true;
 				tiran_skeleton->apply_pose(tiran_skeleton->get_default_pose());
 			}
 
@@ -136,11 +148,13 @@ namespace era_engine
 				animation_component->current_anim_position = 0.0f;
 			}
 
+			animation_component->activate_inertial_blend();
+
 			const ref<Skeleton> skeleton = skeleton_component->skeleton;
 
 			RagdollJointIds joint_init_ids;
-			joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("joint_HeadA_01");
-			joint_init_ids.head_idx = skeleton->name_to_joint_id.at("joint_HeadA_01");
+			joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("joint_Head_01");
+			joint_init_ids.head_idx = skeleton->name_to_joint_id.at("joint_Head_01");
 			joint_init_ids.neck_idx = skeleton->name_to_joint_id.at("joint_NeckA_01");
 
 			joint_init_ids.spine_03_idx = skeleton->name_to_joint_id.at("joint_TorsoC_01");
@@ -224,9 +238,9 @@ namespace era_engine
 			cct_component->radius = 0.3f;
 			cct_component->step_offset = 0.05f;
 
-			tiran.add_component<MotionComponent>();
-			tiran.add_component<TrajectoryComponent>();
-			camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
+			//tiran.add_component<MotionComponent>();
+			//tiran.add_component<TrajectoryComponent>();
+			//camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
 
 			//RagdollComponent* ragdoll_component = tiran.add_component<RagdollComponent>();
 			//ragdoll_component->simulated = true;
@@ -259,12 +273,12 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -3.75f, 35.0f));
 		}*/
 
-		//{
-		//	Entity vehicle = world->create_entity("Vehicle");
-		//	vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
-		//	vehicle.add_component<physics::W4VehicleComponent>();
-		//	camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
-		//}
+		{
+			Entity vehicle = world->create_entity("Vehicle");
+			vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
+			vehicle.add_component<physics::W4VehicleComponent>();
+			camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
+		}
 
 		Entity plane = world->create_entity("Platform");
 		plane.add_component<PlaneComponent>(CollisionType::TERRAIN, vec3(0.f, -5.0, 0.0f));
@@ -282,20 +296,9 @@ namespace era_engine
 		const UserInput& frame_input = input_receiver->get_frame_input();
 		if (frame_input.keyboard[key_code::key_space].press_event)
 		{
-			mesh_builder builder;
-
-			auto defaultmat = createPBRMaterialAsync({ "", "" });
-			defaultmat->shader = pbr_material_shader_double_sided;
-
-			auto sphere_mesh = make_ref<multi_mesh>();
-			builder.pushSphere({ });
-			sphere_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, defaultmat });
-
-			sphere_mesh->mesh = builder.createDXMesh();
-
 			Entity sphere = world->create_entity("Sphere");
 
-			ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->get_default_material();
+			static ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->get_default_material();
 
 			SphereShapeComponent* sphere_shape_component = sphere.add_component<SphereShapeComponent>();
 			sphere_shape_component->collision_type = static_cast<CollisionType>(GameCollisionType::DYNAMICS);

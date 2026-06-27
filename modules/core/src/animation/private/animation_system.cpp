@@ -26,7 +26,9 @@ namespace era_engine::animation
 
 		registration::class_<AnimationSystem>("AnimationSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("render")))
-			.method("update", &AnimationSystem::update)(metadata("update_group", update_types::GAMEPLAY_NORMAL));
+			.method("update", &AnimationSystem::update)(metadata("update_group", update_types::GAMEPLAY_NORMAL))
+			
+			.method("update_mesh", &AnimationSystem::update_mesh)(metadata("update_group", update_types::BEFORE_RENDER));
 	}
 
 		AnimationSystem::AnimationSystem(World* _world)
@@ -48,22 +50,11 @@ namespace era_engine::animation
 
 	void AnimationSystem::update(float dt)
 	{
-		ZoneScopedN("AnimationSystem::render");
+		ZoneScopedN("AnimationSystem::update");
 
-		MemoryMarker marker = allocator->get_marker();
 		for (auto [entity_handle, animation_component, mesh_component, skeleton_component, transform_component] :
 			world->group(components_group<AnimationComponent, MeshComponent, SkeletonComponent, TransformComponent>).each())
 		{
-			const dx_mesh& dxMesh = mesh_component.mesh->mesh;
-			ref<Skeleton> skeleton = skeleton_component.skeleton;
-
-			animation_component.current_global_transforms = nullptr;
-
-			auto [vb, skinning_matrices] = skinObject(dxMesh.vertexBuffer, dxMesh.vertexBuffer.positions->elementCount, (uint32)skeleton->joints.size());
-
-			animation_component.prev_frame_vertex_buffer = animation_component.current_vertex_buffer;
-			animation_component.current_vertex_buffer = vb;
-
 			if (animation_component.current_animation != nullptr &&
 				animation_component.current_animation->is_valid() &&
 				animation_component.play)
@@ -72,6 +63,8 @@ namespace era_engine::animation
 
 				if (animation_component.current_anim_position < anim_duration)
 				{
+					ref<Skeleton> skeleton = skeleton_component.skeleton;
+
 					AnimationPoseSampler sampler;
 					sampler.init(skeleton.get(), animation_component.current_animation);
 
@@ -79,13 +72,13 @@ namespace era_engine::animation
 					sampler.sample_pose(animation_component.current_anim_position, result_pose);
 					if (result_pose.is_valid())
 					{
+						if (animation_component.inertial_blend_inited)
+						{
+							animation_component.inertial_sampler->process_pose(animation_component.current_anim_position, &result_pose);
+						}
+
 						if (animation_component.update_skeleton)
 						{
-							if (animation_component.inertial_blend_inited)
-							{
-								animation_component.inertial_sampler->process_pose(animation_component.current_anim_position, &result_pose);
-							}
-
 							skeleton->apply_pose(result_pose);
 						}
 						animation_component.current_animation_pose = result_pose;
@@ -106,6 +99,26 @@ namespace era_engine::animation
 					}
 				}
 			}
+		}
+	}
+
+	void AnimationSystem::update_mesh(float dt)
+	{
+		ZoneScopedN("AnimationSystem::update_mesh");
+
+		MemoryMarker marker = allocator->get_marker();
+		for (auto [entity_handle, animation_component, mesh_component, skeleton_component, transform_component] :
+			world->group(components_group<AnimationComponent, MeshComponent, SkeletonComponent, TransformComponent>).each())
+		{
+			const dx_mesh& dxMesh = mesh_component.mesh->mesh;
+			ref<Skeleton> skeleton = skeleton_component.skeleton;
+
+			animation_component.current_global_transforms = nullptr;
+
+			auto [vb, skinning_matrices] = skinObject(dxMesh.vertexBuffer, dxMesh.vertexBuffer.positions->elementCount, (uint32)skeleton->joints.size());
+
+			animation_component.prev_frame_vertex_buffer = animation_component.current_vertex_buffer;
+			animation_component.current_vertex_buffer = vb;
 
 			trs* global_transforms = allocator->allocate<trs>((uint32)skeleton->joints.size());
 

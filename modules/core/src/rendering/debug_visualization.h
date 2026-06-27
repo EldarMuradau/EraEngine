@@ -38,7 +38,7 @@ namespace era_engine
 		PIPELINE_RENDER_DECL(debug_render_data);
 	};
 
-	struct debug_unlit_pipeline
+	struct ERA_CORE_API debug_unlit_pipeline
 	{
 		static void initialize();
 
@@ -48,10 +48,10 @@ namespace era_engine
 		PIPELINE_RENDER_DECL(debug_render_data);
 	};
 
-	struct debug_unlit_pipeline::position : debug_unlit_pipeline { PIPELINE_SETUP_DECL; };
-	struct debug_unlit_pipeline::position_color : debug_unlit_pipeline { PIPELINE_SETUP_DECL; };
+	struct ERA_CORE_API debug_unlit_pipeline::position : debug_unlit_pipeline { PIPELINE_SETUP_DECL; };
+	struct ERA_CORE_API debug_unlit_pipeline::position_color : debug_unlit_pipeline { PIPELINE_SETUP_DECL; };
 
-	struct debug_unlit_line_pipeline
+	struct ERA_CORE_API debug_unlit_line_pipeline
 	{
 		static void initialize();
 
@@ -61,8 +61,8 @@ namespace era_engine
 		PIPELINE_RENDER_DECL(debug_render_data);
 	};
 
-	struct debug_unlit_line_pipeline::position : debug_unlit_line_pipeline { PIPELINE_SETUP_DECL; };
-	struct debug_unlit_line_pipeline::position_color : debug_unlit_line_pipeline { PIPELINE_SETUP_DECL; };
+	struct ERA_CORE_API debug_unlit_line_pipeline::position : debug_unlit_line_pipeline { PIPELINE_SETUP_DECL; };
+	struct ERA_CORE_API debug_unlit_line_pipeline::position_color : debug_unlit_line_pipeline { PIPELINE_SETUP_DECL; };
 
 	template <typename pipeline_t>
 	static void renderDebug(const mat4& transform, const struct dx_dynamic_vertex_buffer& vb, const struct dx_dynamic_index_buffer& ib, vec4 color,

@@ -19,6 +19,8 @@ namespace era_engine::animation
 		void init() override;
 		void update(float dt) override;
 
+		void update_mesh(float dt);
+
 		ERA_VIRTUAL_REFLECT(System)
 	private:
 		ref<Allocator> allocator = nullptr;

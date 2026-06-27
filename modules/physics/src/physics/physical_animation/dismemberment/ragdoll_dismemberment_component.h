@@ -48,6 +48,8 @@ namespace era_engine::physics
 		friend class RagdollDismembermentSystem;
 	};
 
+	using DismemberEventFunc = void(*)(RagdollDismembermentLimbComponent*);
+
 	class ERA_PHYSICS_API RagdollDismembermentComponent : public Component
 	{
 	public:
@@ -56,6 +58,10 @@ namespace era_engine::physics
 
 	public:
 		ref<RagdollDismembermentProfile> dismemberment_profile;
+
+		DismemberEventFunc on_dismember = nullptr;
+
+		bool affected_by_collisions = true;
 
         ERA_VIRTUAL_REFLECT(Component)
 

@@ -66,8 +66,8 @@ namespace era_engine
 		collision_holder_rc->set_collision_filter(static_cast<uint32>(CollisionType::VEHICLE),
 			static_cast<uint32>(CollisionType::RAGDOLL), true);
 
-		collision_holder_rc->set_collision_filter(static_cast<uint32>(CollisionType::VEHICLE),
-			static_cast<uint32>(GameCollisionType::CCT), true);
+		//collision_holder_rc->set_collision_filter(static_cast<uint32>(CollisionType::VEHICLE),
+		//	static_cast<uint32>(GameCollisionType::CCT), true);
 	}
 
 }

@@ -46,28 +46,33 @@ namespace era_engine::physics
 
 		auto scene = physics::PhysicsEngine::get_physics_core()->get_scene();
 
-		const PxRenderBuffer* rb = nullptr;
 		const PxDebugLine* lines = nullptr;
 
 		size_t nb_lines = 0;
 
 		PhysicsEngine::execute_read([&]() {
-			rb = &scene->getRenderBuffer();
-
-			for (PxU32 i = 0; i < rb->getNbPoints(); i++)
-			{
-				const PxDebugPoint& point = rb->getPoints()[i];
-				renderPoint(create_vec3(point.pos), vec4(1.0f), renderer_holder_rc->ldrRenderPass, true);
-			}
+			const PxRenderBuffer* rb = &scene->getRenderBuffer();
 
 			lines = rb->getLines();
 			nb_lines = rb->getNbLines();
 		});
 
-		for (PxU32 i = 0; i < nb_lines; i++)
+		auto [vb, vertexPtr] = create_dynamic_vertex_buffer(sizeof(position_color), nb_lines * 2);
+		auto [ib, indexPtr] = create_dynamic_index_buffer(sizeof(uint16), nb_lines * 2);
+
+		position_color* vertices = (position_color*)vertexPtr;
+		indexed_line16* render_lines = (indexed_line16*)indexPtr;
+
+		for (uint32 i = 0; i < nb_lines; ++i)
 		{
 			const PxDebugLine& line = lines[i];
-			renderLine(create_vec3(line.pos0), create_vec3(line.pos1), vec4(1.0f), renderer_holder_rc->ldrRenderPass, true);
+
+			*vertices++ = { create_vec3(line.pos0), vec3(1.f, 1.f, 1.f) };
+			*vertices++ = { create_vec3(line.pos1), vec3(1.f, 1.f, 1.f) };
+
+			*render_lines++ = { (uint16)(2 * i), (uint16)(2 * i + 1) };
 		}
+
+		renderDebug<debug_unlit_line_pipeline::position_color>(trs_to_mat4(trs::identity), vb, ib, vec4(1.f, 1.f, 1.f, 1.f), renderer_holder_rc->ldrRenderPass, true);
 	}
 }

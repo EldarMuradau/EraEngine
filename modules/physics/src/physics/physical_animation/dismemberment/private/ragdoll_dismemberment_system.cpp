@@ -59,14 +59,14 @@ namespace era_engine::physics
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::HEAD;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 3.0f;
 			}
 
 			{
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::NECK;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 4.0f;
 			}
 
 			{
@@ -101,20 +101,20 @@ namespace era_engine::physics
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::ARM;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 3.0f;
 			}
 
 			{
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::FOREARM;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 2.0f;
 			}
 
 			{
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::HAND;
-				details.type = DismemberableLimbType::DISMEMBERABLE;
+				details.type = DismemberableLimbType::ROOT;
 				details.max_health = 1.0f;
 			}
 
@@ -122,20 +122,20 @@ namespace era_engine::physics
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::LEG;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 3.0f;
 			}
 
 			{
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::CALF;
 				details.type = DismemberableLimbType::DISMEMBERABLE;
-				details.max_health = 1.0f;
+				details.max_health = 2.0f;
 			}
 
 			{
 				DismemberableLimbDetails& details = dismemberment_profile->limbs_details.emplace_back();
 				details.limb_type = RagdollLimbType::FOOT;
-				details.type = DismemberableLimbType::DISMEMBERABLE;
+				details.type = DismemberableLimbType::ROOT;
 				details.max_health = 1.0f;
 			}
 		}
@@ -164,14 +164,14 @@ namespace era_engine::physics
 			{
 				Entity limb = limb_ptr.get();
 
+				RagdollDismembermentLimbComponent* dismemberment_limb_component = limb.get_component<RagdollDismembermentLimbComponent>();
 				PhysicalAnimationLimbComponent* limb_component = limb.get_component<PhysicalAnimationLimbComponent>();
 
-				const float total_applied_impulse = length(limb_component->collision.impulse);
-				const float applied_force = total_applied_impulse / dt;
-
-				RagdollDismembermentLimbComponent* dismemberment_limb_component = limb.get_component<RagdollDismembermentLimbComponent>();
-				if(limb_component->collision.is_colliding)
+				if (dismemberment_component.affected_by_collisions &&
+					limb_component->collision.is_colliding)
 				{
+					//const float total_applied_impulse = length(limb_component->collision.impulse);
+					//const float applied_force = total_applied_impulse / dt;
 					dismemberment_limb_component->apply_damage(/*applied_force*/ 1.0f);
 				}
 
@@ -179,6 +179,11 @@ namespace era_engine::physics
 				{
 					dismemberment_limb_component->state = DismemberState::DISMEMBERED;
 					limb_component->force_switch_state(PhysicalLimbStateType::DISMEMBERED);
+
+					if (dismemberment_component.on_dismember != nullptr)
+					{
+						dismemberment_component.on_dismember(dismemberment_limb_component);
+					}
 
 					dismembered_limbs.push_back(limb);
 				}
@@ -239,6 +244,14 @@ namespace era_engine::physics
 			Entity::Handle entity_handle = *iter;
 			Entity entity = world->get_entity(entity_handle);
 
+			const PhysicalAnimationComponent* physical_animation_component = entity.get_component_if_exists<PhysicalAnimationComponent>();
+			if (physical_animation_component == nullptr ||
+				!physical_animation_component->loaded)
+			{
+				++iter;
+				continue;
+			}
+
 			const SkeletonComponent* skeleton_component = entity.get_component<SkeletonComponent>();
 
 			const ref<Skeleton>& skeleton = skeleton_component->skeleton;
@@ -248,7 +261,6 @@ namespace era_engine::physics
 				continue;
 			}
 
-			PhysicalAnimationComponent* physical_animation_component = entity.get_component<PhysicalAnimationComponent>();
 			RagdollDismembermentComponent* dismemberment_component = entity.get_component<RagdollDismembermentComponent>();
 
 			{
