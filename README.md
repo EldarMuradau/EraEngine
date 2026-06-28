@@ -23,7 +23,7 @@ Era Engine is a modern modular game engine that provides developers with powerfu
 Era Engine uses ECS with reflection to manage game objects and their behavior. This allows developers to easily create and modify complex systems in the game.
 
 ### Physics: 
-Integration of ECS with PhysX 5.3.1, NvBlast and CUDA provides realistic simulation of game physics, including physical animations (active ragdolls), ragdolls, physics destructions, mesh fracturing, character controllers, vehicles, soft bodies, clothes, particles, joints, aggregates, articulations, scene queries, GPU and multi-threaded simulation, event system etc.
+Integration of ECS with PhysX 5.3.1, NvBlast and CUDA provides realistic simulation of game physics, including physical animations (active ragdolls), ragdolls, dismemberment system, physics destructions, mesh fracturing, character controllers, vehicles, soft bodies, clothes, particles, joints, aggregates, articulations, scene queries, GPU and multi-threaded simulation, event system etc.
 
 ### Animations:
 Era Engine provides API and tools to create and import skeletal animations, skeletons, motion matching with HNSW-based broad phase search, motion matching features, databases, ACL animations, and integration with physics (physical animations/active ragdolls).
