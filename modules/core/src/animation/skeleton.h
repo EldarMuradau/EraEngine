@@ -130,6 +130,7 @@ namespace era_engine::animation
 		std::vector<JointTransform> local_transforms; // In parent space.
 
 		friend class Skeleton;
+		friend class SkeletonComponent;
 	};
 
 	class ERA_CORE_API Skeleton : public GameAsset
@@ -138,12 +139,6 @@ namespace era_engine::animation
 		Skeleton() = default;
 
 		void analyze_joints(const vec3* positions, const void* others, uint32 other_stride, uint32 num_vertices);
-
-		void blend_local_transforms(const trs* local_transforms1, const trs* local_transforms2, float t, trs* out_blended_local_transforms) const;
-		void get_skinning_matrices_from_local_transforms(mat4* out_skinning_matrices, const trs& world_transform = trs::identity) const;
-		void get_skinning_matrices_from_local_transforms(trs* out_global_transforms, mat4* out_skinning_matrices, const trs& world_transform = trs::identity) const;
-		void get_skinning_matrices_from_global_transforms(const trs* global_transforms, mat4* out_skinning_matrices) const;
-		void get_skinning_matrices_from_global_transforms(const trs* global_transforms, mat4* out_skinning_matrices, const trs& world_transform) const;
 
 		void pretty_print_hierarchy() const;
 
@@ -158,8 +153,6 @@ namespace era_engine::animation
 		void set_joint_translation(const vec3& new_translation, uint32 joint_id);
 		const vec3& get_joint_translation(uint32 joint_id) const;
 
-		void apply_pose(const SkeletonPose& pose);
-
 		uint32 get_joint_index(std::string_view name) const;
 
 		const SkeletonPose& get_default_pose() const;
@@ -169,22 +162,12 @@ namespace era_engine::animation
 
 	public:
 		std::vector<SkeletonJoint> joints;
-		std::vector<JointTransform> local_transforms; // In parent space.
+		std::vector<JointTransform> default_local_transforms; // In parent space.
 		std::unordered_map<std::string, uint32> name_to_joint_id;
 
 		uint32 root_joint_id = 0;
 
 	private:
 		mutable SkeletonPose default_pose = SkeletonPose();
-	};
-
-	class ERA_CORE_API SkeletonUtils final
-	{
-		SkeletonUtils() = delete;
-
-	public:
-		static trs get_object_space_joint_transform(const Skeleton* skeleton, uint32 joint_id, uint32 start_from = INVALID_JOINT);
-
-		static trs get_object_space_joint_transform(const SkeletonPose& pose, const Skeleton* skeleton, uint32 joint_id, uint32 start_from = INVALID_JOINT);
 	};
 }

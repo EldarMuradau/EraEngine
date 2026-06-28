@@ -114,7 +114,7 @@ namespace era_engine
 
 					imported_skeleton->joints = std::move(skeleton_asset.joints);
 
-					imported_skeleton->local_transforms.reserve(imported_skeleton->joints.size());
+					imported_skeleton->default_local_transforms.reserve(imported_skeleton->joints.size());
 					for (size_t i = 0; i < imported_skeleton->joints.size(); ++i)
 					{
 						SkeletonJoint& joint = imported_skeleton->joints[i];
@@ -137,7 +137,7 @@ namespace era_engine
 							joint_transform.set_transform(mat4_to_trs(invert(parent_bind) * joint.bind_transform));
 						}
 
-						imported_skeleton->local_transforms.push_back(joint_transform);
+						imported_skeleton->default_local_transforms.push_back(joint_transform);
 					}
 
 					imported_skeleton->name_to_joint_id = std::move(skeleton_asset.name_to_joint_id);

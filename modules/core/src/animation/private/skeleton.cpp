@@ -174,81 +174,6 @@ namespace era_engine::animation
 		}
 	}
 
-	void Skeleton::blend_local_transforms(const trs* local_transforms1, const trs* local_transforms2, float t, trs* out_blended_local_transforms) const
-	{
-		t = clamp01(t);
-		for (uint32 jointID = 0; jointID < (uint32)joints.size(); ++jointID)
-		{
-			out_blended_local_transforms[jointID] = lerp(local_transforms1[jointID], local_transforms2[jointID], t);
-		}
-	}
-
-	void Skeleton::get_skinning_matrices_from_local_transforms(mat4* out_skinning_matrices, const trs& world_transform) const
-	{
-		uint32 num_joints = (uint32)joints.size();
-		trs* global_transforms = (trs*)alloca(sizeof(trs) * num_joints);
-
-		for (uint32 i = 0; i < num_joints; ++i)
-		{
-			const SkeletonJoint& joint = joints[i];
-			const JointTransform& joint_transform = local_transforms[i];
-			if (joint.parent_id != INVALID_JOINT && joint.parent_id < joints.size())
-			{
-				ASSERT(i > joint.parent_id); // Parent already processed.
-				global_transforms[i] = global_transforms[joint.parent_id] * joint_transform.get_transform();
-			}
-			else
-			{
-				global_transforms[i] = world_transform * joint_transform.get_transform();
-			}
-
-			out_skinning_matrices[i] = trs_to_mat4(global_transforms[i]) * joints[i].inv_bind_transform;
-		}
-	}
-
-	void Skeleton::get_skinning_matrices_from_local_transforms(trs* out_global_transforms, mat4* out_skinning_matrices, const trs& world_transform) const
-	{
-		uint32 num_joints = (uint32)joints.size();
-
-		for (uint32 i = 0; i < num_joints; ++i)
-		{
-			const SkeletonJoint& joint = joints[i];
-			const JointTransform& joint_transform = local_transforms[i];
-
-			if (joint.parent_id != INVALID_JOINT && joint.parent_id < joints.size())
-			{
-				ASSERT(i > joint.parent_id); // Parent already processed
-				out_global_transforms[i] = out_global_transforms[joint.parent_id] * joint_transform.get_transform();
-			}
-			else
-			{
-				out_global_transforms[i] = world_transform * joint_transform.get_transform();
-			}
-
-			out_skinning_matrices[i] = trs_to_mat4(out_global_transforms[i]) * joints[i].inv_bind_transform;
-		}
-	}
-
-	void Skeleton::get_skinning_matrices_from_global_transforms(const trs* global_transforms, mat4* out_skinning_matrices) const
-	{
-		uint32 num_joints = (uint32)joints.size();
-
-		for (uint32 i = 0; i < num_joints; ++i)
-		{
-			out_skinning_matrices[i] = trs_to_mat4(global_transforms[i]) * joints[i].inv_bind_transform;
-		}
-	}
-
-	void Skeleton::get_skinning_matrices_from_global_transforms(const trs* global_transforms, mat4* out_skinning_matrices, const trs& world_transform) const
-	{
-		uint32 num_joints = (uint32)joints.size();
-
-		for (uint32 i = 0; i < num_joints; ++i)
-		{
-			out_skinning_matrices[i] = trs_to_mat4(world_transform) * trs_to_mat4(global_transforms[i]) * joints[i].inv_bind_transform;
-		}
-	}
-
 	void Skeleton::pretty_print_hierarchy() const
 	{
 		pretty_print(*this, INVALID_JOINT, 0);
@@ -261,27 +186,22 @@ namespace era_engine::animation
 
 	void Skeleton::set_joint_transform(const trs& new_transform, uint32 joint_id)
 	{
-		local_transforms[joint_id].set_transform(new_transform);
+		default_local_transforms[joint_id].set_transform(new_transform);
 	}
 
 	void Skeleton::set_joint_rotation(const quat& new_rotaiton, uint32 joint_id)
 	{
-		local_transforms[joint_id].set_rotation(new_rotaiton);
+		default_local_transforms[joint_id].set_rotation(new_rotaiton);
 	}
 
 	const trs& Skeleton::get_joint_transform(uint32 joint_id) const
 	{
-		return local_transforms[joint_id].get_transform();
+		return default_local_transforms[joint_id].get_transform();
 	}
 
 	const quat& Skeleton::get_joint_rotation(uint32 joint_id) const
 	{
-		return local_transforms[joint_id].get_rotation();
-	}
-
-	void Skeleton::apply_pose(const SkeletonPose& pose)
-	{
-		local_transforms = pose.local_transforms;
+		return default_local_transforms[joint_id].get_rotation();
 	}
 
 	uint32 Skeleton::get_joint_index(std::string_view name) const
@@ -303,7 +223,7 @@ namespace era_engine::animation
 			default_pose = SkeletonPose(joints.size());
 			for (uint32 i = 0; i < joints.size(); ++i)
 			{
-				default_pose.set_joint_transform(JointTransform(local_transforms.at(i)), i);
+				default_pose.set_joint_transform(JointTransform(default_local_transforms.at(i)), i);
 			}
 		}
 
@@ -312,21 +232,21 @@ namespace era_engine::animation
 
 	void Skeleton::set_joint_translation(const vec3& new_translation, uint32 joint_id)
 	{
-		local_transforms[joint_id].set_translation(new_translation);
+		default_local_transforms[joint_id].set_translation(new_translation);
 	}
 
 	const vec3& Skeleton::get_joint_translation(uint32 joint_id) const
 	{
-		return local_transforms[joint_id].get_translation();
+		return default_local_transforms[joint_id].get_translation();
 	}
 
 	struct SkeletonSerializationData
 	{
 		std::vector<SkeletonJoint> joints;
-		std::vector<JointTransform> local_transforms;
+		std::vector<JointTransform> default_local_transforms;
 		std::unordered_map<std::string, uint32> name_to_joint_id;
 
-		ERA_BINARY_SERIALIZE(joints, local_transforms, name_to_joint_id)
+		ERA_BINARY_SERIALIZE(joints, default_local_transforms, name_to_joint_id)
 	};
 
 	bool Skeleton::serialize(std::ostream& os) const
@@ -335,7 +255,7 @@ namespace era_engine::animation
 
 		data.name_to_joint_id.insert(std::begin(name_to_joint_id), std::end(name_to_joint_id));
 		data.joints = joints;
-		data.local_transforms = local_transforms;
+		data.default_local_transforms = default_local_transforms;
 
 		const BinaryDataArchive& serialized_data = BinarySerializer::serialize(data);
 
@@ -369,48 +289,10 @@ namespace era_engine::animation
 
 		name_to_joint_id = std::move(data.name_to_joint_id);
 		joints = std::move(data.joints);
-		local_transforms = std::move(data.local_transforms);
+		default_local_transforms = std::move(data.default_local_transforms);
 
 		get_default_pose();
 
 		return true;
-	}
-
-	trs SkeletonUtils::get_object_space_joint_transform(const Skeleton* skeleton, uint32 joint_id, uint32 start_from/* = INVALID_JOINT*/)
-	{
-		if (joint_id >= skeleton->local_transforms.size())
-		{
-			return trs::identity;
-		}
-
-		trs result = skeleton->local_transforms[joint_id].get_transform();
-		uint32 parent_id = skeleton->joints[joint_id].parent_id;
-
-		while (parent_id != INVALID_JOINT && parent_id != start_from && parent_id < skeleton->joints.size())
-		{
-			result = skeleton->local_transforms[parent_id].get_transform() * result;
-			parent_id = skeleton->joints[parent_id].parent_id;
-		}
-
-		return result;
-	}
-
-	trs SkeletonUtils::get_object_space_joint_transform(const SkeletonPose& pose, const Skeleton* skeleton, uint32 joint_id, uint32 start_from/* = INVALID_JOINT*/)
-	{
-		if (joint_id >= pose.size())
-		{
-			return trs::identity;
-		}
-
-		trs result = pose.get_joint_transform(joint_id).get_transform();
-		uint32 parent_id = skeleton->joints[joint_id].parent_id;
-
-		while (parent_id != INVALID_JOINT && parent_id != start_from && parent_id < skeleton->joints.size())
-		{
-			result = pose.get_joint_transform(parent_id).get_transform() * result;
-			parent_id = skeleton->joints[parent_id].parent_id;
-		}
-
-		return result;
 	}
 }

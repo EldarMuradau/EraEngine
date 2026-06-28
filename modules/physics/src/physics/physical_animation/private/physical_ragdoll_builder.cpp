@@ -509,18 +509,19 @@ namespace era_engine::physics
 	{
 		using namespace animation;
 
-		const ref<Skeleton>& skeleton = ctx.ragdoll.get_component<SkeletonComponent>()->skeleton;
-		if (skeleton == nullptr || 
-			skeleton->load_state != AssetLoadState::LOADED)
+		const SkeletonComponent* skeleton_component = ctx.ragdoll.get_component<SkeletonComponent>();
+		if (skeleton_component == nullptr ||
+			skeleton_component->skeleton == nullptr ||
+			skeleton_component->skeleton->load_state != AssetLoadState::LOADED)
 		{
 			ASSERT(false);
 			return false;
 		}
 
-		auto prepare_joint = [&ctx, &skeleton](RagdollSkeletonStructure::JointStructure& joint, uint32 joint_id)
+		auto prepare_joint = [&ctx, &skeleton_component](RagdollSkeletonStructure::JointStructure& joint, uint32 joint_id)
 			{
 				joint.joint_id = joint_id;
-				joint.joint_object_space_transform = SkeletonUtils::get_object_space_joint_transform(skeleton.get(), joint.joint_id);
+				joint.joint_object_space_transform = SkeletonUtils::get_object_space_joint_transform(skeleton_component, joint.joint_id);
 			};
 
 		prepare_joint(ctx.skeleton_structure.head_end_joint, ctx.ragdoll_component->joint_init_ids.head_end_idx);

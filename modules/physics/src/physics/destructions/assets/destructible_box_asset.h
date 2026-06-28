@@ -14,8 +14,8 @@ namespace era_engine::physics
 		struct Desc
 		{
 			DestructibleBoxGenerator::Settings generator_settings;
-			float static_height;
-			bool joint_all_bonds;
+			float static_height = 0.0f;
+			bool joint_all_bonds = false;
 		};
 
 		DestructibleBoxAsset(const Desc& desc);

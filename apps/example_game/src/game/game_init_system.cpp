@@ -138,7 +138,7 @@ namespace era_engine
 				tiran_skeleton->load_job.wait_for_completion();
 				skeleton_component->skeleton = tiran_skeleton;
 				skeleton_component->draw_sceleton = true;
-				tiran_skeleton->apply_pose(tiran_skeleton->get_default_pose());
+				skeleton_component->apply_pose(tiran_skeleton->get_default_pose());
 			}
 
 			{

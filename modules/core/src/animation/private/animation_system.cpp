@@ -31,7 +31,7 @@ namespace era_engine::animation
 			.method("update_mesh", &AnimationSystem::update_mesh)(metadata("update_group", update_types::BEFORE_RENDER));
 	}
 
-		AnimationSystem::AnimationSystem(World* _world)
+	AnimationSystem::AnimationSystem(World* _world)
 		: System(_world)
 	{
 		renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
@@ -79,7 +79,7 @@ namespace era_engine::animation
 
 						if (animation_component.update_skeleton)
 						{
-							skeleton->apply_pose(result_pose);
+							skeleton_component.apply_pose(result_pose);
 						}
 						animation_component.current_animation_pose = result_pose;
 					}
@@ -122,7 +122,7 @@ namespace era_engine::animation
 
 			trs* global_transforms = allocator->allocate<trs>((uint32)skeleton->joints.size());
 
-			skeleton->get_skinning_matrices_from_local_transforms(global_transforms, skinning_matrices, trs::identity);
+			skeleton_component.get_skinning_matrices_from_local_transforms(global_transforms, skinning_matrices, trs::identity);
 
 			animation_component.current_global_transforms = global_transforms;
 		}

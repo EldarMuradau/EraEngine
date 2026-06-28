@@ -114,11 +114,11 @@ namespace era_engine::animation
 	{
 		ZoneScopedN("SkeletonSystem::render");
 
-		MemoryMarker marker = allocator->get_marker();
+		//MemoryMarker marker = allocator->get_marker();
 
 		// TODO
 		
-		allocator->reset_to_marker(marker);
+		//allocator->reset_to_marker(marker);
 	}
 
 	void SkeletonSystem::draw_skeletons(float dt)
