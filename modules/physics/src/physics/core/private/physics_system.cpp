@@ -400,6 +400,12 @@ namespace era_engine::physics
 
 			DynamicBodyComponent* dynamic_body_component = entity.get_component<DynamicBodyComponent>();
 
+			if (dynamic_body_component->actor != nullptr)
+			{
+				// Actor is already processed by destructions or re-created.
+				continue;
+			}
+
 			auto& colliders = physics_core->colliders_map[entity_handle];
 
 			TransformComponent* transform = entity.get_component_if_exists<TransformComponent>();
@@ -447,6 +453,12 @@ namespace era_engine::physics
 			Entity entity = world->get_entity(entity_handle);
 
 			StaticBodyComponent* static_body_component = entity.get_component<StaticBodyComponent>();
+
+			if (static_body_component->actor != nullptr)
+			{
+				// Actor is already processed by destructions or re-created.
+				continue;
+			}
 
 			auto& colliders = physics_core->colliders_map[entity_handle];
 

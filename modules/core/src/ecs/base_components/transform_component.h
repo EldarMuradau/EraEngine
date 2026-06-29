@@ -38,6 +38,9 @@ namespace era_engine
 		const quat& get_world_rotation() const;
 		void set_world_rotation(const quat& new_world_rotation);
 
+		const vec3& get_world_scale() const;
+		void set_world_scale(const vec3& new_world_scale);
+
 		ERA_VIRTUAL_REFLECT(Component)
 
 	private:

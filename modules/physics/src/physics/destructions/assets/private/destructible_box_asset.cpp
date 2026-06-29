@@ -1,5 +1,6 @@
 #include "physics/destructions/assets/destructible_box_asset.h"
 #include "physics/core/physics.h"
+#include "physics/destructions/families/box_destructible_family.h"
 #include "physics/destructions/blast_physx/NvBlastExtPxAsset.h"
 #include "physics/destructions/blast_physx/NvBlastExtPxManager.h"
 
@@ -22,9 +23,9 @@ namespace era_engine::physics
 
 		ExtPxAssetDesc asset_desc;
 		asset_desc.chunkDescs = generator_asset.solver_chunks.data();
-		asset_desc.chunkCount = (uint32_t)generator_asset.solver_chunks.size();
+		asset_desc.chunkCount = (uint32)generator_asset.solver_chunks.size();
 		asset_desc.bondDescs = generator_asset.solver_bonds.data();
-		asset_desc.bondCount = (uint32_t)generator_asset.solver_bonds.size();
+		asset_desc.bondCount = (uint32)generator_asset.solver_bonds.size();
 
 		std::vector<uint8_t> bondFlags(asset_desc.bondCount);
 		std::fill(bondFlags.begin(), bondFlags.end(), desc.joint_all_bonds ? 1 : 0);
@@ -47,14 +48,14 @@ namespace era_engine::physics
 		cooking_params.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;
 		box_mesh = PxCreateConvexMesh(cooking_params, convex_mesh_desc, PhysicsEngine::get_physics_core()->get_physics()->getPhysicsInsertionCallback());
 
-		const uint32_t chunkCount = (uint32_t)generator_asset.solver_chunks.size();
+		const uint32 chunkCount = (uint32_t)generator_asset.solver_chunks.size();
 		std::vector<ExtPxAssetDesc::ChunkDesc> px_chunks(chunkCount);
 		std::vector<ExtPxAssetDesc::SubchunkDesc> pxSubchunks;
 		pxSubchunks.reserve(chunkCount);
 
-		for (uint32_t i = 0; i < generator_asset.solver_chunks.size(); i++)
+		for (uint32 i = 0; i < generator_asset.solver_chunks.size(); i++)
 		{
-			uint32_t chunk_id = generator_asset.solver_chunks[i].userData;
+			uint32 chunk_id = generator_asset.solver_chunks[i].userData;
 			GeneratorAsset::BlastChunkCube& cube = generator_asset.chunks[chunk_id];
 			PxVec3 position = *reinterpret_cast<PxVec3*>(&cube.position);
 			PxVec3 extents = *reinterpret_cast<PxVec3*>(&cube.extents);
@@ -84,7 +85,7 @@ namespace era_engine::physics
 
 	DestructibleFamilyPtr DestructibleBoxAsset::create_family(World* world, Nv::Blast::ExtPxManager& manager, const ActorDesc& desc)
 	{
-		return DestructibleFamilyPtr();
+		return DestructibleFamilyPtr(new BoxDestructibleFamily(world, manager, this, desc));
 	}
 
 }

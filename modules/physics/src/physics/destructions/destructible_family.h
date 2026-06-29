@@ -13,6 +13,8 @@
 #include <extensions/shaders/NvBlastExtDamageShaders.h>
 #include <stress/NvBlastExtStressSolver.h>
 
+#include <ecs/entity.h>
+
 namespace Nv
 {
 	namespace Blast
@@ -26,6 +28,11 @@ namespace Nv
 namespace physx
 {
 	class PxGeometry;
+}
+
+namespace era_engine
+{
+	class World;
 }
 
 namespace era_engine::physics
@@ -42,7 +49,7 @@ namespace era_engine::physics
 			Nv::Blast::ExtStressSolverSettings stress_solver_settings;
 		};
 
-		DestructibleFamily(Nv::Blast::ExtPxManager& _px_manager, const ref<DestructibleAsset>& _blast_asset);
+		DestructibleFamily(World* _world, Nv::Blast::ExtPxManager& _px_manager, DestructibleAsset* _blast_asset);
 		virtual ~DestructibleFamily();
 
 		void set_settings(const Settings& _settings);
@@ -102,7 +109,13 @@ namespace era_engine::physics
 
 		friend class PxManagerListener;
 
-		ref<DestructibleAsset> blast_asset;
+		World* world = nullptr;
+
+		std::vector<EntityPtr> entities;
+
+		EntityPtr root_entity;
+
+		DestructibleAsset* blast_asset = nullptr;
 
 		Nv::Blast::ExtPxManager& px_manager;
 

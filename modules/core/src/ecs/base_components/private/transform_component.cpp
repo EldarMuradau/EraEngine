@@ -95,6 +95,20 @@ namespace era_engine
 		on_world_transform_changed();
 	}
 
+	const vec3& TransformComponent::get_world_scale() const
+	{
+		on_world_transform_requested();
+
+		return transform.scale;
+	}
+
+	void TransformComponent::set_world_scale(const vec3& new_world_scale)
+	{
+		transform.scale = new_world_scale;
+
+		on_world_transform_changed();
+	}
+
 	void TransformComponent::on_world_transform_changed()
 	{
 		const Entity::Handle parent_handle = get_entity().get_parent_handle();

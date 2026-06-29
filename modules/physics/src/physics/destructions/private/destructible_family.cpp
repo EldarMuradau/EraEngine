@@ -6,6 +6,8 @@
 #include "physics/destructions/blast_physx/NvBlastExtPxActor.h"
 #include "physics/destructions/blast_physx/NvBlastExtPxFamily.h"
 
+#include <ecs/world.h>
+
 #include <core/cpu_profiling.h>
 
 #include "NvBlast.h"
@@ -50,18 +52,28 @@ namespace era_engine::physics
 		std::set<Nv::Blast::ExtPxActor*>& actor_buffer;
 	};
 
-	DestructibleFamily::DestructibleFamily(Nv::Blast::ExtPxManager& _px_manager, const ref<DestructibleAsset>& _blast_asset)
-		: px_manager(_px_manager)
+	DestructibleFamily::DestructibleFamily(World* _world, Nv::Blast::ExtPxManager& _px_manager, DestructibleAsset* _blast_asset)
+		: world(_world)
+		, px_manager(_px_manager)
 		, blast_asset(_blast_asset)
 		, listener(this)
 	{
 		settings.stress_solver_enabled = false;
 		settings.stress_damage_enabled = false;
 		settings.damage_accelerator_enabled = true;
+
+		root_entity = world->create_entity();
 	}
 
 	DestructibleFamily::~DestructibleFamily()
 	{
+		for (EntityPtr entity_ptr : entities)
+		{
+			world->destroy_entity(entity_ptr.get());
+		}
+
+		world->destroy_entity(root_entity.get());
+
 		if (stress_solver != nullptr)
 		{
 			stress_solver->release();
@@ -71,11 +83,12 @@ namespace era_engine::physics
 			px_family->unsubscribe(listener);
 			px_family->release();
 		}
-		//Self released
-		//if (tk_family != nullptr)
-		//{
-		//	tk_family->release();
-		//}
+
+		// Self released
+		if (tk_family != nullptr)
+		{
+			tk_family->release();
+		}
 	}
 
 	void DestructibleFamily::set_settings(const Settings& _settings)

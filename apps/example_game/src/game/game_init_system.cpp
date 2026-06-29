@@ -248,8 +248,6 @@ namespace era_engine
 			ragdoll_component->joint_init_ids = joint_init_ids;
 			ragdoll_component->settings = settings;
 
-			ref<RagdollDismembermentProfile> dismemberment_profile = make_ref<RagdollDismembermentProfile>();
-
 			tiran.add_component<RagdollDismembermentComponent>();
 		}
 
