@@ -6,6 +6,8 @@
 
 namespace era_engine::animation
 {
+    static const float SAMPLE_RATE = 30.0f;
+
     ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(const ClipInfo& info)
 	{
         ref<AnimationAssetClip> clip = make_ref<AnimationAssetClip>();
@@ -102,7 +104,7 @@ namespace era_engine::animation
 
     ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(const AnimationSkeleton& old_anim_skeleton, uint32 clip_index, const Skeleton* skeleton)
     {
-        const float sample_rate = 30.0f;
+        const float sample_rate = SAMPLE_RATE;
         const AnimationClip& old_type_clip = old_anim_skeleton.clips.at(clip_index);
 
         ClipInfo clip_info;

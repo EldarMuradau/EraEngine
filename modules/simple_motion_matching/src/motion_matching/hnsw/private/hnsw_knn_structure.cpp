@@ -24,7 +24,7 @@ namespace era_engine
         array2d<float> features_matrix(uint32(database.samples.size()), database.samples.front()->features.size());
         features_matrix.fill(features_array.data());
 
-        database.subtract_column_means(features_matrix);
+        database.substract_column_means(features_matrix);
 
         array2d<float> final_features_matrix = transpose(database.transform_matrix * transpose(features_matrix));
         build_structure_from_matrix(database, final_features_matrix);
@@ -48,7 +48,10 @@ namespace era_engine
             hnsw->addPoint(animation_data.data(), point_index);
         }
 
-        hnsw->saveIndex(writable);
+        std::stringstream hnsw_stream;
+        hnsw->saveIndex(hnsw_stream);
+
+        writable = hnsw_stream.str();
     }
 
     std::vector<std::shared_ptr<MotionMatchingDatabase::Sample>> HnswKnnStructure::search_knn(float* query, uint32 query_size, uint32 max_candidates, const MotionMatchingDatabase& database)
@@ -58,9 +61,9 @@ namespace era_engine
         std::priority_queue<std::pair<float, hnswlib::labeltype>> search_result = hnsw->searchKnn(query, max_candidates);
 
         const int32 size = int32(search_result.size());
-        found_samples.reserve(size);
+        found_samples.resize(size);
 
-        for (int32 index = size - 1; index > 0; --index)
+        for (int32 index = size - 1; index >= 0; --index)
         {
             const int32 sample_index = int32(search_result.top().second);
             search_result.pop();
@@ -95,7 +98,10 @@ namespace era_engine
         {
             hnsw = std::shared_ptr<hnswlib::HierarchicalNSW<float>>(new hnswlib::HierarchicalNSW<float>(&hnsw_l2_space));
 
-            hnsw->loadIndex(writable, &hnsw_l2_space);
+            std::stringbuf string_buf(writable);
+            std::istream hnsw_stream(&string_buf);
+
+            hnsw->loadIndex(hnsw_stream, &hnsw_l2_space);
         }
         return false;
     }

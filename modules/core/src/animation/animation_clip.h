@@ -28,7 +28,7 @@ namespace era_engine::animation
 		AnimationAssetClip(AnimationAssetClip&& other) noexcept;
 		AnimationAssetClip& operator=(const AnimationAssetClip& other) = delete;
 		AnimationAssetClip& operator=(AnimationAssetClip&& other) noexcept;
-		~AnimationAssetClip();
+		~AnimationAssetClip() override;
 
 		bool is_valid() const;
 

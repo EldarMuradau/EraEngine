@@ -71,7 +71,15 @@ namespace era_engine
 				FeatureComputationContext context;
 				context.fill_context(entity, dt);
 
-				MotionMatchingFeatureSet feature_set = motion_data_component.calculate_feature_set_func(context);
+				MotionMatchingFeatureSet feature_set;
+				if(motion_data_component.calculate_feature_set_func != nullptr)
+				{
+					feature_set = motion_data_component.calculate_feature_set_func(context);
+				}
+				else
+				{
+
+				}
 
 				SearchResult search_result = mm_controller.search_animation(feature_set, motion_data_component.get_motion_database_id_func());
 				motion_data_component.search_timer = motion_data_component.search_time;

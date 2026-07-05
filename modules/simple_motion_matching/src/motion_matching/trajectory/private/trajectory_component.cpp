@@ -22,6 +22,8 @@ namespace era_engine
 		trajectory_velocities.resize(number_of_trajectories);
 		trajectory_accelerations.resize(number_of_trajectories);
 		trajectory_angular_velocities.resize(number_of_trajectories);
+
+		time_offsets.resize(number_of_trajectories);
 	}
 
 	TrajectoryComponent::~TrajectoryComponent()

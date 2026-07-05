@@ -154,7 +154,7 @@ namespace era_engine
         }
     }
 
-    static void pcabuildbasis(const array2d<float>& source_data, PCAResult& result)
+    static void pca_build_basis(const array2d<float>& source_data, PCAResult& result)
     {
         uint32 num_samples = source_data.rows;
         uint32 num_features = source_data.cols;
@@ -225,8 +225,11 @@ namespace era_engine
         }
     }
 
-    void pcabuildbasis(const float* source_data_ptr, uint32 rows, uint32 cols,
-        std::vector<float>& out_s, std::vector<std::vector<float>>& out_v)
+    static void pca_build_basis(const float* source_data_ptr, 
+        uint32 rows, 
+        uint32 cols,
+        std::vector<float>& out_s,
+        std::vector<std::vector<float>>& out_v)
     {
         array2d<float> mat(rows, cols);
         for (uint32 i = 0; i < rows * cols; ++i)
@@ -235,17 +238,17 @@ namespace era_engine
         }
 
         PCAResult result(cols);
-        pcabuildbasis(mat, result);
+        pca_build_basis(mat, result);
 
         out_s = result.eigenvalues;
         out_v = result.eigenvectors;
     }
 
-    static array2d<float> build_transform_matrix(array2d<float> mat)
+    static array2d<float> build_transform_matrix(const array2d<float>& mat)
     {
         PCAResult result_pca(mat.cols);
 
-        pcabuildbasis(mat, result_pca);
+        pca_build_basis(mat, result_pca);
 
         const uint32 rows = result_pca.eigenvectors.size();
         const uint32 cols = result_pca.eigenvectors[0].size();
@@ -278,18 +281,6 @@ namespace era_engine
         }
 
         return result;
-    }
-
-    static void substract_column_means(array2d<float>& mat, const std::vector<float>& column_means)
-    {
-        for (int32 column = 0; column < mat.cols; ++column)
-        {
-            float mean_value = column_means[column];
-            for (int32 row = 0; row < mat.rows; ++row)
-            {
-                mat(row, column) -= mean_value;
-            }
-        }
     }
 
     static void separate(array2d<float>& mat, array2d<float>& output1, array2d<float>& output2, uint32 output1_column_count)
@@ -390,7 +381,7 @@ namespace era_engine
         {
             for (auto iter = resulted_candidates.begin(); iter != resulted_candidates.end();)
             {
-                const float result_candidate_to_query_distance_sqr = square_distance(params.query, normalize_query(iter->get()->features));
+                const float result_candidate_to_query_distance_sqr = square_distance(normalized_query, normalize_query(iter->get()->features));
 
                 const float max_euclidean_distance_sqr = squaref(narrow_phase_params.max_euclidean_distance);
                 if (result_candidate_to_query_distance_sqr >= max_euclidean_distance_sqr)
@@ -398,6 +389,8 @@ namespace era_engine
                     iter = resulted_candidates.erase(iter);
                     continue;
                 }
+
+                ++iter;
             }
         }
 
@@ -443,10 +436,62 @@ namespace era_engine
         }
     }
 
-    void MotionMatchingDatabase::bake()
+    void MotionMatchingDatabase::generate_initial_data()
     {
-        uint32 total_features_size = samples[0]->features.size();
+        animations_asset_handles.reserve(animations.size());
+        for (const ref<animation::AnimationAssetClip>& animation : animations)
+        {
+            animations_asset_handles.emplace_back(animation->handle.value);
+        }
 
+        total_features_per_sample = 0;
+        for (MotionMatchingFeature* feature : features)
+        {
+            total_features_per_sample += feature->get_feature_size();
+        }
+    }
+
+    void MotionMatchingDatabase::bake(const animation::Skeleton* skeleton)
+    {
+        using namespace animation;
+
+        uint32 anim_index = 0;
+        const float timestep = 1.0f / sample_rate;
+
+        for (const ref<AnimationAssetClip>& animation : animations)
+        {
+            const uint32 num_samples_per_animation = std::lrintf(sample_rate * animation->get_duration());
+
+            std::vector<ref<MotionMatchingDatabase::Sample>> animation_samples;
+            animation_samples.reserve(num_samples_per_animation);
+
+            for (uint32 i = 0; i < num_samples_per_animation; ++i)
+            {
+                ref<MotionMatchingDatabase::Sample> sample = make_ref<MotionMatchingDatabase::Sample>();
+                sample->anim_index = anim_index;
+                sample->anim_position = static_cast<float>(i) * timestep;
+
+                animation_samples.emplace_back(sample);
+            }
+
+            for (MotionMatchingFeature* feature : features)
+            {
+                const bool status = feature->sample_animation(skeleton, animation, sample_rate, animation_samples);
+                ASSERT(status);
+            }
+
+            samples.insert(samples.end(), std::make_move_iterator(animation_samples.begin()), std::make_move_iterator(animation_samples.end()));
+
+            ++anim_index;
+        }
+
+        uint32 total_features_size = total_features_per_sample;
+
+        min_values.clear();
+        min_values.resize(total_features_size);
+
+        max_values.clear();
+        max_values.resize(total_features_size);
         for (uint32 i = 0; i < total_features_size; i++)
         {
             min_values[i] = std::numeric_limits<float>::max();
@@ -507,7 +552,6 @@ namespace era_engine
 			}
 		}
 
-
         uint32 matching_row_count = uint32(samples.size());
         uint32 matching_column_count = uint32(total_features_size);
 
@@ -516,14 +560,14 @@ namespace era_engine
 
         array2d<float> pca_matrix = build_transform_matrix(features_matrix);
         transform_column_means = build_column_means(features_matrix);
-        substract_column_means(features_matrix, transform_column_means);
+        substract_column_means(features_matrix);
 
         array2d<float> other;
         separate(pca_matrix, transform_matrix, other, search_dimension);
+
         transform_matrix = transpose(transform_matrix);
 
         array2d<float> compressed_feature_matrix = transpose(transform_matrix * transpose(features_matrix));
-
         knn_structure->build_structure_from_matrix(*this, compressed_feature_matrix);
     }
 
@@ -569,7 +613,7 @@ namespace era_engine
         return result;
     }
 
-    void MotionMatchingDatabase::subtract_column_means(array2d<float>& matrix) const
+    void MotionMatchingDatabase::substract_column_means(array2d<float>& matrix) const
     {
         const uint32 rows = matrix.rows;
         const uint32 columns = matrix.cols;
@@ -588,7 +632,7 @@ namespace era_engine
         array2d<float> pack_target(1, uint32(query.size()));
         pack_target.fill(query.data());
 
-        subtract_column_means(pack_target);
+        substract_column_means(pack_target);
 
         return transpose(transform_matrix * transpose(pack_target));
     }
@@ -604,6 +648,7 @@ namespace era_engine
         {
             // Base
             {
+                IO::write_value(os, total_features_per_sample);
                 IO::write_value(os, search_dimension);
                 IO::write_value(os, sample_rate);
                 IO::write_value(os, max_broardphase_candidates);
@@ -621,12 +666,17 @@ namespace era_engine
             // Animations
             {
                 IO::write_vector(os, animations_asset_handles);
-                IO::write_vector(os, animations_hashes);
             }
 
             // Features
             {
-                IO::write_value(os, BinarySerializer::serialize(feature_types));
+                std::vector<std::string> feature_serialized_names;
+                feature_serialized_names.reserve(features.size());
+                for (const MotionMatchingFeature* feature : features)
+                {
+                    feature_serialized_names.emplace_back(feature->get_type().get_name().to_string());
+                }
+                IO::write_value(os, BinarySerializer::serialize(feature_serialized_names));
 
                 for (const MotionMatchingFeature* feature : features)
                 {
@@ -637,7 +687,10 @@ namespace era_engine
                     {
                         IO::write_value(os, BinarySerializer::serialize(desc->get_type().get_name().to_string()));
 
-                        IO::write_value(os, BinarySerializer::serialize(*desc.get()));
+                        FeatureDesc* raw_desc = desc.get();
+                        BinaryDataArchive desc_archive = BinarySerializer::serialize(*raw_desc);
+
+                        IO::write_value(os, desc_archive);
                     }
                 }
             }
@@ -649,6 +702,8 @@ namespace era_engine
                 IO::write_value(os, narrow_phase_params.max_euclidean_distance);
 
                 IO::write_value(os, BinarySerializer::serialize(static_thresholds));
+
+                IO::write_value(os, BinarySerializer::serialize(samples));
             }
 
             // Transform
@@ -668,8 +723,8 @@ namespace era_engine
                     knn_structure->rebuild_structure(*this);
                 }
 
-                IO::write_value(os, knn_structure->writable.size());
-                IO::write_data(os, knn_structure->writable.data(), knn_structure->writable.size());
+                IO::write_value(os, static_cast<uint32>(knn_structure->writable.size()));
+                IO::write_data(os, knn_structure->writable.data(), static_cast<uint32>(knn_structure->writable.size()));
 
                 knn_structure->serialize(os, *this);
             }
@@ -689,6 +744,7 @@ namespace era_engine
         {
             // Base
             {
+                IO::read_value(is, total_features_per_sample);
                 IO::read_value(is, search_dimension);
                 IO::read_value(is, sample_rate);
                 IO::read_value(is, max_broardphase_candidates);
@@ -706,7 +762,6 @@ namespace era_engine
             // Animations
             {
                 IO::read_vector(is, animations_asset_handles);
-                IO::read_vector(is, animations_hashes);
 
                 GameAssetsProvider provider;
 
@@ -725,11 +780,8 @@ namespace era_engine
                 std::vector<std::string> feature_serialized_names;
                 BinarySerializer::deserialize(binary_feature_names.raw_data(), binary_feature_names.size(), feature_serialized_names);
 
-                feature_types.reserve(feature_serialized_names.size());
                 for (const std::string& param_name : feature_serialized_names)
                 {
-                    feature_types.emplace_back(param_name);
-
                     rttr::type feature_type = rttr::type::get_by_name(param_name);
                     features.emplace_back(feature_type.create().get_value<MotionMatchingFeature*>());
                 }
@@ -750,11 +802,13 @@ namespace era_engine
                         BinarySerializer::deserialize(binary_desc_typename.raw_data(), binary_desc_typename.size(), desc_typename);
 
                         rttr::type desc_type = rttr::type::get_by_name(desc_typename);
-                        ref<FeatureDesc> descriptor = ref<FeatureDesc>(desc_type.create().get_value<FeatureDesc*>());
+                        FeatureDesc* raw_desc = desc_type.create().get_value<FeatureDesc*>();
 
                         BinaryDataArchive binary_desc;
                         IO::read_value(is, binary_desc);
-                        BinarySerializer::deserialize(binary_feature_names.raw_data(), binary_feature_names.size(), *descriptor.get());
+                        BinarySerializer::deserialize(binary_desc.raw_data(), binary_desc.size(), *raw_desc);
+
+                        ref<FeatureDesc> descriptor = ref<FeatureDesc>(raw_desc);
 
                         feature->descriptors.emplace_back(descriptor);
                     }
@@ -771,14 +825,31 @@ namespace era_engine
                 IO::read_value(is, binary_static_thresholds);
 
                 BinarySerializer::deserialize(binary_static_thresholds.raw_data(), binary_static_thresholds.size(), static_thresholds);
+
+                BinaryDataArchive binary_samples_thresholds;
+                IO::read_value(is, binary_samples_thresholds);
+
+                BinarySerializer::deserialize(binary_samples_thresholds.raw_data(), binary_samples_thresholds.size(), samples);
             }
 
             // Transform
             {
                 IO::read_vector(is, transform_column_means);
-                IO::read_value(is, transform_matrix.cols);
-                IO::read_value(is, transform_matrix.rows);
+
+                int cols = 0;
+                IO::read_value(is, cols);
+
+                int rows = 0;
+                IO::read_value(is, rows);
+
+                transform_matrix = array2d<float>(rows, cols);
                 IO::read_data(is, transform_matrix.data, static_cast<uint32>(transform_matrix.cols * transform_matrix.rows));
+            }
+
+            // Wait for loading
+            for (const auto& animation : animations)
+            {
+                animation->load_job.wait_for_completion();
             }
 
             // Knn
@@ -786,23 +857,17 @@ namespace era_engine
                 IO::read_value(is, knn_type);
 
                 uint32 knn_size = 0;
-                IO::read_value(is, knn_size);
+				IO::read_value(is, knn_size);
 
-                std::vector<uint8> knn_data;
-                knn_data.reserve(knn_size);
-                IO::read_data(is, knn_data.data(), knn_size);
+				std::vector<uint8> knn_data;
+				knn_data.reserve(knn_size);
+				IO::read_data(is, knn_data.data(), knn_size);
 
-                knn_structure->writable.assign(
-                    reinterpret_cast<const char*>(knn_data.data()),
-                    knn_size);
+				knn_structure->writable.assign(
+					reinterpret_cast<const char*>(knn_data.data()),
+					knn_size);
 
-                knn_structure->deserialize(is, *this);
-            }
-
-            // Wait for loading
-            for (const auto& animation : animations)
-            {
-                animation->load_job.wait_for_completion();
+				knn_structure->deserialize(is, *this);
             }
         }
         catch (...)

@@ -986,6 +986,7 @@ ERA_CORE_API quat look_at_quaternion(vec3 forward, vec3 up);
 ERA_CORE_API void get_axis_rotation(quat q, vec3& axis, float& angle);
 ERA_CORE_API void decompose_quaternion_into_twist_and_swing(quat q, vec3 normalized_twist_axis, quat& twist, quat& swing);
 ERA_CORE_API float get_twist_angle(const quat& q, const vec3& axis);
+ERA_CORE_API float get_yaw_angle(const quat& q);
 
 ERA_CORE_API quat slerp(quat from, quat to, float t);
 ERA_CORE_API quat nlerp(quat* qs, float* weights, uint32 count);

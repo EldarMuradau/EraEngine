@@ -11,10 +11,13 @@ namespace era_engine::physics
 			.constructor<>();
 	}
 
-	DestructibleComponent::DestructibleComponent(ref<Entity::EcsData> _data, uint32 _health, bool _is_root)
+	DestructibleComponent::DestructibleComponent()
+	{
+	}
+
+	DestructibleComponent::DestructibleComponent(ref<Entity::EcsData> _data, Type _base_type)
 		: Component(_data)
-		, health(_health)
-		, is_root(_is_root)
+		, base_type(_base_type)
 	{
 	}
 

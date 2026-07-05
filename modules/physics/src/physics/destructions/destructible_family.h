@@ -57,7 +57,7 @@ namespace era_engine::physics
 
 		size_t get_family_size() const;
 		uint32 get_actor_count() const;
-		ref<DestructibleAsset> get_destructible_asset();
+		DestructibleAsset* get_destructible_asset();
 
 		const Nv::Blast::ExtPxFamily* get_family() const;
 

@@ -46,9 +46,9 @@ namespace era_engine
 
 	mesh_builder::mesh_builder(uint32 vertexFlags, mesh_index_type indexType)
 	{
-		positionArena.initialize(0, GB(2));
-		othersArena.initialize(0, GB(2));
-		indexArena.initialize(0, GB(2));
+		positionArena.initialize(0, GB(1));
+		othersArena.initialize(0, GB(1));
+		indexArena.initialize(0, GB(1));
 
 		this->vertexFlags = vertexFlags;
 		this->indexType = indexType;

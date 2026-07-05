@@ -599,7 +599,7 @@ float get_twist_angle(const quat& q, const vec3& axis)
 		xyz = -xyz;
 	}
 
-	float angle = 2.0f * std::atan2f(xyz, w);
+	float angle = 2.0f * atan2(xyz, w);
 
 	if (angle >= M_PI)
 	{
@@ -607,6 +607,15 @@ float get_twist_angle(const quat& q, const vec3& axis)
 	}
 
 	return angle;
+}
+
+float get_yaw_angle(const quat& q)
+{
+	const float yaw_y = 2.0f * (q.w * q.y + q.z * q.x);
+	const float yaw_x = (1.0f - 2.0f * (q.x * q.x + q.y * q.y));
+	const float yaw = atan2(yaw_y, yaw_x);
+
+	return yaw;
 }
 
 quat slerp(quat from, quat to, float t)

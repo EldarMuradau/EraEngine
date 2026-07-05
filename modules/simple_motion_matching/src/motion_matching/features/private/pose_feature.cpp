@@ -24,7 +24,7 @@ namespace era_engine
 	{
 	}
 
-	std::vector<float> PoseFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> PoseFeature::compute_features(const FeatureComputationContext& context) const
 	{
 		using namespace animation;
 
@@ -32,13 +32,86 @@ namespace era_engine
 
 		const float current_time = context.animation_component->current_anim_position;
 
+		AnimationPoseSampler sampler;
+		sampler.init(context.skeleton_component->skeleton.get(), animation);
+		sampler.set_joint_enabled(context.skeleton_component->skeleton->joints[0].name, false);
+
 		std::vector<float> values;
+
+		SkeletonPose prev_pose = context.skeleton_component->skeleton->get_default_pose();
+		sampler.sample_pose(current_time - context.dt >= 0.0f ? current_time - context.dt : current_time, prev_pose);
+
+		SkeletonPose current_pose = context.skeleton_component->skeleton->get_default_pose();
+		sampler.sample_pose(current_time, current_pose);
 
 		for (ref<FeatureDesc> descriptor : descriptors)
 		{
 			if (ref<PoseFeatureDesc> pose_feature_desc = std::dynamic_pointer_cast<PoseFeatureDesc>(descriptor))
 			{
-				if (pose_feature_desc->basis == FeatureDesc::Basis::XYZ)
+				const trs current_joint_transform = SkeletonUtils::get_object_space_joint_transform(current_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
+
+				if (pose_feature_desc->type == FeatureDesc::Type::LOCATION)
+				{
+					if (descriptor->basis == FeatureDesc::Basis::XYZ)
+					{
+						values.emplace_back(current_joint_transform.position.x);
+						values.emplace_back(current_joint_transform.position.y);
+						values.emplace_back(current_joint_transform.position.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::XZ)
+					{
+						values.emplace_back(current_joint_transform.position.x);
+						values.emplace_back(current_joint_transform.position.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::Y)
+					{
+						values.emplace_back(current_joint_transform.position.y);
+					}
+				}
+				else if (pose_feature_desc->type == FeatureDesc::Type::DIRECTION)
+				{
+					const vec3 joint_direction = noz(current_joint_transform.position);
+
+					if (descriptor->basis == FeatureDesc::Basis::XYZ)
+					{
+						values.emplace_back(joint_direction.x);
+						values.emplace_back(joint_direction.y);
+						values.emplace_back(joint_direction.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::XZ)
+					{
+						values.emplace_back(joint_direction.x);
+						values.emplace_back(joint_direction.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::Y)
+					{
+						values.emplace_back(joint_direction.y);
+					}
+				}
+				else if (pose_feature_desc->type == FeatureDesc::Type::VELOCITY)
+				{
+					const trs prev_joint_transform = SkeletonUtils::get_object_space_joint_transform(prev_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
+
+					const vec3 joint_velocity = (current_joint_transform.position - prev_joint_transform.position) / context.dt;
+
+					if (descriptor->basis == FeatureDesc::Basis::XYZ)
+					{
+						values.emplace_back(joint_velocity.x);
+						values.emplace_back(joint_velocity.y);
+						values.emplace_back(joint_velocity.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::XZ)
+					{
+						values.emplace_back(joint_velocity.x);
+						values.emplace_back(joint_velocity.z);
+					}
+					else if (descriptor->basis == FeatureDesc::Basis::Y)
+					{
+						values.emplace_back(joint_velocity.y);
+					}
+				}
+
+				/*if (pose_feature_desc->basis == FeatureDesc::Basis::XYZ)
 				{
 					float x_value = 0.0f;
 					std::string x_curve_name = pose_feature_desc->name + "_x";
@@ -76,7 +149,7 @@ namespace era_engine
 					animation->sample_curve(current_time, y_curve_name, y_value);
 
 					values.emplace_back(y_value);
-				}
+				}*/
 			}
 			else
 			{
@@ -93,6 +166,7 @@ namespace era_engine
 
 		AnimationPoseSampler sampler;
 		sampler.init(skeleton_component->skeleton.get(), clip);
+		sampler.set_joint_enabled(skeleton_component->skeleton->joints[0].name, false);
 
 		const uint32 samples_per_track = clip->get_num_samples_per_track();
 		const float sample_time = 1.0f / clip->get_sample_rate();
@@ -151,12 +225,15 @@ namespace era_engine
 				}
 
 				std::string x_curve_name = pose_feature_desc->name + "_x";
+				clip->remove_curve(x_curve_name);
 				clip->add_curve(x_curve_name, descriptor_values_x);
 
 				std::string y_curve_name = pose_feature_desc->name + "_y";
+				clip->remove_curve(y_curve_name);
 				clip->add_curve(y_curve_name, descriptor_values_y);
 
 				std::string z_curve_name = pose_feature_desc->name + "_z";
+				clip->remove_curve(z_curve_name);
 				clip->add_curve(z_curve_name, descriptor_values_z);
 
 				descriptor_values_x.clear();
@@ -173,7 +250,7 @@ namespace era_engine
 		return true;
 	}
 
-	bool PoseFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
+	bool PoseFeature::sample_animation(const animation::Skeleton* skeleton, ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
 	{
 		const uint32 num_samples = std::lrintf(sample_rate * clip->get_duration());
 
@@ -186,20 +263,45 @@ namespace era_engine
 
 			for (ref<FeatureDesc> descriptor : descriptors)
 			{
-				std::string x_curve_name = descriptor->name + "_x";
-				float out_x = 0.0f;
-				clip->sample_curve(current_time, x_curve_name, out_x);
-				sample->features.emplace_back(out_x);
+				if (descriptor->basis == FeatureDesc::Basis::XYZ)
+				{
+					float x_value = 0.0f;
+					std::string x_curve_name = descriptor->name + "_x";
+					clip->sample_curve(current_time, x_curve_name, x_value);
 
-				std::string y_curve_name = descriptor->name + "_y";
-				float out_y = 0.0f;
-				clip->sample_curve(current_time, y_curve_name, out_y);
-				sample->features.emplace_back(out_y);
+					float y_value = 0.0f;
+					std::string y_curve_name = descriptor->name + "_y";
+					clip->sample_curve(current_time, y_curve_name, y_value);
 
-				std::string z_curve_name = descriptor->name + "_z";
-				float out_z = 0.0f;
-				clip->sample_curve(current_time, z_curve_name, out_z);
-				sample->features.emplace_back(out_z);
+					float z_value = 0.0f;
+					std::string z_curve_name = descriptor->name + "_z";
+					clip->sample_curve(current_time, z_curve_name, z_value);
+
+					sample->features.emplace_back(x_value);
+					sample->features.emplace_back(y_value);
+					sample->features.emplace_back(z_value);
+				}
+				else if (descriptor->basis == FeatureDesc::Basis::XZ)
+				{
+					float x_value = 0.0f;
+					std::string x_curve_name = descriptor->name + "_x";
+					clip->sample_curve(current_time, x_curve_name, x_value);
+
+					float z_value = 0.0f;
+					std::string z_curve_name = descriptor->name + "_z";
+					clip->sample_curve(current_time, z_curve_name, z_value);
+
+					sample->features.emplace_back(x_value);
+					sample->features.emplace_back(z_value);
+				}
+				else if (descriptor->basis == FeatureDesc::Basis::Y)
+				{
+					float y_value = 0.0f;
+					std::string y_curve_name = descriptor->name + "_y";
+					clip->sample_curve(current_time, y_curve_name, y_value);
+
+					sample->features.emplace_back(y_value);
+				}
 			}
 
 			current_time += timestep;

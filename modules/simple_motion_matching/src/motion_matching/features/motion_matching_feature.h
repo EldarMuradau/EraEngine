@@ -15,6 +15,7 @@ namespace era_engine
 	namespace animation
 	{
 		class SkeletonComponent;
+		class Skeleton;
 		class AnimationComponent;
 	}
 
@@ -53,9 +54,9 @@ namespace era_engine
 
 		enum class Basis : uint8
 		{
-			XYZ = 0,
-			XZ,
-			Y
+			Y = 1,
+			XZ = 2,
+			XYZ = 3,
 		};
 
 		Type type = Type::LOCATION;
@@ -63,7 +64,7 @@ namespace era_engine
 
 		std::string name;
 
-		ERA_BINARY_SERIALIZE(type, basis, name);
+		ERA_BASE_VIRTUAL_BINARY_SERIALIZE(type, basis, name);
 
 		ERA_REFLECT
 	};
@@ -77,17 +78,16 @@ namespace era_engine
 
 		const std::vector<ref<FeatureDesc>>& get_descriptors() const;
 
-		virtual std::vector<float> compute_features(const FeatureComputationContext& context);
+		virtual uint32 get_feature_size() const;
+
+		virtual std::vector<float> compute_features(const FeatureComputationContext& context) const;
 
 		virtual bool mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const;
 
-		virtual bool sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const;
+		virtual bool sample_animation(const animation::Skeleton* skeleton, ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const;
 
-		ERA_REFLECT
-
-	protected:
 		std::vector<ref<FeatureDesc>> descriptors;
 
-		friend class MotionMatchingDatabase;
+		ERA_REFLECT
 	};
 }

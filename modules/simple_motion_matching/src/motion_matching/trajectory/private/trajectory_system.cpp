@@ -38,20 +38,17 @@ namespace era_engine
         slice1d<vec3> desired_velocities,
         const slice1d<quat>& trajectory_rotations,
         const vec3& desired_velocity,
-        const vec3& gamepadstick_left,
-        const vec3& gamepadstick_right,
-        const bool desired_strafe,
+        const vec3& input,
         const float fwrd_speed,
         const float side_speed,
-        const float back_speed,
-        const float dt)
+        const float back_speed)
     {
         desired_velocities(0) = desired_velocity;
 
         for (int i = 1; i < desired_velocities.size; i++)
         {
             desired_velocities(i) = MotionUtils::desired_velocity_update(
-                gamepadstick_left,
+                input,
                 trajectory_rotations(i),
                 fwrd_speed,
                 side_speed,
@@ -63,12 +60,12 @@ namespace era_engine
         slice1d<vec3> positions,
         slice1d<vec3> velocities,
         slice1d<vec3> accelerations,
+        const slice1d<float>& time_offsets,
         const vec3& position,
         const vec3& velocity,
         const vec3& acceleration,
         const slice1d<vec3>& desired_velocities,
-        const float halflife,
-        const float dt)
+        const float halflife)
     {
         positions(0) = position;
         velocities(0) = velocity;
@@ -86,7 +83,7 @@ namespace era_engine
                 accelerations(i),
                 desired_velocities(i),
                 halflife,
-                dt);
+                time_offsets(i));
         }
     }
 
@@ -94,12 +91,11 @@ namespace era_engine
     // camera rotation and other parameters
     static void trajectory_desired_rotations_predict(
         slice1d<quat> desired_rotations,
-        const slice1d<vec3> desired_velocities,
+        const slice1d<vec3>& desired_velocities,
         const quat& desired_rotation,
-        const vec3& gamepadstick_left,
-        const vec3& gamepadstick_right,
+        const vec3& input,
         const bool desired_strafe,
-        const float dt)
+        const float strafe_direction = 0.0f)
     {
         desired_rotations(0) = desired_rotation;
 
@@ -107,9 +103,8 @@ namespace era_engine
         {
             desired_rotations(i) = MotionUtils::desired_rotation_update(
                 desired_rotations(i - 1),
-                gamepadstick_left,
-                gamepadstick_right,
-                0.0f,
+                input,
+                strafe_direction,
                 desired_strafe,
                 desired_velocities(i));
         }
@@ -122,7 +117,7 @@ namespace era_engine
         const vec3& angular_velocity,
         const slice1d<quat>& desired_rotations,
         const float halflife,
-        const float dt)
+        const slice1d<float>& time_offsets)
     {
         rotations.set(rotation);
         angular_velocities.set(angular_velocity);
@@ -134,7 +129,7 @@ namespace era_engine
                 angular_velocities(i),
                 desired_rotations(i),
                 halflife,
-                i * dt);
+                time_offsets(i));
         }
     }
 
@@ -174,11 +169,10 @@ namespace era_engine
             // Get gamepad stick states
             const vec3& input = motion_component.get_desired_input();
 
-            vec3 gamepadstick_left = input;
-            vec3 gamepadstick_right = vec3();
-
             // Get if strafe is desired
             bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
+
+            const float strafe_direction = 0.0f;
 
             // Get the desired gait (walk / run)
             MotionUtils::desired_gait_update(
@@ -193,7 +187,7 @@ namespace era_engine
 
             // Get the desired velocity
             vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
-                gamepadstick_left,
+                input,
                 motion_component.simulation_rotation,
                 simulation_fwrd_speed,
                 simulation_side_speed,
@@ -202,9 +196,8 @@ namespace era_engine
             // Get the desired rotation/direction
             quat desired_rotation_curr = MotionUtils::desired_rotation_update(
                 motion_component.desired_rotation,
-                gamepadstick_left,
-                gamepadstick_right,
-                0.0f,
+                input,
+                strafe_direction,
                 desired_strafe,
                 desired_velocity_curr);
 
@@ -214,63 +207,44 @@ namespace era_engine
 
             motion_component.desired_rotation_change_prev = motion_component.desired_rotation_change_curr;
             motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) / dt;
-            motion_component.desired_rotation = desired_rotation_curr;
+			motion_component.desired_rotation = desired_rotation_curr;
 
-			if (trajectory_component.build_timer <= 0.0f || (
-				(length(motion_component.desired_velocity_change_prev) >= motion_component.desired_velocity_change_threshold &&
-					length(motion_component.desired_velocity_change_curr) < motion_component.desired_velocity_change_threshold)
-				|| (length(motion_component.desired_rotation_change_prev) >= motion_component.desired_rotation_change_threshold &&
-					length(motion_component.desired_rotation_change_curr) < motion_component.desired_rotation_change_threshold)))
-			{
-                trajectory_component.build_timer = trajectory_component.build_time;
-                const float scaled_dt = 20.0f * dt;
+			trajectory_desired_rotations_predict(
+				trajectory_component.trajectory_desired_rotations,
+				trajectory_component.trajectory_desired_velocities,
+				motion_component.desired_rotation,
+				input,
+				desired_strafe);
 
-                trajectory_desired_rotations_predict(
-                    trajectory_component.trajectory_desired_rotations,
-                    trajectory_component.trajectory_desired_velocities,
-                    motion_component.desired_rotation,
-                    gamepadstick_left,
-                    gamepadstick_right,
-                    desired_strafe,
-                    scaled_dt);
+			trajectory_rotations_predict(
+				trajectory_component.trajectory_rotations,
+				trajectory_component.trajectory_angular_velocities,
+				motion_component.simulation_rotation,
+				motion_component.angular_velocity,
+				trajectory_component.trajectory_desired_rotations,
+				motion_component.rotation_halflife,
+                trajectory_component.time_offsets);
 
-                trajectory_rotations_predict(
-                    trajectory_component.trajectory_rotations,
-                    trajectory_component.trajectory_angular_velocities,
-                    motion_component.simulation_rotation,
-                    motion_component.angular_velocity,
-                    trajectory_component.trajectory_desired_rotations,
-                    motion_component.rotation_halflife,
-                    scaled_dt);
+			trajectory_desired_velocities_predict(
+				trajectory_component.trajectory_desired_velocities,
+				trajectory_component.trajectory_rotations,
+				motion_component.desired_velocity,
+				input,
+				simulation_fwrd_speed,
+				simulation_side_speed,
+				simulation_back_speed);
 
-                trajectory_desired_velocities_predict(
-                    trajectory_component.trajectory_desired_velocities,
-                    trajectory_component.trajectory_rotations,
-                    motion_component.desired_velocity,
-                    gamepadstick_left,
-                    gamepadstick_right,
-                    desired_strafe,
-                    simulation_fwrd_speed,
-                    simulation_side_speed,
-                    simulation_back_speed,
-                    scaled_dt);
-
-                trajectory_positions_predict(
-                    trajectory_component.trajectory_positions,
-                    trajectory_component.trajectory_velocities,
-                    trajectory_component.trajectory_accelerations,
-                    motion_component.simulation_position,
-                    motion_component.velocity,
-                    motion_component.acceleration,
-                    trajectory_component.trajectory_desired_velocities,
-                    motion_component.velocity_halflife,
-                    scaled_dt);
-            }
-            else if (trajectory_component.build_timer > 0)
-            {
-                trajectory_component.build_timer -= dt;
-            }
-        }
+			trajectory_positions_predict(
+				trajectory_component.trajectory_positions,
+				trajectory_component.trajectory_velocities,
+				trajectory_component.trajectory_accelerations,
+                trajectory_component.time_offsets,
+				motion_component.simulation_position,
+				motion_component.velocity,
+				motion_component.acceleration,
+				trajectory_component.trajectory_desired_velocities,
+				motion_component.velocity_halflife);
+		}
 	}
 
 	void TrajectoryMotionSystem::debug_draw_update(float dt)

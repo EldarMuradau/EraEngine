@@ -20,7 +20,7 @@ namespace era_engine
             const float gait_change_halflife = 0.1f);
 
         static vec3 desired_velocity_update(
-            const vec3& gamepadstick_left,
+            const vec3& input,
             const quat& simulation_rotation,
             const float fwrd_speed,
             const float side_speed,
@@ -28,8 +28,7 @@ namespace era_engine
 
         static quat desired_rotation_update(
             const quat& desired_rotation,
-            const vec3& gamepadstick_left,
-            const vec3& gamepadstick_right,
+            const vec3& input,
             const float strafe_direction,
             const bool desired_strafe,
             const vec3& desired_velocity);

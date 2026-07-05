@@ -205,14 +205,14 @@ namespace era_engine
     array2d<T> transpose(const array2d<T>& m)
     {
         array2d<T> result;
-        result.cols = m.cols;
-        result.rows = m.rows;
+        result.cols = m.rows;
+        result.rows = m.cols;
         result.data = (T*)malloc((result.rows * result.cols) * sizeof(T));
 
-        uint32 current_value = 0;
-        for (uint32 i = 0; i < result.rows; ++i)
+        int current_value = 0;
+        for (int i = 0; i < result.rows; ++i)
         {
-            for (uint32 j = 0; j < result.cols; ++j)
+            for (int j = 0; j < result.cols; ++j)
             {
                 result.data[current_value++] = m(j, i);
             }

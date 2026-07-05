@@ -682,10 +682,13 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         return size;
     }
 
-    void saveIndex(const std::string &location) {
+    void saveIndex(const std::string& location) {
         std::ofstream output(location, std::ios::binary);
-        std::streampos position;
+        saveIndex(output);
+        output.close();
+    }
 
+    void saveIndex(std::ostream& output) {
         writeBinaryPOD(output, offsetLevel0_);
         writeBinaryPOD(output, max_elements_);
         writeBinaryPOD(output, cur_element_count);
@@ -709,16 +712,19 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             if (linkListSize)
                 output.write(linkLists_[i], linkListSize);
         }
-        output.close();
     }
 
-
-    void loadIndex(const std::string &location, SpaceInterface<dist_t> *s, size_t max_elements_i = 0) {
+    void loadIndex(const std::string& location, SpaceInterface<dist_t>* s, size_t max_elements_i = 0) {
         std::ifstream input(location, std::ios::binary);
 
         if (!input.is_open())
             throw std::runtime_error("Cannot open file");
 
+        loadIndex(input, s, max_elements_i);
+        input.close();
+    }
+
+    void loadIndex(std::istream& input, SpaceInterface<dist_t>* s, size_t max_elements_i = 0) {
         clear();
         // get file size:
         input.seekg(0, input.end);
@@ -815,8 +821,6 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                 if (allow_replace_deleted_) deleted_elements.insert(i);
             }
         }
-
-        input.close();
 
         return;
     }

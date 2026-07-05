@@ -42,7 +42,7 @@ namespace era_engine
     };
 }
 
-#define ERA_BINARY_SERIALIZE(...)                                                         \
+#define ERA_BINARY_SERIALIZE(...)                                                     \
     inline size_t serialize(uint8* out) const                                         \
     {                                                                                 \
         return era_engine::BinarySerializer::serialize(out, __VA_ARGS__);             \
@@ -52,6 +52,34 @@ namespace era_engine
         return era_engine::BinarySerializer::deserialize(in, buff_size, __VA_ARGS__); \
     }                                                                                 \
     inline size_t get_size() const                                                    \
+    {                                                                                 \
+        return era_engine::BinarySerializer::get_size(__VA_ARGS__);                   \
+    }
+
+#define ERA_BASE_VIRTUAL_BINARY_SERIALIZE(...)                                        \
+    virtual size_t serialize(uint8* out) const                                        \
+    {                                                                                 \
+        return era_engine::BinarySerializer::serialize(out, __VA_ARGS__);             \
+    }                                                                                 \
+    virtual size_t deserialize(const uint8* in, size_t buff_size)                     \
+    {                                                                                 \
+        return era_engine::BinarySerializer::deserialize(in, buff_size, __VA_ARGS__); \
+    }                                                                                 \
+    virtual size_t get_size() const                                                   \
+    {                                                                                 \
+        return era_engine::BinarySerializer::get_size(__VA_ARGS__);                   \
+    }
+
+#define ERA_VIRTUAL_BINARY_SERIALIZE(...)                                             \
+    size_t serialize(uint8* out) const override                                       \
+    {                                                                                 \
+        return era_engine::BinarySerializer::serialize(out, __VA_ARGS__);             \
+    }                                                                                 \
+    size_t deserialize(const uint8* in, size_t buff_size) override                    \
+    {                                                                                 \
+        return era_engine::BinarySerializer::deserialize(in, buff_size, __VA_ARGS__); \
+    }                                                                                 \
+    size_t get_size() const override                                                  \
     {                                                                                 \
         return era_engine::BinarySerializer::get_size(__VA_ARGS__);                   \
     }

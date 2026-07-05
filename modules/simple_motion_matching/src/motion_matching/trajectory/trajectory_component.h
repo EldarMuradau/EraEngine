@@ -34,7 +34,6 @@ namespace era_engine
 
 		size_t number_of_trajectories = 4;
 
-		float build_time = 0.23f;
-		float build_timer = build_time;
+		array1d<float> time_offsets;
 	};
 }

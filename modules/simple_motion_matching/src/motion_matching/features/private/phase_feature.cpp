@@ -16,7 +16,7 @@ namespace era_engine
 	{
 	}
 
-	std::vector<float> PhaseFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> PhaseFeature::compute_features(const FeatureComputationContext& context) const
 	{
 		// TODO:
 		return  std::vector<float>{ 0.0f, 0.0f };
@@ -28,7 +28,7 @@ namespace era_engine
 		return true;
 	}
 
-	bool PhaseFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
+	bool PhaseFeature::sample_animation(const animation::Skeleton* skeleton, ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
 	{
 		// TODO:
 

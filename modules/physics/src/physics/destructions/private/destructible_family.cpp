@@ -122,7 +122,7 @@ namespace era_engine::physics
 		return static_cast<uint32>(tk_family->getActorCount());
 	}
 
-	ref<DestructibleAsset> DestructibleFamily::get_destructible_asset()
+	DestructibleAsset* DestructibleFamily::get_destructible_asset()
 	{
 		return blast_asset;
 	}

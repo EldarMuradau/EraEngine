@@ -28,7 +28,7 @@ namespace era_engine
         IModule::initialize(engine);
 
         PhysicsDescriptor desc;
-        //desc.broad_phase = physx::PxBroadPhaseType::eGPU;
+        desc.broad_phase = physx::PxBroadPhaseType::eGPU;
         //desc.enable_tgs_solver = false;
 
         ref<Physics> physics_core = make_ref<Physics>(desc);

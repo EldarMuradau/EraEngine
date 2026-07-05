@@ -13,17 +13,17 @@ namespace era_engine
 			dt);
 	}
 
-	vec3 MotionUtils::desired_velocity_update(const vec3& gamepadstick_left, const quat& simulation_rotation, const float fwrd_speed, const float side_speed, const float back_speed)
+	vec3 MotionUtils::desired_velocity_update(const vec3& input, const quat& simulation_rotation, const float fwrd_speed, const float side_speed, const float back_speed)
 	{
         // Scale stick by forward, sideways and backwards speeds
-        vec3 local_desired_velocity = gamepadstick_left.z > 0.0 ?
-            vec3(side_speed, 0.0f, fwrd_speed) * gamepadstick_left :
-            vec3(side_speed, 0.0f, back_speed) * gamepadstick_left;
+        vec3 local_desired_velocity = input.z > 0.0 ?
+            vec3(side_speed, 0.0f, fwrd_speed) * input :
+            vec3(side_speed, 0.0f, back_speed) * input;
 
         return local_desired_velocity;
     }
 
-	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, const vec3& gamepadstick_left, const vec3& gamepadstick_right, const float strafe_direction, const bool desired_strafe, const vec3& desired_velocity)
+	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, const vec3& input, const float strafe_direction, const bool desired_strafe, const vec3& desired_velocity)
 	{
         quat desired_rotation_curr = desired_rotation;
 
@@ -34,19 +34,13 @@ namespace era_engine
         {
             vec3 desired_direction = quat(vec3(0, 1, 0), strafe_direction) * vec3(0, 0, -1);
 
-            if (length(gamepadstick_right) > 0.01f)
-            {
-                desired_direction = quat(vec3(0, 1, 0), strafe_direction) * normalize(gamepadstick_right);
-            }
-
             return quat(vec3(0, 1, 0), atan2f(desired_direction.x, desired_direction.z));
         }
 
         // If strafe is not active the desired direction comes from the left 
         // stick as long as that stick is being used
-        else if (length(gamepadstick_left) > 0.01f)
+        else if (length(input) > 0.01f)
         {
-
             vec3 desired_direction = normalize(desired_velocity);
             return quat(vec3(0, 1, 0), atan2f(desired_direction.x, desired_direction.z));
         }
@@ -80,6 +74,7 @@ namespace era_engine
             rotation,
             angular_velocity,
             desired_rotation,
-            halflife, dt);
+            halflife,
+            dt);
 	}
 }

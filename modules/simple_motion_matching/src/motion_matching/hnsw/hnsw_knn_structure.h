@@ -22,8 +22,8 @@ namespace era_engine
 		bool deserialize(std::istream& is, const MotionMatchingDatabase& database) override;
 
 	public:
-		uint32 max_edges_per_vertex = 10;
-		uint32 construction_exploration_factor = 50;
+		uint32 max_edges_per_vertex = 32;
+		uint32 construction_exploration_factor = 200;
 
 	private:
 		hnswlib::L2Space hnsw_l2_space = hnswlib::L2Space(0);

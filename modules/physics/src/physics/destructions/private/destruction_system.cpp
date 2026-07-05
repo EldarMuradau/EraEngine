@@ -8,6 +8,7 @@
 
 #include <ecs/base_components/transform_component.h>
 #include <ecs/update_groups.h>
+#include "ecs/rendering/mesh_component.h"
 
 #include <rttr/policy.h>
 #include <rttr/registration>
@@ -60,6 +61,32 @@ namespace era_engine::physics
 			{
 				++iter;
 				continue;
+			}
+
+			if (destructibe_component->base_type == DestructibleComponent::Type::FRACTURE_BASED)
+			{
+				MeshComponent* mesh_component = entity.get_component<MeshComponent>();
+
+				//mesh_component->mesh;
+
+				//std::vector<uint32> indices;
+				//for (size_t i = 0; i < meshAsset->triangles.size(); ++i)
+				//{
+				//	indices.push_back(meshAsset->triangles[i].a);
+				//	indices.push_back(meshAsset->triangles[i].b);
+				//	indices.push_back(meshAsset->triangles[i].c);
+				//}
+
+				//ref<NvMesh> nvMesh = make_ref<NvMesh>(
+				//	createStdVectorPxVec3(meshAsset->positions),
+				//	createStdVectorPxVec3(meshAsset->normals),
+				//	createStdVectorPxVec2(meshAsset->uvs),
+				//	indices
+				//);
+			}
+			else
+			{
+
 			}
 
 			iter = destructibles_to_init.erase(iter);

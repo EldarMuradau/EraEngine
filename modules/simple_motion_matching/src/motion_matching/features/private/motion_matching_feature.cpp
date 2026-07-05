@@ -41,7 +41,7 @@ namespace era_engine
 	{
 	}
 
-	std::vector<float> MotionMatchingFeature::compute_features(const FeatureComputationContext& context)
+	std::vector<float> MotionMatchingFeature::compute_features(const FeatureComputationContext& context) const
 	{
 		return  std::vector<float>{};
 	}
@@ -51,7 +51,7 @@ namespace era_engine
 		return true;
 	}
 
-	bool MotionMatchingFeature::sample_animation(ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
+	bool MotionMatchingFeature::sample_animation(const animation::Skeleton* skeleton, ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const
 	{
 		return true;
 	}
@@ -59,5 +59,15 @@ namespace era_engine
 	const std::vector<ref<FeatureDesc>>& MotionMatchingFeature::get_descriptors() const
 	{
 		return descriptors;
+	}
+
+	uint32 MotionMatchingFeature::get_feature_size() const
+	{
+		uint32 size = 0;
+		for (const ref<FeatureDesc>& desc : descriptors)
+		{
+			size += static_cast<uint32>(desc->basis);
+		}
+		return size;
 	}
 }

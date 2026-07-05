@@ -15,6 +15,7 @@ namespace era_engine
 	{
 		class AnimationAssetClip;
 		class SkeletonComponent;
+		class Skeleton;
 	}
 
 	class KnnStructure;
@@ -71,14 +72,16 @@ namespace era_engine
 		MotionMatchingDatabase(KnnStructureType _knn_type = KnnStructureType::DEFAULT);
 		~MotionMatchingDatabase() override;
 
-		void bake();
+		void generate_initial_data();
+
+		void bake(const animation::Skeleton* skeleton);
 
 		void mark(const animation::SkeletonComponent* skeleton_component);
 
 		SearchResult search(const SearchParams& params) const;
 
 		std::vector<float> normalize_query(const std::vector<float>& query) const;
-		void subtract_column_means(array2d<float>& matrix) const;
+		void substract_column_means(array2d<float>& matrix) const;
 		array2d<float> pack_query(const std::vector<float>& query) const;
 
 		static std::string get_asset_type_impl();
@@ -100,7 +103,7 @@ namespace era_engine
 
 		std::vector<ref<animation::AnimationAssetClip>> animations;
 
-		std::vector<std::string> feature_types;
+		std::vector<MotionMatchingFeature*> features;
 
 		float sample_rate = 10.0f;
 		NarrowPhaseParams narrow_phase_params;
@@ -110,7 +113,13 @@ namespace era_engine
 
 		std::vector<float> weights;
 
+		std::vector<StaticThreshold> static_thresholds;
+
 		// Generated
+		uint32 total_features_per_sample = 0;
+		std::vector<uint64> animations_asset_handles;
+
+		// Baked
 		ref<KnnStructure> knn_structure;
 
 		std::vector<float> mean_values;
@@ -121,13 +130,6 @@ namespace era_engine
 
 		std::vector<float> transform_column_means;
 		array2d<float> transform_matrix;
-
-		std::vector<uint64> animations_asset_handles;
-		std::vector<uint32> animations_hashes;
-
-		std::vector<StaticThreshold> static_thresholds;
-
-		std::vector<MotionMatchingFeature*> features;
 
 		std::vector<ref<Sample>> samples;
 	};

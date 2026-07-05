@@ -1,7 +1,7 @@
 // Copyright (c) 2023-present Eldar Muradov. All rights reserved.
 
-#include "asset/bin.h"
 #include "asset/model_asset.h"
+#include "asset/bin.h"
 #include "core/log.h"
 
 #include "rendering/pbr_material.h"

@@ -8,6 +8,8 @@
 
 namespace era_engine
 {
+	class MotionMatchingDatabase;
+
 	class GameInitSystem final : public System
 	{
 	public:
@@ -24,5 +26,9 @@ namespace era_engine
 
 		ref<multi_mesh> sphere_mesh;
 		ref<pbr_material> sphere_render_material;
+
+		ref<MotionMatchingDatabase> database;
+
+		Entity tiran;
 	};
 }
