@@ -16,9 +16,11 @@ namespace era_engine
 		PoseFeatureDesc() = default;
 		~PoseFeatureDesc() override = default;
 
+		FeatureDescType type = FeatureDescType::LOCATION;
+		FeatureDescBasis basis = FeatureDescBasis::XYZ;
 		uint32 joint_id = INVALID_JOINT;
 
-		ERA_VIRTUAL_BINARY_SERIALIZE(FeatureDesc::type, FeatureDesc::basis, FeatureDesc::name, joint_id);
+		ERA_VIRTUAL_BINARY_SERIALIZE(FeatureDesc::name, type, basis, joint_id);
 
 		ERA_VIRTUAL_REFLECT(FeatureDesc)
 	};
@@ -29,6 +31,8 @@ namespace era_engine
 		PoseFeature() = default;
 		PoseFeature(const PoseFeature&) = default;
 		~PoseFeature() override;
+
+		uint32 get_feature_size() const override;
 
 		std::vector<float> compute_features(const FeatureComputationContext& context) const override;
 

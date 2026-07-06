@@ -60,7 +60,7 @@ namespace era_engine
 		ref<T> load_game_asset_from_file(const fs::path& path, bool load_from_cache = true, JobHandle parent_job = {}, uint32 flags = 0);
 
 		template<class T, CompatibleAssetType<T> = true>
-		JobHandle save_game_asset_to_file_async(const fs::path& path, const T* asset, JobHandle parent_job = {});
+		JobHandle save_game_asset_to_file_async(const fs::path& path, const T* asset, JobHandle parent_job = {}, bool append_ext = true);
 	};
 }
 

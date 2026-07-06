@@ -39,32 +39,29 @@ namespace era_engine
 		float dt = 0.0f;
 	};
 
+	enum class FeatureDescType : uint8
+	{
+		LOCATION = 0,
+		VELOCITY,
+		DIRECTION
+	};
+
+	enum class FeatureDescBasis : uint8
+	{
+		Y = 1,
+		XZ = 2,
+		XYZ = 3,
+	};
+
 	class ERA_MOTION_MATCHING_API FeatureDesc
 	{
 	public:
 		FeatureDesc() = default;
 		virtual ~FeatureDesc() = default;
 
-		enum class Type : uint8
-		{
-			LOCATION = 0,
-			VELOCITY,
-			DIRECTION
-		};
-
-		enum class Basis : uint8
-		{
-			Y = 1,
-			XZ = 2,
-			XYZ = 3,
-		};
-
-		Type type = Type::LOCATION;
-		Basis basis = Basis::XYZ;
-
 		std::string name;
 
-		ERA_BASE_VIRTUAL_BINARY_SERIALIZE(type, basis, name);
+		ERA_BASE_VIRTUAL_BINARY_SERIALIZE(name);
 
 		ERA_REFLECT
 	};

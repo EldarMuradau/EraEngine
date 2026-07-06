@@ -63,11 +63,6 @@ namespace era_engine
 
 	uint32 MotionMatchingFeature::get_feature_size() const
 	{
-		uint32 size = 0;
-		for (const ref<FeatureDesc>& desc : descriptors)
-		{
-			size += static_cast<uint32>(desc->basis);
-		}
-		return size;
+		return 0;
 	}
 }

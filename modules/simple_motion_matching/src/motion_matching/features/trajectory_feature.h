@@ -14,9 +14,10 @@ namespace era_engine
 		TrajectoryFeatureDesc() = default;
 		~TrajectoryFeatureDesc() override = default;
 
+		FeatureDescType type = FeatureDescType::LOCATION;
 		float time_offset = 0.0f;
 
-		ERA_VIRTUAL_BINARY_SERIALIZE(FeatureDesc::type, FeatureDesc::basis, FeatureDesc::name, time_offset);
+		ERA_VIRTUAL_BINARY_SERIALIZE(FeatureDesc::name, type, time_offset);
 
 		ERA_VIRTUAL_REFLECT(FeatureDesc)
 	};
@@ -27,6 +28,8 @@ namespace era_engine
 		TrajectoryFeature() = default;
 		TrajectoryFeature(const TrajectoryFeature&) = default;
 		~TrajectoryFeature() override;
+
+		uint32 get_feature_size() const override;
 
 		std::vector<float> compute_features(const FeatureComputationContext& context) const override;
 

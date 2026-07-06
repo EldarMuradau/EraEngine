@@ -6,6 +6,8 @@
 #include <animation/skeleton_component.h>
 #include <animation/animation.h>
 
+#include <ecs/base_components/transform_component.h>
+
 #include <rttr/policy.h>
 #include <rttr/registration>
 
@@ -25,6 +27,11 @@ namespace era_engine
 	{
 	}
 
+	uint32 TrajectoryFeature::get_feature_size() const
+	{
+		return uint32(descriptors.size()) * 2u;
+	}
+
 	std::vector<float> TrajectoryFeature::compute_features(const FeatureComputationContext& context) const
 	{
 		ASSERT(context.trajectory_component->number_of_trajectories == NUM_OF_TRAJECTORIES);
@@ -33,6 +40,8 @@ namespace era_engine
 		values.reserve(NUM_OF_TRAJECTORIES * descriptors.size());
 
 		float current_time = 0.0f;
+
+		const trs& world_transform = context.entity.get_component<TransformComponent>()->get_world_transform();
 
 		for (int32 i = 0; i < NUM_OF_TRAJECTORIES; ++i)
 		{
@@ -45,24 +54,24 @@ namespace era_engine
 						continue;
 					}
 
-					if (descriptor->type == FeatureDesc::Type::LOCATION)
+					if (trajectory_feature_desc->type == FeatureDescType::LOCATION)
 					{
-						const vec3& position = context.trajectory_component->trajectory_positions(i);
+						const vec3 position = context.trajectory_component->trajectory_positions(i) - world_transform.position;
 
 						values.emplace_back(position.x);
 						values.emplace_back(position.z);
 					}
-					else if (descriptor->type == FeatureDesc::Type::DIRECTION)
+					else if (trajectory_feature_desc->type == FeatureDescType::DIRECTION)
 					{
-						const quat& rotation = context.trajectory_component->trajectory_rotations(i);
+						const quat rotation = conjugate(world_transform.rotation) * context.trajectory_component->trajectory_rotations(i);
 						const vec3 direction = noz(rotation * vec3::forward);
 
 						values.emplace_back(direction.x);
 						values.emplace_back(direction.z);
 					}
-					else if (descriptor->type == FeatureDesc::Type::VELOCITY)
+					else if (trajectory_feature_desc->type == FeatureDescType::VELOCITY)
 					{
-						const vec3& velocity = context.trajectory_component->trajectory_velocities(i);
+						const vec3 velocity = conjugate(world_transform.rotation) * context.trajectory_component->trajectory_velocities(i);
 
 						values.emplace_back(velocity.x);
 						values.emplace_back(velocity.z);
@@ -96,27 +105,27 @@ namespace era_engine
 		std::vector<float> descriptor_values_z;
 		descriptor_values_z.reserve(num_samples);
 
-		for (uint32 i = 0; i < num_samples; ++i)
+		for (ref<FeatureDesc> descriptor : descriptors)
 		{
-			for (ref<FeatureDesc> descriptor : descriptors)
+			if (ref<TrajectoryFeatureDesc> trajectory_feature_desc = std::dynamic_pointer_cast<TrajectoryFeatureDesc>(descriptor))
 			{
-				if (ref<TrajectoryFeatureDesc> trajectory_feature_desc = std::dynamic_pointer_cast<TrajectoryFeatureDesc>(descriptor))
+				for (uint32 i = 0; i < num_samples; ++i)
 				{
 					const trs current_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, max(current_time + trajectory_feature_desc->time_offset, 0.0f));
 
-					if (descriptor->type == FeatureDesc::Type::LOCATION)
+					if (trajectory_feature_desc->type == FeatureDescType::LOCATION)
 					{
 						descriptor_values_x.emplace_back(current_transform.position.x);
 						descriptor_values_z.emplace_back(current_transform.position.z);
 					}
-					else if (descriptor->type == FeatureDesc::Type::DIRECTION)
+					else if (trajectory_feature_desc->type == FeatureDescType::DIRECTION)
 					{
 						const vec3 direction = noz(current_transform.rotation * vec3::forward);
 
 						descriptor_values_x.emplace_back(direction.x);
 						descriptor_values_z.emplace_back(direction.z);
 					}
-					else if (descriptor->type == FeatureDesc::Type::VELOCITY)
+					else if (trajectory_feature_desc->type == FeatureDescType::VELOCITY)
 					{
 						const trs prev_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, max(current_time + trajectory_feature_desc->time_offset - timestep, 0.0f));
 						const vec3 velocity = (current_transform.position - prev_transform.position) / timestep;
@@ -125,24 +134,24 @@ namespace era_engine
 						descriptor_values_z.emplace_back(velocity.z);
 					}
 				}
-				else
-				{
-					ASSERT(false);
-				}
 
-				std::string x_curve_name = descriptor->name + "_x";
-				clip->remove_curve(x_curve_name);
-				clip->add_curve(x_curve_name, descriptor_values_x);
-
-				std::string z_curve_name = descriptor->name + "_z";
-				clip->remove_curve(z_curve_name);
-				clip->add_curve(z_curve_name, descriptor_values_z);
-
-				descriptor_values_x.clear();
-				descriptor_values_z.clear();
+				current_time += timestep;
+			}
+			else
+			{
+				ASSERT(false);
 			}
 
-			current_time += timestep;
+			std::string x_curve_name = descriptor->name + "_x";
+			clip->remove_curve(x_curve_name);
+			clip->add_curve(x_curve_name, descriptor_values_x);
+
+			std::string z_curve_name = descriptor->name + "_z";
+			clip->remove_curve(z_curve_name);
+			clip->add_curve(z_curve_name, descriptor_values_z);
+
+			descriptor_values_x.clear();
+			descriptor_values_z.clear();
 		}
 
 		return true;
@@ -168,8 +177,6 @@ namespace era_engine
 			{
 				if (ref<TrajectoryFeatureDesc> trajectory_feature_desc = std::dynamic_pointer_cast<TrajectoryFeatureDesc>(descriptor))
 				{
-					ASSERT(trajectory_feature_desc->basis == FeatureDesc::Basis::XZ);
-
 					float x_value = 0.0f;
 					std::string x_curve_name = descriptor->name + "_x";
 					clip->sample_curve(current_time, x_curve_name, x_value);

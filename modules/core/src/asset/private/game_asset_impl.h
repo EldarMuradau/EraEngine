@@ -74,7 +74,7 @@ namespace era_engine
 	}
 
 	template<class T, CompatibleAssetType<T>>
-	inline JobHandle GameAssetsProvider::save_game_asset_to_file_async(const fs::path& path, const T* asset, JobHandle parent_job/* = {}*/)
+	inline JobHandle GameAssetsProvider::save_game_asset_to_file_async(const fs::path& path, const T* asset, JobHandle parent_job/* = {}*/, bool append_ext/* = true*/)
 	{
 		if (asset == nullptr)
 		{
@@ -82,7 +82,12 @@ namespace era_engine
 		}
 
 		fs::path final_path = path.parent_path();
-		final_path.append(path.filename().string() + AssetExtension<T>::get_asset_type());
+		std::string filename = path.filename().string();
+		if (append_ext)
+		{
+			filename += AssetExtension<T>::get_asset_type();
+		}
+		final_path.append(filename);
 		final_path = final_path.lexically_normal().make_preferred();
 
 		struct AssetLoadingData
