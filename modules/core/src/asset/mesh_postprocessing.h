@@ -43,8 +43,8 @@ namespace std
 			hash_combine(seed, x.normal);
 			hash_combine(seed, x.tangent);
 			hash_combine(seed, x.color);
-			hash_combine(seed, *(uint32*)x.skin.skin_indices);
-			hash_combine(seed, *(uint32*)x.skin.skin_weights);
+			hash_combine(seed, *(uint32*)x.skin.skin_indices.data());
+			hash_combine(seed, *(uint32*)x.skin.skin_weights.data());
 
 			return seed;
 		}

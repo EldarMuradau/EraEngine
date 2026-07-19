@@ -110,7 +110,7 @@ namespace era_engine
 		outCB.jitter = jitter;
 	}
 
-	raytracing_object_type defineBlasFromMesh(const ref<multi_mesh>& mesh)
+	raytracing_object_type defineBlasFromMesh(const ref<MultiMesh>& mesh)
 	{
 		if (dxContext.featureSupport.raytracing())
 		{
@@ -133,19 +133,19 @@ namespace era_engine
 		}
 	}
 
-	void addRaytracingComponentAsync(Entity entity, ref<multi_mesh> mesh)
+	void addRaytracingComponentAsync(Entity entity, ref<MultiMesh> mesh)
 	{
 		struct add_ray_tracing_data
 		{
 			Entity entity;
-			ref<multi_mesh> mesh;
+			ref<MultiMesh> mesh;
 		};
 
 		add_ray_tracing_data data = { entity, mesh };
 
 		low_priority_job_queue.createJob<add_ray_tracing_data>([](add_ray_tracing_data& data, JobHandle)
 			{
-				data.mesh->loadJob.wait_for_completion();
+				data.mesh->load_job.wait_for_completion();
 
 				struct create_component_data
 				{

@@ -14,7 +14,7 @@ namespace era_engine
 	{
 		const char* name;
 		float footprint;
-		ref<multi_mesh> meshes[4] = {};
+		ref<MultiMesh> meshes[4] = {};
 	};
 
 	class ERA_CORE_API ProcPlacementComponent : public Component
@@ -36,7 +36,7 @@ namespace era_engine
 			uint32 global_mesh_offset;
 			uint32 num_meshes;
 
-			ref<multi_mesh> meshes[4];
+			ref<MultiMesh> meshes[4];
 			float densities[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
 		};
 

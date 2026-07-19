@@ -511,7 +511,7 @@ namespace ImGui
 		char buffer[512] = "";
 		if (asset)
 		{
-			fs::path path = getPathFromAssetHandle(asset);
+			fs::path path = get_path_from_asset_handle(asset);
 			snprintf(buffer, sizeof(buffer), "%s  %s", type, path.string().c_str());
 		}
 		else
@@ -532,14 +532,14 @@ namespace ImGui
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type))
 			{
-				asset = getAssetHandleFromPath((const char*)payload->Data);
+				asset = get_asset_handle_from_path((const char*)payload->Data);
 				result = true;
 			}
 			ImGui::EndDragDropTarget();
 		}
 		if (ImGui::IsItemHovered() && asset)
 		{
-			fs::path path = getPathFromAssetHandle(asset);
+			fs::path path = get_path_from_asset_handle(asset);
 			if (!path.empty())
 			{
 				ImGui::BeginTooltip();

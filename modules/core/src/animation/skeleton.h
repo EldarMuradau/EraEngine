@@ -2,65 +2,21 @@
 
 #include "core_api.h"
 
+#include "animation/animation_common_data.h"
 #include "animation/animation_clip.h"
 
 #include "asset/game_asset.h"
+#include "asset/model_asset.h"
 
 #include "core/serialization/binary_serializer.h"
 #include "core/math.h"
 
-#define INVALID_JOINT 0xFFFFFFFF
+#include <array>
 
 namespace era_engine::animation
 {
-	struct ERA_CORE_API SkinningWeights
-	{
-		uint8 skin_indices[4];
-		uint8 skin_weights[4];
-	};
-
-	enum LimbType
-	{
-		limb_type_none,
-
-		limb_type_torso,
-		limb_type_head,
-
-		limb_type_upper_arm_right,
-		limb_type_lower_arm_right,
-		limb_type_hand_right,
-
-		limb_type_upper_arm_left,
-		limb_type_lower_arm_left,
-		limb_type_hand_left,
-
-		limb_type_upper_leg_right,
-		limb_type_lower_leg_right,
-		limb_type_foot_right,
-
-		limb_type_upper_leg_left,
-		limb_type_lower_leg_left,
-		limb_type_foot_left,
-
-		limb_type_count,
-	};
-
 	extern const char* limb_type_names[limb_type_count];
 	extern const vec3 limb_type_colors[limb_type_count];
-
-	struct ERA_CORE_API SkeletonJoint final
-	{
-		std::string name;
-		LimbType limb_type;
-		bool ik = false;
-
-		mat4 inv_bind_transform; // Transforms from model space to joint space.
-		mat4 bind_transform; // Position of joint relative to model space.
-
-		uint32 parent_id = INVALID_JOINT;
-
-		ERA_BINARY_SERIALIZE(name, limb_type, ik, inv_bind_transform, bind_transform, parent_id)
-	};
 
 	class ERA_CORE_API JointTransform
 	{
@@ -138,7 +94,7 @@ namespace era_engine::animation
 	public:
 		Skeleton() = default;
 
-		void analyze_joints(const vec3* positions, const void* others, uint32 other_stride, uint32 num_vertices);
+		void analyze_joints();
 
 		void pretty_print_hierarchy() const;
 
@@ -169,5 +125,15 @@ namespace era_engine::animation
 
 	private:
 		mutable SkeletonPose default_pose = SkeletonPose();
+	};
+
+	class ERA_CORE_API SkeletonImportUtils
+	{
+	public:
+		SkeletonImportUtils() = delete;
+
+		static std::vector<ref<Skeleton>> import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import,
+			const fs::path& file,
+			uint32 flags = 0);
 	};
 }

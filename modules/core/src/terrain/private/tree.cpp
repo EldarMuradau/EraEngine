@@ -142,7 +142,7 @@ namespace era_engine
     {
     }
 
-    void renderTree(opaque_render_pass* renderPass, D3D12_GPU_VIRTUAL_ADDRESS transforms, uint32 numInstances, const multi_mesh* mesh, float dt)
+    void renderTree(opaque_render_pass* renderPass, D3D12_GPU_VIRTUAL_ADDRESS transforms, uint32 numInstances, const MultiMesh* mesh, float dt)
     {
         static float time = 0.f;
         time += dt;
@@ -259,23 +259,23 @@ namespace era_engine
         delete[] branchPositions;
     }
 
-    ref<multi_mesh> loadTreeMeshFromFile(const fs::path& sceneFilename)
+    ref<MultiMesh> loadTreeMeshFromFile(const fs::path& sceneFilename)
     {
-        return loadMeshFromFile(sceneFilename, mesh_creation_flags_default | mesh_creation_flags_with_colors, analyzeTreeMesh);
+        return import_mesh_from_file(sceneFilename, mesh_creation_flags_default | mesh_creation_flags_with_colors, analyzeTreeMesh);
     }
 
-    ref<multi_mesh> loadTreeMeshFromHandle(AssetHandle handle)
+    ref<MultiMesh> loadTreeMeshFromHandle(AssetHandle handle)
     {
-        return loadMeshFromHandle(handle, mesh_creation_flags_default | mesh_creation_flags_with_colors, analyzeTreeMesh);
+        return import_mesh_from_handle(handle, mesh_creation_flags_default | mesh_creation_flags_with_colors, analyzeTreeMesh);
     }
 
-    ref<multi_mesh> loadTreeMeshFromFileAsync(const fs::path& sceneFilename, JobHandle parentJob)
+    ref<MultiMesh> loadTreeMeshFromFileAsync(const fs::path& sceneFilename, JobHandle parent_job)
     {
-        return loadMeshFromFileAsync(sceneFilename, mesh_creation_flags_default | mesh_creation_flags_with_colors, parentJob, analyzeTreeMesh);
+        return import_mesh_from_file_async(sceneFilename, mesh_creation_flags_default | mesh_creation_flags_with_colors, parent_job, analyzeTreeMesh);
     }
 
-    ref<multi_mesh> loadTreeMeshFromHandleAsync(AssetHandle handle, JobHandle parentJob)
+    ref<MultiMesh> loadTreeMeshFromHandleAsync(AssetHandle handle, JobHandle parent_job)
     {
-        return loadMeshFromHandleAsync(handle, mesh_creation_flags_default | mesh_creation_flags_with_colors, parentJob, analyzeTreeMesh);
+        return import_mesh_from_handle_async(handle, mesh_creation_flags_default | mesh_creation_flags_with_colors, parent_job, analyzeTreeMesh);
     }
 }

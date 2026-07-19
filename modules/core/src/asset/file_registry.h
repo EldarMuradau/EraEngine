@@ -8,8 +8,8 @@ namespace era_engine
 {
 	struct AssetHandle;
 
-	ERA_CORE_API AssetHandle getAssetHandleFromPath(const fs::path& path);
-	ERA_CORE_API fs::path getPathFromAssetHandle(AssetHandle handle);
+	ERA_CORE_API AssetHandle get_asset_handle_from_path(const fs::path& path);
+	ERA_CORE_API fs::path get_path_from_asset_handle(AssetHandle handle);
 
-	ERA_CORE_API void initializeFileRegistry();
+	ERA_CORE_API void initialize_file_registry();
 }

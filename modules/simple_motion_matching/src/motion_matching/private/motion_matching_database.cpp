@@ -767,7 +767,7 @@ namespace era_engine
 
                 for (const uint64 handle : animations_asset_handles)
                 {
-                    ref<animation::AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<animation::AnimationAssetClip>(getPathFromAssetHandle(AssetHandle(handle)));
+                    ref<animation::AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<animation::AnimationAssetClip>(get_path_from_asset_handle(AssetHandle(handle)));
                     animations.emplace_back(anim_clip);
                 }
             }

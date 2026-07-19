@@ -1,730 +1,596 @@
-- Handle: 16357453489689772876
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\NewProject.csproj
-- Handle: 995705738158643570
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.dll
-- Handle: 11883657710373221232
-  Path: E:/Era Engine/resources/assets\particles\smoke1.tif
-- Handle: 14978961195051501832
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_R.71.cache.dds
-- Handle: 3334222549293203238
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip26.eanm
-- Handle: 9911501380462505810
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\ProjectEvaluation\newproject.projects.v7.bin
-- Handle: 6487484307337482127
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip95.eanm
-- Handle: 11678995850689414462
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\DesignTimeBuild\.dtbcache.v2
-- Handle: 1920617373869045236
-  Path: E:/Era Engine/resources/assets\box.255.cache.bin
-- Handle: 15748823447134296095
-  Path: E:/Era Engine/resources/assets\box.fbx
-- Handle: 6561978077494783855
-  Path: E:/Era Engine/resources/assets\particles\fire_explosion.png
-- Handle: 3456493108460063741
-  Path: E:/Era Engine/resources/assets\resident-evil-tyrant\source\untitled.fbx
-- Handle: 3823432538340402991
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip55.eanm
-- Handle: 6076912995851034865
-  Path: E:/Era Engine/resources/assets\particles\fire_explosion.tif
-- Handle: 14595087873656046186
-  Path: E:/Era Engine/resources/assets\sphere.fbx
-- Handle: 10982422113890224241
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.AssemblyInfoInputs.cache
-- Handle: 5592874050856392889
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_diff.png
-- Handle: 825102469641332394
-  Path: E:/Era Engine/resources/assets\resident-evil-tyrant\textures\T_Tyrant_D.png
-- Handle: 12653772072767991318
-  Path: E:/Era Engine/resources/assets\resident-evil-tyrant\source\tiran.fbx
-- Handle: 10542574068965661642
-  Path: E:/Era Engine/resources/assets\resident-evil-tyrant\source\UmodelExport.fbx
-- Handle: 17666550292353287655
-  Path: E:/Era Engine/resources/assets\resident-evil-tyrant\textures\T_Tyrant_N.png
-- Handle: 3526512418466846474
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_BC.70.cache.dds
-- Handle: 62299593965422362
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip47.eanm
-- Handle: 8246058986602622821
-  Path: E:/Era Engine/resources/assets\Sponza\textures\chain_texture.png
-- Handle: 7359714858794318682
-  Path: E:/Era Engine/resources/assets\Sponza\sponza.mtl
-- Handle: 13600591408139569452
-  Path: E:/Era Engine/resources/assets\resources\files.yaml
-- Handle: 1334853076007206836
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\FileContentIndex\1b9bbaeb-e922-422b-aeee-be03bb2256a4.vsidx
-- Handle: 11759641799594683595
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\FileContentIndex\58964c6e-c91c-43c6-bc50-ef05893b947a.vsidx
-- Handle: 5143461910894741379
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\Bullet.cs
-- Handle: 15779491088902267986
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\FileContentIndex\a0dc6712-ae88-4407-9cfc-fe209b67ec45.vsidx
-- Handle: 4402517195398415480
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\v17\DocumentLayout.json
-- Handle: 5285498348466681380
-  Path: E:/Era Engine/resources/assets\uv.jpg
-- Handle: 4588590278691672600
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip51.eanm
-- Handle: 3085901374092775373
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\PlayerInputManager.cs
-- Handle: 15627311008627137690
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\FileContentIndex\d79320c1-80c0-45f3-91da-64fbf83fd428.vsidx
-- Handle: 12797046089828236632
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NvBlastExtAssetUtils_x64.dll
-- Handle: 15236037365390708292
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NewProject.pdb
-- Handle: 10579650691827527971
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\FileContentIndex\fe25237c-c512-4382-a170-f38e54094218.vsidx
-- Handle: 5232539444997679361
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\v17\.futdcache.v2
-- Handle: 3074962042395891372
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_details_diff.png
-- Handle: 3228544237268800915
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\NewProject\v17\.suo
-- Handle: 11369132808901562736
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\.vs\ProjectEvaluation\newproject.metadata.v7.bin
-- Handle: 16013805813771664908
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Debug\net8.0\EraEngineDomain.dll
-- Handle: 3900381598654144240
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Debug\net8.0\EraEngineDomain.pdb
-- Handle: 9735681174840937882
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip42.eanm
-- Handle: 18406190560961045197
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Debug\net8.0\NewProject.deps.json
-- Handle: 6188220142132412400
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.pdb
-- Handle: 13658790383269258218
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_plant.70.cache.dds
-- Handle: 16184396062813210568
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Debug\net8.0\NewProject.dll
-- Handle: 16353282397828918052
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.csproj.FileListAbsolute.txt
-- Handle: 10329165289695220675
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.csproj.CoreCompileInputs.cache
-- Handle: 17792491237144058183
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Debug\net8.0\NewProject.pdb
-- Handle: 5394868360094771125
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_blue_diff_spec.png
-- Handle: 12420377864076801462
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.AssemblyInfoInputs.cache
-- Handle: 10506421395740301621
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\EraEngineDomain.dll
-- Handle: 18313809289736909478
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.csproj.CopyComplete
-- Handle: 13025930091025637447
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\EraEngineDomain.pdb
-- Handle: 6265220882809639848
-  Path: E:/Era Engine/resources/assets\Sponza\textures\spnza_bricks_a_bump.png
-- Handle: 15177628299805732347
-  Path: E:/Era Engine/resources/assets\Sponza\textures\chain_texture_bump.png
-- Handle: 2369785938572746439
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NewProject.deps.json
-- Handle: 12023777198985515985
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.AssemblyInfo.cs
-- Handle: 2048624371044800711
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
-- Handle: 11225754519797513629
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.csproj.AssemblyReference.cache
-- Handle: 2817234197637234490
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NewProject.dll
-- Handle: 1659889999158486867
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_R.png
-- Handle: 4415443728508246909
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_arch_ddn.png
-- Handle: 13532223824803394864
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\project.assets.json
-- Handle: 2292842930687061410
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NvBlastExtShaders_x64.dll
-- Handle: 18360605533783982784
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.GeneratedMSBuildEditorConfig.editorconfig
-- Handle: 3058460670334518476
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\NewProject.csproj.nuget.dgspec.json
-- Handle: 14502928070568319359
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_a_diff.png
-- Handle: 3157564870931626361
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NvBlastGlobals_x64.dll
-- Handle: 11222586768315941963
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\bin\Release\net8.0\NvBlast_x64.dll
-- Handle: 604811942383804224
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.csproj.AssemblyReference.cache
-- Handle: 17920641786707332554
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
-- Handle: 13418082164570633720
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion2_ddn.png
-- Handle: 13956940536639051969
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\NewProject.csproj.nuget.g.targets
-- Handle: 14785477938394775645
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.assets.cache
-- Handle: 7695456316194266355
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_R.png
-- Handle: 3304473748317027013
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.GlobalUsings.g.cs
-- Handle: 1209723305853996762
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\project.nuget.cache
-- Handle: 4390821373519377295
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\NewProject.sourcelink.json
-- Handle: 322313626503090472
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\ref\NewProject.dll
-- Handle: 17031629254102786826
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Debug\net8.0\refint\NewProject.dll
-- Handle: 7702191504019683299
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_thorn_diff.png
-- Handle: 12363147059759147518
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.csproj.CopyComplete
-- Handle: 196655586702910021
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\NewProject.csproj.nuget.g.props
-- Handle: 9449924030689132439
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_M.png
-- Handle: 8427663149356110194
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_BC.70.cache.dds
-- Handle: 84529588887298998
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.AssemblyInfo.cs
-- Handle: 16724676750759678113
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.assets.cache
-- Handle: 13380450514490464384
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip4.eanm
-- Handle: 15195578571849501195
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip37.eanm
-- Handle: 8761240990213333421
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.csproj.CoreCompileInputs.cache
-- Handle: 2679912010358630702
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.csproj.FileListAbsolute.txt
-- Handle: 7146472884646467580
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.dll
-- Handle: 4254509689417533523
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.GeneratedMSBuildEditorConfig.editorconfig
-- Handle: 13780338855234570157
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip90.eanm
-- Handle: 3617883330609454467
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.GlobalUsings.g.cs
-- Handle: 2973351411982535800
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.pdb
-- Handle: 15498985233464324128
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip83.eanm
-- Handle: 14565739490882835040
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\NewProject.sourcelink.json
-- Handle: 13440519809100557508
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\ref\NewProject.dll
-- Handle: 9337978652027488669
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\obj\Release\net8.0\refint\NewProject.dll
-- Handle: 82006306261359004
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip54.eanm
-- Handle: 11524332373416001998
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\PayerController.cs
-- Handle: 11139355152934933443
-  Path: E:/Era Engine/resources/assets\uv.70.cache.dds
-- Handle: 11101883099457767386
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_hanging.70.cache.dds
-- Handle: 1985168756243520272
-  Path: E:/Era Engine/resources/assets\Sponza\textures\spnza_bricks_a_spec.png
-- Handle: 13061939893172746334
-  Path: E:/Era Engine/resources/assets\Sponza\textures\chain_texture_spec.png
-- Handle: 1917063549068492178
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\TestSystem.cs
-- Handle: 6066222903448540548
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_N.71.cache.dds
-- Handle: 7172219816912445141
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_hanging.png
-- Handle: 3904006038562586217
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject\WeaponHandler.cs
-- Handle: 15415502843335280464
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip96.eanm
-- Handle: 5689777025789396309
-  Path: E:/Era Engine/resources/assets\scripts\NewProject\NewProject.sln
-- Handle: 7046627454771466493
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip53.eanm
-- Handle: 15161278426047596063
-  Path: E:/Era Engine/resources/assets\sounds\FireGren.mp3
-- Handle: 8467073082558945619
-  Path: E:/Era Engine/resources/assets\sounds\punch.wav
-- Handle: 5979985981133448661
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_M.png
-- Handle: 2304240576174077186
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_M.png
-- Handle: 11032109016110516385
-  Path: E:/Era Engine/resources/assets\sounds\s.ogg
-- Handle: 9777760542470540656
-  Path: E:/Era Engine/resources/assets\sounds\sound.ogg
-- Handle: 5885621614350785134
-  Path: E:/Era Engine/resources/assets\Sponza\sponza.255.cache.bin
-- Handle: 7356153472450420524
-  Path: E:/Era Engine/resources/assets\Sponza\sponza.obj
-- Handle: 15337690700254988178
-  Path: E:/Era Engine/resources/assets\Sponza\textures\background.70.cache.dds
-- Handle: 7357886871767377565
-  Path: E:/Era Engine/resources/assets\Sponza\textures\background.png
-- Handle: 13795278292648937296
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_BC.png
-- Handle: 17644010575170898192
-  Path: E:/Era Engine/resources/assets\Sponza\textures\backgroundBGR.png
-- Handle: 9638377418341676697
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip85.eanm
-- Handle: 11256024134227645698
-  Path: E:/Era Engine/resources/assets\Sponza\textures\background_bump.png
-- Handle: 9265247845598357596
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_M.png
-- Handle: 11063110479704651287
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip9.eanm
-- Handle: 1828813782904106024
-  Path: E:/Era Engine/resources/assets\Sponza\textures\background_ddn.png
-- Handle: 9323793101460654832
-  Path: E:/Era Engine/resources/assets\Sponza\textures\chain_texture.70.cache.dds
-- Handle: 10788616427365590000
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip93.eanm
-- Handle: 17813764978038787343
-  Path: E:/Era Engine/resources/assets\Sponza\textures\spnza_bricks_a_ddn.png
-- Handle: 3267860851490529120
-  Path: E:/Era Engine/resources/assets\Sponza\textures\chain_texture_ddn.png
-- Handle: 3032006739743305182
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_M.71.cache.dds
-- Handle: 2023876855698640558
-  Path: E:/Era Engine/resources/assets\Sponza\textures\gi_flag.png
-- Handle: 1259086615652500625
-  Path: E:/Era Engine/resources/assets\springtrap\source\skeletons\skeleton1.eskeleton
-- Handle: 1307124956229222323
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion.70.cache.dds
-- Handle: 3233786643762082941
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_M.71.cache.dds
-- Handle: 17114041583463481346
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_M.71.cache.dds
-- Handle: 17009866836679630092
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion.png
-- Handle: 8825893699108101611
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_floor_ddn.jpg
-- Handle: 10081890233865971510
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion2_bump.png
-- Handle: 7596812653205172883
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion_bump.png
-- Handle: 8128333034004451126
-  Path: E:/Era Engine/resources/assets\Sponza\textures\lion_ddn.png
-- Handle: 11901609264714348885
-  Path: E:/Era Engine/resources/assets\Sponza\textures\spnza_bricks_a_diff.70.cache.dds
-- Handle: 4802846488468954087
-  Path: E:/Era Engine/resources/assets\Sponza\textures\spnza_bricks_a_diff.png
-- Handle: 3269852448016018854
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_arch_bump.png
-- Handle: 7011714975833804683
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_arch_diff.70.cache.dds
-- Handle: 13951129909791782356
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_arch_diff.png
-- Handle: 18342455850248859199
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_arch_spec.png
-- Handle: 12737099770063459799
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_roof_diff.png
-- Handle: 16120714100766981411
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_ceiling_a_diff.70.cache.dds
-- Handle: 12055051897884602293
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip69.eanm
-- Handle: 11637234797303702681
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_ceiling_a_diff.png
-- Handle: 11473093330414999184
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_ceiling_a_spec.png
-- Handle: 1924885527467942184
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_hanging_NRM.png
-- Handle: 12407126343685449405
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_ceiling_ddn.jpg
-- Handle: 6936622649861581969
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip14.eanm
-- Handle: 17237293127287484336
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_a_bump.png
-- Handle: 10006303329910113007
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_a_ddn.png
-- Handle: 10664969051055106730
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_a_diff.70.cache.dds
-- Handle: 801557519334420487
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_round.png
-- Handle: 13695366243243339405
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_a_spec.png
-- Handle: 11122950150291976017
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip17.eanm
-- Handle: 14075547221490001808
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_b_bump.png
-- Handle: 10011590589589228589
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_N.png
-- Handle: 9884395297644759135
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_b_ddn.png
-- Handle: 3256736554535677711
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_b_diff.70.cache.dds
-- Handle: 8265328563506416913
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_b_diff.png
-- Handle: 9255747979426433099
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_b_spec.png
-- Handle: 17657558099047866173
-  Path: E:/Era Engine/resources/assets\terrain\rock_normal.bmp
-- Handle: 10909310537708839100
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip52.eanm
-- Handle: 1926020260834933659
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_c_bump.png
-- Handle: 1162316260679130841
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_M.png
-- Handle: 3114975146303651324
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_round.70.cache.dds
-- Handle: 5533675061753051052
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_c_ddn.png
-- Handle: 12220860852665184140
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_R.71.cache.dds
-- Handle: 13403582635223574595
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_c_diff.70.cache.dds
-- Handle: 5138816061266208851
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_c_diff.png
-- Handle: 6822212804679691459
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_column_c_spec.png
-- Handle: 6001009047207192538
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_blue_diff.70.cache.dds
-- Handle: 4083098440724738069
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_blue_diff.png
-- Handle: 12609221758299350754
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip29.eanm
-- Handle: 1333491010176600122
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_ddn.jpg
-- Handle: 12570540947827806381
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_R.71.cache.dds
-- Handle: 14141155608891905249
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_R.71.cache.dds
-- Handle: 3352425423232829226
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_diff.70.cache.dds
-- Handle: 5335709999560334756
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_diff.71.cache.dds
-- Handle: 2067420702186562207
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_diff.png
-- Handle: 944125430468123034
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_green_diff.70.cache.dds
-- Handle: 16672432497317846281
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip66.eanm
-- Handle: 5940796703401488188
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_roof_diff_NRM.png
-- Handle: 3068314123550118185
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_curtain_green_diff.png
-- Handle: 16208099466478138059
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_details_ddn.jpg
-- Handle: 4889469340179489139
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip67.eanm
-- Handle: 8408606182655533422
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_details_diff.70.cache.dds
-- Handle: 14603257509953576833
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_details_spec.png
-- Handle: 16041461310005048062
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_blue_diff.70.cache.dds
-- Handle: 8572580060001371803
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_blue_diff.png
-- Handle: 15434873485803763030
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_ddn.71.cache.dds
-- Handle: 17842839530415594649
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_N.png
-- Handle: 18284897464803064764
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_ddn.jpg
-- Handle: 873243373494442315
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_diff.70.cache.dds
-- Handle: 2236157623328187804
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip20.eanm
-- Handle: 11912065528558977480
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_green_diff.70.cache.dds
-- Handle: 11519324143233641931
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_green_diff.png
-- Handle: 4790884798979880016
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_fabric_spec.png
-- Handle: 11245843137958160184
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_flagpole_diff.70.cache.dds
-- Handle: 1928917354718948470
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_flagpole_diff.png
-- Handle: 146159722644375086
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_flagpole_diff_NRM.png
-- Handle: 886261730704840152
-  Path: E:/Era Engine/resources/assets\springtrap\source\skeletons\skeleton2.eskeleton
-- Handle: 6259430942244904230
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip19.eanm
-- Handle: 6649391297828826530
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_flagpole_spec.png
-- Handle: 9992663308398450553
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_floor_a_diff.70.cache.dds
-- Handle: 16783409109267251095
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_floor_a_diff.png
-- Handle: 17246320979358720424
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_floor_a_diff_spec.png
-- Handle: 2639802657898308496
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_roof_diff.70.cache.dds
-- Handle: 10640481949929611125
-  Path: E:/Era Engine/resources/assets\terrain\grass.bmp
-- Handle: 14709028956264004962
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_thorn_bump.png
-- Handle: 10853486434845588504
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_thorn_ddn.png
-- Handle: 13687571219921437152
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_thorn_diff.70.cache.dds
-- Handle: 13322930217130152140
-  Path: E:/Era Engine/resources/assets\Sponza\textures\sponza_thorn_spec.png
-- Handle: 15151977858421688908
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip39.eanm
-- Handle: 17046689101963942765
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_bump.png
-- Handle: 5583760343048904542
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip97.eanm
-- Handle: 11750729506583087771
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_ddn.png
-- Handle: 14258795577252569166
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_dif.70.cache.dds
-- Handle: 14397375622011103758
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_dif.png
-- Handle: 1795638800233663277
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_plant.png
-- Handle: 10008178892088986747
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_plant_ddn.jpg
-- Handle: 7361853745879301923
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_plant_NRM.png
-- Handle: 8477076876172791965
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_plant_spec.png
-- Handle: 10029765531639718055
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_round_bump.png
-- Handle: 5995846991926441288
-  Path: E:/Era Engine/resources/assets\vehicledata\Base.json
-- Handle: 14248263429956355622
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_round_ddn.png
-- Handle: 17259463557417596458
-  Path: E:/Era Engine/resources/assets\Sponza\textures\vase_round_spec.png
-- Handle: 5460812979745397249
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip33.eanm
-- Handle: 1920594536034260231
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip0.eanm
-- Handle: 14366468269352960839
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip32.eanm
-- Handle: 1097622576901174637
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip1.eanm
-- Handle: 1920560082095162387
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip10.eanm
-- Handle: 11405936861059254107
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip11.eanm
-- Handle: 6796536102887080085
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip12.eanm
-- Handle: 878210854512632404
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip13.eanm
-- Handle: 6063382260915867317
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_BC.70.cache.dds
-- Handle: 7989004493645116296
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip15.eanm
-- Handle: 8300636178511956752
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip16.eanm
-- Handle: 5167920286212891398
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip18.eanm
-- Handle: 12576669111060690031
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip31.eanm
-- Handle: 12892281836730386247
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip2.eanm
-- Handle: 4722936340625727680
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip21.eanm
-- Handle: 13570938869834719105
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip22.eanm
-- Handle: 10270277803993451518
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip23.eanm
-- Handle: 13192062968112858089
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip24.eanm
-- Handle: 16533170598052625966
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip25.eanm
-- Handle: 6221048439681188434
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip27.eanm
-- Handle: 15118146163335213782
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip28.eanm
-- Handle: 17394522710597516293
-  Path: E:/Era Engine/resources/assets\terrain\rock.bmp
-- Handle: 7393584191397412911
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip30.eanm
-- Handle: 16791518296684831881
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip3.eanm
-- Handle: 10883828849478788472
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip7.eanm
-- Handle: 1657374809645422709
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip34.eanm
-- Handle: 9734275332888146653
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_BC.70.cache.dds
-- Handle: 2405149318216152854
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip6.eanm
-- Handle: 7632282008643900421
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip35.eanm
-- Handle: 12798858175153730481
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip5.eanm
-- Handle: 3409142486616052589
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip36.eanm
-- Handle: 12297586288151218227
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip38.eanm
-- Handle: 15113610486147599203
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip40.eanm
-- Handle: 4951700631745074997
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip41.eanm
-- Handle: 8655079381386987099
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip43.eanm
-- Handle: 39615349418177175
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip44.eanm
-- Handle: 17709692591158068530
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip45.eanm
-- Handle: 5860495046882474424
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip46.eanm
-- Handle: 8209206696210448245
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_R.71.cache.dds
-- Handle: 4940019023163206164
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip48.eanm
-- Handle: 9048263427408884776
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_N.71.cache.dds
-- Handle: 16547791492758769216
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip49.eanm
-- Handle: 2637065586006846667
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip50.eanm
-- Handle: 15203325071742504658
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip56.eanm
-- Handle: 15957194899848395599
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip57.eanm
-- Handle: 1001819552109301369
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip58.eanm
-- Handle: 3361558420913895461
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip59.eanm
-- Handle: 6043954030423541269
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip60.eanm
-- Handle: 17207339007965592665
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip61.eanm
-- Handle: 15195602362332073953
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip62.eanm
-- Handle: 2084835848266043454
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip63.eanm
-- Handle: 6023706031740671006
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip64.eanm
-- Handle: 6875906351118654518
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip65.eanm
-- Handle: 4898583130344316558
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip68.eanm
-- Handle: 3120974335840115234
-  Path: E:/Era Engine/resources/assets\vehicledata\DirectDrive.json
-- Handle: 10973486208367377450
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip70.eanm
-- Handle: 10115163332807683643
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_M.png
-- Handle: 5585766147026203602
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip71.eanm
-- Handle: 4406534316726777011
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip72.eanm
-- Handle: 6530091471106622618
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_R.png
-- Handle: 317953582668639459
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip73.eanm
-- Handle: 9987002893444586138
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip74.eanm
-- Handle: 17836670832893418543
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip75.eanm
-- Handle: 9819176265631296087
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip76.eanm
-- Handle: 11377261852277330755
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip77.eanm
-- Handle: 8216995477047626789
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip78.eanm
-- Handle: 11509117149547540989
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip79.eanm
-- Handle: 11629471361936566494
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip8.eanm
-- Handle: 98408594977505807
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip80.eanm
-- Handle: 15379045428345001035
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip81.eanm
-- Handle: 2808303120822113315
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip82.eanm
-- Handle: 8863434042562449099
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip84.eanm
-- Handle: 5034465840423421974
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip86.eanm
-- Handle: 8096148021002272774
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip87.eanm
-- Handle: 18729661076386735
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_N.png
-- Handle: 10218534300373807380
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip88.eanm
-- Handle: 9808236382312719494
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip89.eanm
-- Handle: 17386258953867467471
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip91.eanm
-- Handle: 11519851630591654458
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip92.eanm
-- Handle: 3777303435235183054
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip94.eanm
-- Handle: 9840820144998967005
-  Path: E:/Era Engine/resources/assets\springtrap\source\animations\animation_clip98.eanm
-- Handle: 13261000526440010533
-  Path: E:/Era Engine/resources/assets\springtrap\source\mmdb\locomotion.emmdb
-- Handle: 4691921270699100483
-  Path: E:/Era Engine/resources/assets\springtrap\source\skeletons\skeleton0.eskeleton
-- Handle: 10285382165156756851
-  Path: E:/Era Engine/resources/assets\springtrap\source\skeletons\skeleton3.eskeleton
-- Handle: 11401558931259121717
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_R.png
-- Handle: 17782454683434474825
-  Path: E:/Era Engine/resources/assets\springtrap\source\Springtrap.255.cache.bin
-- Handle: 3381411580031286360
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_M.71.cache.dds
-- Handle: 11700860419602022579
-  Path: E:/Era Engine/resources/assets\springtrap\source\Springtrap.fbx
-- Handle: 10621328962101059717
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Arms01_M.png
-- Handle: 8516278173693641609
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_BC.70.cache.dds
-- Handle: 1876043059562946195
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_BC.70.cache.dds
-- Handle: 2472632382431107534
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_BC.png
-- Handle: 15053831705388840558
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_BC.png
-- Handle: 15017221850106641502
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_N.71.cache.dds
-- Handle: 8091590678989995752
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_N.71.cache.dds
-- Handle: 18318559831803184550
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_N.png
-- Handle: 1752401960156650005
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_N.png
-- Handle: 14748262849448334668
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40SW01_R.png
-- Handle: 13015732147145949192
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40ArmsAcc01_R.png
-- Handle: 12155355359281793672
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_BC.70.cache.dds
-- Handle: 3911397965888039709
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_BC.png
-- Handle: 10478733669948829195
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_M.71.cache.dds
-- Handle: 7166550821747082432
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_N.png
-- Handle: 7512788238575729993
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Corpse01_R.71.cache.dds
-- Handle: 11925115679943533860
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_BC.png
-- Handle: 11355664353093787502
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_E.png
-- Handle: 11592466844823844304
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_M.71.cache.dds
-- Handle: 7821626267360173351
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_N.71.cache.dds
-- Handle: 11458082318849673437
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Head01_N.png
-- Handle: 3305609219470225400
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_BC.png
-- Handle: 17130874902829866791
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_M.71.cache.dds
-- Handle: 9381165436016585124
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_N.71.cache.dds
-- Handle: 17265278147036832119
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_N.png
-- Handle: 17583257292329451851
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Legs01_R.png
-- Handle: 3823943289791540454
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_BC.70.cache.dds
-- Handle: 15356803864511648703
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_BC.png
-- Handle: 4393029080105777696
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_M.png
-- Handle: 1798912954172155604
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_N.71.cache.dds
-- Handle: 4704727787755891424
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40Torso01_R.71.cache.dds
-- Handle: 2760016413696464104
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_BC.png
-- Handle: 1829195744029667009
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_M.71.cache.dds
-- Handle: 14509251017352138892
-  Path: E:/Era Engine/resources/assets\springtrap\textures\T_K40W01_N.71.cache.dds
-- Handle: 17839682638940268299
-  Path: E:/Era Engine/resources/assets\terrain\grass_normal.bmp
-- Handle: 2330084344292649494
-  Path: E:/Era Engine/resources/assets\vehicledata\EngineDrive.json
+- Handle: 3911417581658477988
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_M.png
+- Handle: 13509410420443180576
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round.70.cache.dds
+- Handle: 6800310450791564871
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_ddn.png
+- Handle: 1919302953557403697
+  Path: E:\Era Engine\resources\assets\box.fbx
+- Handle: 15987038638548307745
+  Path: E:\Era Engine\resources\assets\particles\fire_explosion.png
+- Handle: 17936868711896888358
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_spec.png
+- Handle: 17802464856707852724
+  Path: E:\Era Engine\resources\assets\resident-evil-tyrant\source\untitled.fbx
+- Handle: 18050543650574426302
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip55.eanm
+- Handle: 15211405525785648383
+  Path: E:\Era Engine\resources\assets\particles\fire_explosion.tif
+- Handle: 9598111934430805766
+  Path: E:\Era Engine\resources\assets\particles\smoke1.tif
+- Handle: 14242932336506848105
+  Path: E:\Era Engine\resources\assets\sphere.fbx
+- Handle: 10873561291478016120
+  Path: E:\Era Engine\resources\assets\resident-evil-tyrant\source\tiran.fbx
+- Handle: 9532041413014021028
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_diff.png
+- Handle: 4762619341616996455
+  Path: E:\Era Engine\resources\assets\resident-evil-tyrant\textures\T_Tyrant_D.png
+- Handle: 7330997632640765000
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_b_diff.png
+- Handle: 3939065019963065912
+  Path: E:\Era Engine\resources\assets\resident-evil-tyrant\source\UmodelExport.fbx
+- Handle: 7950406384025971153
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_bump.png
+- Handle: 7093622505402032487
+  Path: E:\Era Engine\resources\assets\resident-evil-tyrant\textures\T_Tyrant_N.png
+- Handle: 12496522157386461509
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_BC.70.cache.dds
+- Handle: 13772840772884778367
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip47.eanm
+- Handle: 15322545483373654117
+  Path: E:\Era Engine\resources\assets\resources\files.yaml
+- Handle: 15616711993306759348
+  Path: E:\Era Engine\resources\assets\Sponza\sponza.mtl
+- Handle: 16192527820321753527
+  Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture.png
+- Handle: 7068392344462960260
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip53.eanm
+- Handle: 14576437933678823493
+  Path: E:\Era Engine\resources\assets\sounds\FireGren.mp3
+- Handle: 3783079265165479581
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip17.eanm
+- Handle: 7615738997200372657
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_b_bump.png
+- Handle: 2016250469419765781
+  Path: E:\Era Engine\resources\assets\sounds\punch.wav
+- Handle: 5293372551295231962
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_diff.png
+- Handle: 9708871553366974430
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip93.eanm
+- Handle: 6524635160732320718
+  Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture_ddn.png
+- Handle: 10244880453993823032
+  Path: E:\Era Engine\resources\assets\Sponza\textures\spnza_bricks_a_ddn.png
+- Handle: 2532360974134584234
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_M.png
+- Handle: 6367899634702587909
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_M.png
+- Handle: 17007111404885999861
+  Path: E:\Era Engine\resources\assets\sounds\s.ogg
+- Handle: 9272823252974071476
+  Path: E:\Era Engine\resources\assets\sounds\sound.ogg
+- Handle: 4296835973357202863
+  Path: E:\Era Engine\resources\assets\Sponza\sponza.255.cache.bin
+- Handle: 4770125415400091189
+  Path: E:\Era Engine\resources\assets\Sponza\sponza.obj
+- Handle: 13103732820340042278
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_a_ddn.png
+- Handle: 7750573815342516151
+  Path: E:\Era Engine\resources\assets\Sponza\textures\spnza_bricks_a_diff.png
+- Handle: 14825502973934873824
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion2_ddn.png
+- Handle: 5094133143350213417
+  Path: E:\Era Engine\resources\assets\Sponza\textures\background.70.cache.dds
+- Handle: 9786083055861989174
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_b_diff.70.cache.dds
+- Handle: 7700334762446343327
+  Path: E:\Era Engine\resources\assets\Sponza\textures\background.png
+- Handle: 2711739290829214654
+  Path: E:\Era Engine\resources\assets\terrain\rock_normal.bmp
+- Handle: 14469634895883001851
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip52.eanm
+- Handle: 13549039458238080333
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_bump.png
+- Handle: 7797171702757200416
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip69.eanm
+- Handle: 3969975470785670726
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_ceiling_a_diff.png
+- Handle: 4146621957348775218
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_BC.png
+- Handle: 9709352705196450502
+  Path: E:\Era Engine\resources\assets\Sponza\textures\backgroundBGR.png
+- Handle: 2294454803589770602
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip85.eanm
+- Handle: 3166948150310109059
+  Path: E:\Era Engine\resources\assets\Sponza\textures\background_bump.png
+- Handle: 5622168829442379472
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_b_spec.png
+- Handle: 7579005898804953000
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_M.png
+- Handle: 17609213177037646420
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip9.eanm
+- Handle: 6014694009103278012
+  Path: E:\Era Engine\resources\assets\Sponza\textures\background_ddn.png
+- Handle: 2413110864734737301
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_spec.png
+- Handle: 1045539606850288131
+  Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture.70.cache.dds
+- Handle: 10941077233546548580
+  Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture_bump.png
+- Handle: 4979509079072835124
+  Path: E:\Era Engine\resources\assets\Sponza\textures\spnza_bricks_a_bump.png
+- Handle: 11476955178088516761
+  Path: E:\Era Engine\resources\assets\uv.70.cache.dds
+- Handle: 4166003851682315611
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_hanging.70.cache.dds
+- Handle: 4006163202947318473
+  Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture_spec.png
+- Handle: 16956173578796111096
+  Path: E:\Era Engine\resources\assets\Sponza\textures\spnza_bricks_a_spec.png
+- Handle: 630059231487417970
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_a_diff.70.cache.dds
+- Handle: 7420882182221852184
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_M.71.cache.dds
+- Handle: 10511086341225497996
+  Path: E:\Era Engine\resources\assets\Sponza\textures\gi_flag.png
+- Handle: 5947765289705822722
+  Path: E:\Era Engine\resources\assets\springtrap\source\skeletons\skeleton1.eskeleton
+- Handle: 14582965380609888007
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion.70.cache.dds
+- Handle: 7371411207929371347
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_N.png
+- Handle: 12352015518669037686
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_b_ddn.png
+- Handle: 5164930393750229772
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_M.71.cache.dds
+- Handle: 8011874480697034571
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_M.71.cache.dds
+- Handle: 8980258044087978585
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion.png
+- Handle: 9902079527043746279
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip14.eanm
+- Handle: 11847987243843545525
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_a_bump.png
+- Handle: 14763405695113690721
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_ddn.jpg
+- Handle: 14803978489700325005
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion2_bump.png
+- Handle: 12630990730026045881
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion_bump.png
+- Handle: 11550690537978984282
+  Path: E:\Era Engine\resources\assets\Sponza\textures\lion_ddn.png
+- Handle: 8179589200793074894
+  Path: E:\Era Engine\resources\assets\Sponza\textures\spnza_bricks_a_diff.70.cache.dds
+- Handle: 2851926250954396148
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_R.png
+- Handle: 5813947216316745410
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_ddn.png
+- Handle: 12343657982782827215
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_diff.70.cache.dds
+- Handle: 17559056225144378106
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_roof_diff.png
+- Handle: 7649202024148654706
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_ceiling_a_diff.70.cache.dds
+- Handle: 15040312609899846810
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_ceiling_a_spec.png
+- Handle: 12526286174903590413
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_hanging_NRM.png
+- Handle: 17232948718982212387
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_ceiling_ddn.jpg
+- Handle: 3809763092705182798
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_a_diff.png
+- Handle: 7772076453668623868
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round.png
+- Handle: 9362083770792213446
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_a_spec.png
+- Handle: 17640300384700568209
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_R.71.cache.dds
+- Handle: 3927222975161051659
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_diff.70.cache.dds
+- Handle: 15942384879462235295
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_diff.png
+- Handle: 10849169762898780366
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff.70.cache.dds
+- Handle: 6872602318623254543
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff.png
+- Handle: 18257514533635320479
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff_spec.png
+- Handle: 15974138917438142673
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip29.eanm
+- Handle: 4846054262775846794
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_ddn.jpg
+- Handle: 16004517839127289597
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_R.71.cache.dds
+- Handle: 15700518649490263877
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_R.71.cache.dds
+- Handle: 136417307361885733
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_diff.70.cache.dds
+- Handle: 9021072226283756825
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_diff.71.cache.dds
+- Handle: 9807036376726825315
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_diff.png
+- Handle: 14303914407095866481
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_green_diff.70.cache.dds
+- Handle: 4615826787331682877
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip66.eanm
+- Handle: 16255246271653593951
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_roof_diff_NRM.png
+- Handle: 4610321359590571289
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_green_diff.png
+- Handle: 17348371872046468643
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_details_ddn.jpg
+- Handle: 13340166496574069529
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip67.eanm
+- Handle: 2734929143538764927
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_details_diff.70.cache.dds
+- Handle: 5957382587136854055
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_details_diff.png
+- Handle: 12036415131613783671
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_details_spec.png
+- Handle: 2224971232396798075
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_blue_diff.70.cache.dds
+- Handle: 1813846552347075691
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_blue_diff.png
+- Handle: 17782619567400416099
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_ddn.71.cache.dds
+- Handle: 389639738199356557
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_N.png
+- Handle: 1519553355446277189
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_ddn.jpg
+- Handle: 2611194649064645805
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_diff.70.cache.dds
+- Handle: 17545037906044969974
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip20.eanm
+- Handle: 8927972640348900451
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_green_diff.70.cache.dds
+- Handle: 14978060978466241211
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_green_diff.png
+- Handle: 13576494995470305550
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_spec.png
+- Handle: 14719146949175151132
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_flagpole_diff.70.cache.dds
+- Handle: 1068275993294255368
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_flagpole_diff.png
+- Handle: 14936287104891958370
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_flagpole_diff_NRM.png
+- Handle: 16983411838668651062
+  Path: E:\Era Engine\resources\assets\springtrap\source\skeletons\skeleton2.eskeleton
+- Handle: 16638760434942110853
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip19.eanm
+- Handle: 12880982194148656778
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_flagpole_spec.png
+- Handle: 6576136119726022023
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff.70.cache.dds
+- Handle: 7508114558092368252
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff.png
+- Handle: 13931041687337768910
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff_spec.png
+- Handle: 5714720104440869853
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_roof_diff.70.cache.dds
+- Handle: 8090722641068794662
+  Path: E:\Era Engine\resources\assets\terrain\grass.bmp
+- Handle: 2564357586855017241
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_thorn_bump.png
+- Handle: 6677592857586628911
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_thorn_ddn.png
+- Handle: 14570340487814518557
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_thorn_diff.70.cache.dds
+- Handle: 15881419237193689715
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_thorn_diff.png
+- Handle: 6785104825508245223
+  Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_thorn_spec.png
+- Handle: 9166357600342429979
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip39.eanm
+- Handle: 6622213822113783162
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_bump.png
+- Handle: 18400324374651664732
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip97.eanm
+- Handle: 2721167579213565888
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_ddn.png
+- Handle: 6289797147359106271
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_dif.70.cache.dds
+- Handle: 18431126336884127414
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_dif.png
+- Handle: 8109307084692039035
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_N.71.cache.dds
+- Handle: 17570755718631921249
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_hanging.png
+- Handle: 17937976654986214129
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_plant.70.cache.dds
+- Handle: 872969325869269316
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_plant.png
+- Handle: 18087570257982279750
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_plant_ddn.jpg
+- Handle: 11118892238233233766
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_plant_NRM.png
+- Handle: 17740404626877090356
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_plant_spec.png
+- Handle: 8416538374882745303
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round_bump.png
+- Handle: 14362939071418232570
+  Path: E:\Era Engine\resources\assets\vehicledata\Base.json
+- Handle: 11893270081140614816
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round_ddn.png
+- Handle: 16252242516858182509
+  Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round_spec.png
+- Handle: 8998267277156366943
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip33.eanm
+- Handle: 2754135490302167579
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip0.eanm
+- Handle: 4791320161328729857
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip32.eanm
+- Handle: 17633614837122314063
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip1.eanm
+- Handle: 3412120492476918737
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip10.eanm
+- Handle: 14015463401138940486
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip11.eanm
+- Handle: 17214174773574042642
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip12.eanm
+- Handle: 9986466929586011802
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip13.eanm
+- Handle: 2307465426019347415
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_BC.70.cache.dds
+- Handle: 14999349630834895028
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip15.eanm
+- Handle: 1092397182775319653
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip16.eanm
+- Handle: 150161054440039104
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip18.eanm
+- Handle: 11235829873474466599
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip31.eanm
+- Handle: 10144328816435721500
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip2.eanm
+- Handle: 15562196230938819505
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip21.eanm
+- Handle: 18279619311758686214
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip22.eanm
+- Handle: 18351439726678411254
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip23.eanm
+- Handle: 5710888680258202489
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip24.eanm
+- Handle: 10171514709326969071
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip25.eanm
+- Handle: 18057744145621367044
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_R.71.cache.dds
+- Handle: 11886135230058058590
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip26.eanm
+- Handle: 8021465423342305144
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip27.eanm
+- Handle: 11913007548702747526
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip28.eanm
+- Handle: 17587343324684934851
+  Path: E:\Era Engine\resources\assets\terrain\rock.bmp
+- Handle: 18298311300301710891
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip30.eanm
+- Handle: 11579740845527393760
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip3.eanm
+- Handle: 9607857858514107908
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip7.eanm
+- Handle: 3713479531587147755
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip34.eanm
+- Handle: 1256768757348963287
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_BC.70.cache.dds
+- Handle: 3537578085895934890
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip6.eanm
+- Handle: 5677180526217056772
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip35.eanm
+- Handle: 18177937456932489042
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip5.eanm
+- Handle: 4732367896247209632
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip36.eanm
+- Handle: 3683138529365380729
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip4.eanm
+- Handle: 807419674005219517
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip37.eanm
+- Handle: 3127872101565914028
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip38.eanm
+- Handle: 5148010626210902437
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip40.eanm
+- Handle: 12020561470441783686
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip41.eanm
+- Handle: 10980670101265087493
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip42.eanm
+- Handle: 5969339519937711549
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip43.eanm
+- Handle: 11738056802786701286
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip44.eanm
+- Handle: 8646472576658750649
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip45.eanm
+- Handle: 719254767442427776
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip46.eanm
+- Handle: 14943157735208383106
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_R.71.cache.dds
+- Handle: 16001874021667394085
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip48.eanm
+- Handle: 4319646126900670236
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_N.71.cache.dds
+- Handle: 2939687754706938305
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip49.eanm
+- Handle: 3820102066819458780
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip50.eanm
+- Handle: 4771935814167944512
+  Path: E:\Era Engine\resources\assets\uv.jpg
+- Handle: 12696888536636806417
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip51.eanm
+- Handle: 7648777530961666282
+  Path: E:\Era Engine\resources\assets\springtrap\source\Springtrap.emesh
+- Handle: 5369936515056311241
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip54.eanm
+- Handle: 15106148128183834879
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip56.eanm
+- Handle: 11891021555337015182
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip57.eanm
+- Handle: 13887669731229748305
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip58.eanm
+- Handle: 3578674439965913481
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip59.eanm
+- Handle: 13761896161703962637
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip60.eanm
+- Handle: 8638776740982346013
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip61.eanm
+- Handle: 4806537807545329663
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip62.eanm
+- Handle: 1176408608889047792
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip63.eanm
+- Handle: 406058240832086245
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip64.eanm
+- Handle: 7478972822043487460
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip65.eanm
+- Handle: 4249334768304850927
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip68.eanm
+- Handle: 8772658304422280359
+  Path: E:\Era Engine\resources\assets\vehicledata\DirectDrive.json
+- Handle: 4486874542674338936
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip70.eanm
+- Handle: 4876769968520643540
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_M.png
+- Handle: 3023305061821926320
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip71.eanm
+- Handle: 12583944374844437799
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip72.eanm
+- Handle: 1835968899216913782
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_R.png
+- Handle: 5459932023433780621
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip73.eanm
+- Handle: 9469122515419989878
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip74.eanm
+- Handle: 14625555875732430072
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip75.eanm
+- Handle: 3101427462672610241
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip76.eanm
+- Handle: 5663792093122222182
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip77.eanm
+- Handle: 7869613147313794902
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip78.eanm
+- Handle: 12571761807991650568
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip79.eanm
+- Handle: 3510859016354738042
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip8.eanm
+- Handle: 2606133428965157796
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip80.eanm
+- Handle: 14827132952412436723
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip81.eanm
+- Handle: 849745389826896962
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip82.eanm
+- Handle: 5004524101553189930
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip83.eanm
+- Handle: 5415994164268815426
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip84.eanm
+- Handle: 12375835038295287728
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip86.eanm
+- Handle: 7614131732992578431
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip87.eanm
+- Handle: 16389438295592917745
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_N.png
+- Handle: 2035803938984326681
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip88.eanm
+- Handle: 7232237202642292917
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip89.eanm
+- Handle: 235131109182674560
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip90.eanm
+- Handle: 3560682085654545069
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip91.eanm
+- Handle: 4108115666650749800
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip92.eanm
+- Handle: 16439733347013608161
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip94.eanm
+- Handle: 9821280853317819684
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip95.eanm
+- Handle: 10166448906705035550
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip96.eanm
+- Handle: 18268350481412983726
+  Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip98.eanm
+- Handle: 17696070767459551801
+  Path: E:\Era Engine\resources\assets\springtrap\source\mmdb\locomotion.emmdb
+- Handle: 15044075775213656045
+  Path: E:\Era Engine\resources\assets\springtrap\source\skeletons\skeleton0.eskeleton
+- Handle: 10503619233653617602
+  Path: E:\Era Engine\resources\assets\springtrap\source\skeletons\skeleton3.eskeleton
+- Handle: 16583336275632443701
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_R.png
+- Handle: 998663115370858405
+  Path: E:\Era Engine\resources\assets\springtrap\source\Springtrap.255.cache.bin
+- Handle: 293935035791944075
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_M.71.cache.dds
+- Handle: 2978715600902369579
+  Path: E:\Era Engine\resources\assets\springtrap\source\Springtrap.fbx
+- Handle: 17046315970807724713
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_M.png
+- Handle: 1045655064455511433
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_BC.70.cache.dds
+- Handle: 12264570355158736836
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Arms01_M.png
+- Handle: 1510271889261893860
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_BC.70.cache.dds
+- Handle: 3283301812990792348
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_BC.70.cache.dds
+- Handle: 8143938610887216341
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_BC.png
+- Handle: 7942474666476050745
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_BC.png
+- Handle: 4455727487820348525
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_N.71.cache.dds
+- Handle: 13582074164148349557
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_N.71.cache.dds
+- Handle: 17386742902288282709
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_N.png
+- Handle: 15239942393695482465
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_N.png
+- Handle: 5588916322778524288
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40SW01_R.png
+- Handle: 3055023697434163355
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40ArmsAcc01_R.png
+- Handle: 12247690210278380330
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_BC.70.cache.dds
+- Handle: 6912628538424738188
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_BC.png
+- Handle: 7493211475011777295
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_M.71.cache.dds
+- Handle: 17725260209097061570
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_N.png
+- Handle: 15534063878138688811
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_R.71.cache.dds
+- Handle: 11127899571125584385
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_R.png
+- Handle: 11617900622833394407
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_BC.png
+- Handle: 8470101156939560802
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_E.png
+- Handle: 9972625333374315532
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_M.71.cache.dds
+- Handle: 5926952696451618899
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_N.71.cache.dds
+- Handle: 495370442962483491
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_N.png
+- Handle: 14001358770087867952
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_BC.png
+- Handle: 15200861856655703132
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_M.71.cache.dds
+- Handle: 15637814660377513359
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_N.71.cache.dds
+- Handle: 16296083493528955732
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_N.png
+- Handle: 15689250733414179303
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Legs01_R.png
+- Handle: 18359034685088938965
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_BC.70.cache.dds
+- Handle: 15929947658292229346
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_BC.png
+- Handle: 11327432081373821976
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_M.png
+- Handle: 3053748525849196256
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_N.71.cache.dds
+- Handle: 4891923617469188260
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_R.71.cache.dds
+- Handle: 15354406160590585792
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_BC.png
+- Handle: 8172392044968143807
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_M.71.cache.dds
+- Handle: 12962925740464448087
+  Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40W01_N.71.cache.dds
+- Handle: 16394762318675415520
+  Path: E:\Era Engine\resources\assets\terrain\grass_normal.bmp
+- Handle: 15192055879465321886
+  Path: E:\Era Engine\resources\assets\vehicledata\EngineDrive.json

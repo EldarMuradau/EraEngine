@@ -1,5 +1,3 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #pragma once
 
 #include "core_api.h"
@@ -37,7 +35,7 @@ namespace era_engine
 		float translucency;
 	};
 
-	ERA_CORE_API ref<pbr_material> createPBRMaterial(const PbrMaterialDesc& desc);
-	ERA_CORE_API ref<pbr_material> createPBRMaterialAsync(const PbrMaterialDesc& desc, JobHandle parentJob = {});
-	ERA_CORE_API ref<pbr_material> getDefaultPBRMaterial();
+	ERA_CORE_API ref<pbr_material> create_pbr_material(const PbrMaterialDesc& desc);
+	ERA_CORE_API ref<pbr_material> create_pbr_material_async(const PbrMaterialDesc& desc, JobHandle parent_job = {});
+	ERA_CORE_API ref<pbr_material> get_default_pbr_material();
 }

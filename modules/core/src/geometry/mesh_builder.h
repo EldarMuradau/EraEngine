@@ -1,5 +1,3 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #pragma once
 
 #include "core_api.h"
@@ -7,7 +5,7 @@
 #include "core/memory.h"
 #include "core/bounding_volumes.h"
 
-#include "animation/animation.h"
+#include "animation/animation_common_data.h"
 
 #include "dx/dx_buffer.h"
 
@@ -33,6 +31,7 @@ namespace era_engine
 		mesh_creation_flags_with_colors = (1 << 5),
 		mesh_creation_flags_sm_to_m = (1 << 6),
 		mesh_creation_flags_yzx_to_xyz = (1 << 7),
+		mesh_creation_flags_compact = (1 << 8),
 
 		mesh_creation_flags_default = mesh_creation_flags_with_positions | mesh_creation_flags_with_uvs | mesh_creation_flags_with_normals | mesh_creation_flags_with_tangents,
 		mesh_creation_flags_animated = mesh_creation_flags_default | mesh_creation_flags_with_skin,

@@ -20,7 +20,7 @@
 
 namespace era_engine::animation
 {
-	static void scale_keyframes(AnimationClip& clip, AnimationJoint& joint, float scale)
+	static void scale_keyframes(AnimationClipImportData& clip, AnimationJointImportData& joint, float scale)
 	{
 		for (uint32 keyID = 0; keyID < joint.num_position_keyframes; ++keyID)
 		{
@@ -32,7 +32,7 @@ namespace era_engine::animation
 		}
 	}
 
-	static vec3 samplePosition(const AnimationClip& clip, const AnimationJoint& animJoint, float time)
+	static vec3 samplePosition(const AnimationClipImportData& clip, const AnimationJointImportData& animJoint, float time)
 	{
 		if (time >= clip.length_in_seconds)
 		{
@@ -66,7 +66,7 @@ namespace era_engine::animation
 		return lerp(a, b, t);
 	}
 
-	static quat sampleRotation(const AnimationClip& clip, const AnimationJoint& animJoint, float time)
+	static quat sampleRotation(const AnimationClipImportData& clip, const AnimationJointImportData& animJoint, float time)
 	{
 		if (time >= clip.length_in_seconds)
 		{
@@ -105,7 +105,7 @@ namespace era_engine::animation
 		return lerp(a, b, t);
 	}
 
-	static vec3 sampleScale(const AnimationClip& clip, const AnimationJoint& animJoint, float time)
+	static vec3 sampleScale(const AnimationClipImportData& clip, const AnimationJointImportData& animJoint, float time)
 	{
 		if (time >= clip.length_in_seconds)
 			return clip.scale_keyframes[animJoint.first_scale_keyframe + animJoint.num_scale_keyframes - 1];
@@ -139,7 +139,7 @@ namespace era_engine::animation
 		return lerp(a, b, t);
 	}
 
-	SkeletonPose AnimationSkeleton::sampleAnimation(const AnimationClip& clip, float time, trs* outRootMotion) const
+	SkeletonPose AnimationSkeletonImportData::sampleAnimation(const AnimationClipImportData& clip, float time, trs* outRootMotion) const
 	{
 		ASSERT(skeleton != nullptr);
 		ASSERT(clip.joints.size() == skeleton->joints.size());
@@ -151,7 +151,7 @@ namespace era_engine::animation
 		uint32 numJoints = (uint32)skeleton->joints.size();
 		for (uint32 i = 0; i < numJoints; ++i)
 		{
-			const AnimationJoint& animJoint = clip.joints[i];
+			const AnimationJointImportData& animJoint = clip.joints[i];
 			JointTransform joint_transform;
 
 			if (animJoint.is_animated)
@@ -221,12 +221,12 @@ namespace era_engine::animation
 		return result_pose;
 	}
 
-	SkeletonPose AnimationSkeleton::sampleAnimation(uint32 index, float time, trs* outRootMotion) const
+	SkeletonPose AnimationSkeletonImportData::sampleAnimation(uint32 index, float time, trs* outRootMotion) const
 	{
 		return sampleAnimation(clips[index], time, outRootMotion);
 	}
 
-	std::vector<uint32> AnimationSkeleton::getClipsByName(const std::string& name)
+	std::vector<uint32> AnimationSkeletonImportData::getClipsByName(const std::string& name)
 	{
 		std::vector<uint32> result;
 		for (uint32 i = 0; i < (uint32)clips.size(); ++i)
@@ -239,14 +239,14 @@ namespace era_engine::animation
 		return result;
 	}
 
-	void AnimationClip::edit()
+	void AnimationClipImportData::edit()
 	{
 		ImGui::Checkbox("Bake root rotation into pose", &bake_root_rotation_into_pose);
 		ImGui::Checkbox("Bake xz translation into pose", &bake_root_xz_translation_into_pose);
 		ImGui::Checkbox("Bake y translation into pose", &bake_root_y_translation_into_pose);
 	}
 
-	trs AnimationClip::get_first_root_transform() const
+	trs AnimationClipImportData::get_first_root_transform() const
 	{
 		if (root_motion_joint.is_animated)
 		{
@@ -274,7 +274,7 @@ namespace era_engine::animation
 		return trs::identity;
 	}
 
-	trs AnimationClip::get_last_root_transform() const
+	trs AnimationClipImportData::get_last_root_transform() const
 	{
 		if (root_motion_joint.is_animated)
 		{
@@ -302,19 +302,19 @@ namespace era_engine::animation
 		return trs::identity;
 	}
 
-	AnimationInstance::AnimationInstance(const AnimationClip* clip, float startTime)
+	AnimationInstanceImportData::AnimationInstanceImportData(const AnimationClipImportData* clip, float startTime)
 	{
 		set(clip, startTime);
 	}
 
-	void AnimationInstance::set(const AnimationClip* clip, float startTime)
+	void AnimationInstanceImportData::set(const AnimationClipImportData* clip, float startTime)
 	{
 		this->clip = clip;
 		time = startTime;
 		lastRootMotion = clip->get_first_root_transform();
 	}
 
-	SkeletonPose AnimationInstance::update(const AnimationSkeleton& skeleton, float dt, trs& outDeltaRootMotion)
+	SkeletonPose AnimationInstanceImportData::update(const AnimationSkeletonImportData& skeleton, float dt, trs& outDeltaRootMotion)
 	{
 		if (paused)
 		{
@@ -371,81 +371,6 @@ namespace era_engine::animation
 		"Lower leg left",
 		"Foot left",
 	};
-
-	void AnimationStateMachine::set_state(ref<AnimationState> state, AnimationBlackboard& blackboard)
-	{
-		if (currentState)
-		{
-			currentState->exit(blackboard);
-		}
-
-		currentState = state;
-
-		if (currentState)
-		{
-			currentState->enter(blackboard);
-
-			if (paused)
-			{
-				currentState->pause(blackboard);
-			}
-		}
-	}
-
-	void AnimationStateMachine::enter(AnimationBlackboard& blackboard)
-	{
-		if (currentState)
-		{
-			currentState->enter(blackboard);
-			input.push(blackboard);
-			if (paused)
-			{
-				currentState->pause(blackboard);
-			}
-		}
-	}
-
-	void AnimationStateMachine::pause(AnimationBlackboard& blackboard)
-	{
-		paused = true;
-
-		if (currentState)
-		{
-			currentState->pause(blackboard);
-		}
-	}
-
-	void AnimationStateMachine::resume(AnimationBlackboard& blackboard)
-	{
-		paused = false;
-
-		if (currentState)
-			currentState->resume(blackboard);
-	}
-
-	void AnimationStateMachine::update(AnimationBlackboard& blackboard)
-	{
-		if (paused)
-			return;
-
-		if (currentState)
-		{
-			input.push(blackboard);
-			currentState->update(blackboard);
-		}
-	}
-
-	void AnimationStateMachine::update()
-	{
-		if (paused)
-			return;
-
-		if (currentState && input.size())
-		{
-			currentState->enter(input.top());
-			input.pop();
-		}
-	}
 
 	RTTR_REGISTRATION
 	{

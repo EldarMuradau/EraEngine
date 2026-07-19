@@ -8,7 +8,7 @@
 
 namespace era_engine
 {
-	ModelAsset load_3d_model_from_file(const fs::path& path, uint32 meshFlags)
+	ModelAsset import_3d_model_from_file(const fs::path& path, uint32 mesh_flags)
 	{
 		if (!fs::exists(path))
 		{
@@ -19,18 +19,18 @@ namespace era_engine
 
 		std::string extension = path.extension().string();
 
-		fs::path cachedFilename = path;
-		cachedFilename.replace_extension("." + std::to_string(meshFlags) + ".cache.bin");
-		fs::path cacheFilepath = L"asset_cache" / cachedFilename;
+		fs::path cached_filename = path;
+		cached_filename.replace_extension("." + std::to_string(mesh_flags) + ".cache.bin");
+		fs::path cache_filepath = L"asset_cache" / cached_filename;
 
-		if (fs::exists(cacheFilepath))
+		if (fs::exists(cache_filepath))
 		{
-			auto lastCacheWriteTime = fs::last_write_time(cacheFilepath);
-			auto lastOriginalWriteTime = fs::last_write_time(path);
+			auto last_cache_write_time = fs::last_write_time(cache_filepath);
+			auto last_original_write_time = fs::last_write_time(path);
 
-			if (lastCacheWriteTime > lastOriginalWriteTime)
+			if (last_cache_write_time > last_original_write_time)
 			{
-				return loadBIN(cacheFilepath);
+				return load_bin(cache_filepath);
 			}
 		}
 
@@ -47,15 +47,15 @@ namespace era_engine
 			[](char c) { return std::tolower(c); });
 		if (extension == ".fbx")
 		{
-			result = loadFBX(path, meshFlags);
+			result = load_fbx(path, mesh_flags);
 		}
 		else if (extension == ".obj")
 		{
-			result = loadOBJ(path, meshFlags);
+			result = load_obj(path, mesh_flags);
 		}
 
-		fs::create_directories(cacheFilepath.parent_path());
-		writeBIN(result, cacheFilepath);
+		fs::create_directories(cache_filepath.parent_path());
+		write_bin(result, cache_filepath);
 
 		return result;
 	}

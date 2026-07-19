@@ -42,7 +42,7 @@ namespace era_engine
 			return nullptr;
 		}
 
-		AssetHandle handle = getAssetHandleFromPath(filename);
+		AssetHandle handle = get_asset_handle_from_path(filename);
 
 		AssetKey key = { handle, flags };
 
@@ -59,7 +59,7 @@ namespace era_engine
 			return;
 		}
 
-		AssetHandle handle = getAssetHandleFromPath(filename);
+		AssetHandle handle = get_asset_handle_from_path(filename);
 
 		AssetKey key = { handle, flags };
 

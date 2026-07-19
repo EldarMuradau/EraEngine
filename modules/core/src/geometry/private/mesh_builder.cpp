@@ -1,5 +1,3 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #include "geometry/mesh_builder.h"
 
 #include "core/color.h"

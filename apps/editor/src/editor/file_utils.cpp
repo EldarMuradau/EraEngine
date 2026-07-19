@@ -36,7 +36,7 @@ namespace era_engine
 
 				addRaytracingComponentAsync(entity, mesh);
 			}
-			else if (auto mesh = loadMeshFromFileAsync(relative.string()))
+			else if (auto mesh = import_mesh_from_file_async(relative.string()))
 			{
 				auto entity = world->create_entity();
 				entity.add_component<animation::AnimationComponent>();

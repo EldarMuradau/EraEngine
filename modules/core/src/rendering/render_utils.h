@@ -57,7 +57,7 @@ namespace era_engine
 
 	using LoadCallBackType = void(*)(Entity);
 
-	ERA_CORE_API void addRaytracingComponentAsync(Entity entity, ref<multi_mesh> mesh);
-	raytracing_object_type defineBlasFromMesh(const ref<multi_mesh>& mesh);
+	ERA_CORE_API void addRaytracingComponentAsync(Entity entity, ref<MultiMesh> mesh);
+	raytracing_object_type defineBlasFromMesh(const ref<MultiMesh>& mesh);
 
 }

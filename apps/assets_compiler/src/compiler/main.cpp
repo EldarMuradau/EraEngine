@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 		std::string extension = path.extension().string();
 
 		fs::path cached_filename = path;
-		cached_filename.replace_extension("." + std::to_string(mesh_flag_default) + ".cache.bin");
+		cached_filename.replace_extension("." + std::to_string(MESH_FLAG_DEFAULT) + ".cache.bin");
 		fs::path cache_filepath = L"asset_cache" / cached_filename;
 
 		if (fs::exists(cache_filepath))
@@ -64,11 +64,11 @@ int main(int argc, char** argv)
 			[](char c) { return std::tolower(c); });
 		if (extension == ".fbx")
 		{
-			result_mesh = loadFBX(path, mesh_flag_default);
+			result_mesh = loadFBX(path, MESH_FLAG_DEFAULT);
 		}
 		else if (extension == ".obj")
 		{
-			result_mesh = loadOBJ(path, mesh_flag_default);
+			result_mesh = loadOBJ(path, MESH_FLAG_DEFAULT);
 		}
 
 		fs::create_directories(cache_filepath.parent_path());

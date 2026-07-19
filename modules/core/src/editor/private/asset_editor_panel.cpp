@@ -169,7 +169,7 @@ namespace era_engine
 				{
 					if (ImGui::BeginProperties())
 					{
-						ImGui::PropertyValue("Load state", asset_load_state_names[mesh->loadState.load()]);
+						ImGui::PropertyValue("Load state", asset_load_state_names[mesh->load_state.load()]);
 						editMesh("Mesh", mesh, mesh_creation_flags_default);
 						ImGui::EndProperties();
 					}
@@ -403,6 +403,6 @@ namespace era_engine
 		fs::path path = filename;
 		fs::path relative = fs::relative(path, fs::current_path());
 
-		this->mesh = loadMeshFromFile(relative.string());
+		this->mesh = import_mesh_from_file(relative.string());
 	}
 }

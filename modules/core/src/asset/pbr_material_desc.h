@@ -5,6 +5,7 @@
 #include "asset/image.h"
 
 #include "core/math.h"
+#include "core/serialization/binary_serializer.h"
 
 namespace era_engine
 {
@@ -20,10 +21,10 @@ namespace era_engine
 
 	struct ERA_CORE_API PbrMaterialDesc
 	{
-		fs::path albedo;
-		fs::path normal;
-		fs::path roughness;
-		fs::path metallic;
+		std::string albedo;
+		std::string normal;
+		std::string roughness;
+		std::string metallic;
 
 		uint32 albedo_flags = image_load_flags_default;
 		uint32 normal_flags = image_load_flags_default_noncolor;
@@ -37,5 +38,21 @@ namespace era_engine
 		PbrMaterialShader shader = pbr_material_shader_default;
 		float uv_scale = 1.f;
 		float translucency = 0.f;
+
+		ERA_BINARY_SERIALIZE(albedo,
+			normal,
+			roughness,
+			metallic,
+			albedo_flags,
+			normal_flags,
+			roughness_flags,
+			metallic_flags,
+			emission,
+			albedo_tint,
+			roughness_override,
+			metallic_override,
+			shader,
+			uv_scale,
+			translucency)
 	};
 }

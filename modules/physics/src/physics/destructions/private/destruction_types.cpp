@@ -182,7 +182,7 @@ namespace era_engine::physics
 				(uint16)indices[i + 2] });
 		}
 
-		generateNormalsAndTangents(asset, mesh_flag_default);
+		generateNormalsAndTangents(asset, MESH_FLAG_DEFAULT);
 
 		return asset;
 	}

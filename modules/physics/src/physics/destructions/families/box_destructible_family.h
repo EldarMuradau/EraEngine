@@ -24,7 +24,7 @@ namespace era_engine::physics
 		void on_actor_update(const Nv::Blast::ExtPxActor& actor) override;
 		void on_actor_destroyed(const Nv::Blast::ExtPxActor& actor) override;
 
-		ref<multi_mesh> box_mesh;
+		ref<MultiMesh> box_mesh;
 		ref<pbr_material> box_render_material;
 	};
 }

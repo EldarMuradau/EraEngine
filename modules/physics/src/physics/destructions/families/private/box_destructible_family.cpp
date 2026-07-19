@@ -22,10 +22,10 @@ namespace era_engine::physics
 
 		mesh_builder builder;
 
-		box_render_material = createPBRMaterialAsync({ "", "" });
+		box_render_material = create_pbr_material_async({ "", "" });
 		box_render_material->shader = pbr_material_shader_double_sided;
 
-		box_mesh = make_ref<multi_mesh>();
+		box_mesh = make_ref<MultiMesh>();
 		builder.pushBox({ });
 		box_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, box_render_material });
 

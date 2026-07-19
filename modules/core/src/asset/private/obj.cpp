@@ -308,7 +308,7 @@ namespace era_engine
 		return result;
 	}
 
-	ModelAsset loadOBJ(const fs::path& path, uint32 flags)
+	ModelAsset load_obj(const fs::path& path, uint32 flags)
 	{
 		PROFILE("Loading OBJ");
 
@@ -358,7 +358,7 @@ namespace era_engine
 				else if (token == "vt")
 				{
 					vec2 uv = read_vec2(file);
-					if (flags & mesh_flag_flip_uvs_vertically)
+					if (flags & MESH_FLAG_FLIP_UVS_VERTICALLY)
 					{
 						uv.y = 1.f - uv.y;
 					}
@@ -409,7 +409,7 @@ namespace era_engine
 						ASSERT(vertex_indices.position_index < curr_num_positions);
 						position_cache.push_back(positions[vertex_indices.position_index]);
 
-						if (flags & mesh_flag_load_uvs)
+						if (flags & MESH_FLAG_LOAD_UVS)
 						{
 							int32 curr_num_uvs = (int32)uvs.size();
 							vertex_indices.uv_index += (vertex_indices.uv_index >= 0) ? 0 : curr_num_uvs;
@@ -417,7 +417,7 @@ namespace era_engine
 							uv_cache.push_back(uvs[vertex_indices.uv_index]);
 						}
 
-						if (flags & mesh_flag_load_normals)
+						if (flags & MESH_FLAG_LOAD_NORNALS)
 						{
 							int32 curr_num_normals = (int32)normals.size();
 							vertex_indices.normal_index += (vertex_indices.normal_index >= 0) ? 0 : curr_num_normals;

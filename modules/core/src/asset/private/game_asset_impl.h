@@ -22,7 +22,7 @@ namespace era_engine
 		}
 
 		ref<T> asset = make_ref<T>();
-		asset->handle = getAssetHandleFromPath(final_path);
+		asset->handle = get_asset_handle_from_path(final_path);
 		asset->flags = flags;
 
 		GameAssetCache::try_add_asset_to_cache(asset, final_path, flags);
@@ -59,7 +59,7 @@ namespace era_engine
 					return;
 				}
 
-				data->asset->handle = getAssetHandleFromPath(data->path);
+				data->asset->handle = get_asset_handle_from_path(data->path);
 				data->asset->load_state = AssetLoadState::LOADED;
 
 				is.close();

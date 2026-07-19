@@ -149,8 +149,8 @@ namespace era_engine
 
 	ERA_CORE_API ref<dx_texture> loadTextureFromFile(const fs::path& filename, uint32 flags = image_load_flags_default);
 	ERA_CORE_API ref<dx_texture> loadTextureFromHandle(AssetHandle handle, uint32 flags = image_load_flags_default);
-	ERA_CORE_API ref<dx_texture> loadTextureFromFileAsync(const fs::path& filename, uint32 flags = image_load_flags_default, JobHandle parentJob = {});
-	ERA_CORE_API ref<dx_texture> loadTextureFromHandleAsync(AssetHandle handle, uint32 flags = image_load_flags_default, JobHandle parentJob = {});
+	ERA_CORE_API ref<dx_texture> loadTextureFromFileAsync(const fs::path& filename, uint32 flags = image_load_flags_default, JobHandle parent_job = {});
+	ERA_CORE_API ref<dx_texture> loadTextureFromHandleAsync(AssetHandle handle, uint32 flags = image_load_flags_default, JobHandle parent_job = {});
 
 	ERA_CORE_API ref<dx_texture> loadTextureFromMemory(const void* ptr, uint32 size, image_format imageFormat, const fs::path& cacheFilename, uint32 flags = image_load_flags_default);
 	ERA_CORE_API ref<dx_texture> loadVolumeTextureFromDirectory(const fs::path& dirname, uint32 flags = image_load_flags_compress | image_load_flags_cache_to_dds | image_load_flags_noncolor);

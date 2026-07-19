@@ -33,7 +33,7 @@ namespace era_engine
 		static dx_pipeline simulatePipeline;
 		static dx_pipeline renderPipeline;
 
-		ref<multi_mesh> cartoonMesh;
+		ref<MultiMesh> cartoonMesh;
 		dx_vertex_buffer_group_view skinnedVertexBuffer;
 		float time = 0.f;
 

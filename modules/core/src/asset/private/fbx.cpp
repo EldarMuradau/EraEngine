@@ -14,9 +14,13 @@
 
 #include "asset/mesh_postprocessing.h"
 
+#include "animation/animation_common_data.h"
+#include "animation/animation_clip_utils.h"
+#include "animation/skeleton.h"
+
 #include "rendering/pbr_material.h"
 
-//#define PROFILE(name) CPU_PRINT_PROFILE_BLOCK(name)
+//#define PROFILE(name) ZoneScopedN(name)
 #define PROFILE(name) 
 
 namespace era_engine
@@ -1124,7 +1128,7 @@ namespace era_engine
 		}
 
 		// UVs
-		if (flags & mesh_flag_load_uvs)
+		if (flags & MESH_FLAG_LOAD_UVS)
 		{
 			const fbx_node* uvNode = node.findChild(nodes, "LayerElementUV");
 			auto [raw, indices, mapping, reference] = readGeometryData<double>(uvNode, nodes, properties, "UV", "UVIndex");
@@ -1137,7 +1141,7 @@ namespace era_engine
 				for (uint32 i = 0; i < (uint32)result.uvs.size(); ++i)
 				{
 					result.uvs[i] = vec2((float)ptr[i].x, (float)ptr[i].y);
-					if (flags & mesh_flag_flip_uvs_vertically)
+					if (flags & MESH_FLAG_FLIP_UVS_VERTICALLY)
 					{
 						result.uvs[i].y = 1.f - result.uvs[i].y;
 					}
@@ -1149,7 +1153,7 @@ namespace era_engine
 		}
 
 		// Normals
-		if (flags & mesh_flag_load_normals)
+		if (flags & MESH_FLAG_LOAD_NORNALS)
 		{
 			const fbx_node* normalsNode = node.findChild(nodes, "LayerElementNormal");
 			auto [raw, indices, mapping, reference] = readGeometryData<double>(normalsNode, nodes, properties, "Normals", "NormalsIndex");
@@ -1170,7 +1174,7 @@ namespace era_engine
 		}
 
 		// Tangents
-		if (flags & mesh_flag_load_tangents)
+		if (flags & MESH_FLAG_LOAD_TANGENTS)
 		{
 			const fbx_node* tangentsNode = node.findChild(nodes, "LayerElementTangents");
 			auto [raw, indices, mapping, reference] = readGeometryData<double>(tangentsNode, nodes, properties, "Tangents", "TangentsIndex");
@@ -1195,7 +1199,7 @@ namespace era_engine
 		}
 
 		// Colors
-		if (flags & mesh_flag_load_colors)
+		if (flags & MESH_FLAG_LOAD_COLORS)
 		{
 			const fbx_node* colorsNode = node.findChild(nodes, "LayerElementColor");
 			auto [raw, indices, mapping, reference] = readGeometryData<double>(colorsNode, nodes, properties, "Colors", "ColorIndex");
@@ -1779,7 +1783,7 @@ namespace era_engine
 	{
 		// Assign materials and skinning weights, remove duplicate vertices and triangulate.
 
-		if (mesh.skeletonID && flags & mesh_flag_load_skin)
+		if (mesh.skeletonID && flags & MESH_FLAG_LOAD_SKIN)
 		{
 			PROFILE("Assigning skinning weights");
 
@@ -1869,6 +1873,11 @@ namespace era_engine
 
 	static float sampleAnimationCurve(fbx_animation_curve* curve, int64 time, const std::vector<int64>& animationTimes, const std::vector<float>& animationValues)
 	{
+		if (!curve)
+		{
+			return 0.0f;
+		}
+
 		uint32 first = curve->first;
 		uint32 count = curve->count;
 		if (count == 0)
@@ -1907,7 +1916,7 @@ namespace era_engine
 		fbx_animation_curve* y = curveNode->yCurve;
 		fbx_animation_curve* z = curveNode->zCurve;
 
-		uint32 count = max(max(x->count, y->count), max(z->count, 2u));
+		uint32 count = max(max(x ? x->count : 0, y ? y->count : 0), max(z ? z->count : 0, 2u));
 		offset_count result = { (uint32)outValues.size(), count };
 
 		int64 step = animationDuration / (count - 1);
@@ -1962,7 +1971,7 @@ namespace era_engine
 
 		if (x && y && z)
 		{
-			uint32 count = max(max(x->count, y->count), max(z->count, 2u));
+			uint32 count = max(max(x ? x->count : 0, y ? y->count : 0), max(z ? z->count : 0, 2u));
 			offset_count result = { (uint32)outValues.size(), count };
 
 			int64 step = animationDuration / (count - 1);
@@ -2014,8 +2023,10 @@ namespace era_engine
 		return 0;
 	}
 
-	ModelAsset loadFBX(const fs::path& path, uint32 flags)
+	ModelAsset load_fbx(const fs::path& path, uint32 flags)
 	{
+		using namespace animation;
+
 		std::string pathStr = path.string();
 		const char* s = pathStr.c_str();
 		EntireFile file = load_file(path);
@@ -2143,6 +2154,11 @@ namespace era_engine
 		for (fbx_mesh& mesh : objectLUT.meshes)
 		{
 			fbx_model* model = mesh.model;
+			if (model->materials.empty())
+			{
+				continue;
+			}
+
 			for (SubmeshAsset& sub : mesh.submeshes)
 			{
 				fbx_material* mat = model->materials[sub.material_index];
@@ -2178,11 +2194,14 @@ namespace era_engine
 			result.meshes.push_back(MeshAsset{ name_to_string(mesh.model->name), std::move(mesh.submeshes), -1 });
 		}
 
+		std::vector<SkeletonAssetImportData> tmp_skeletons;
+		std::vector<AnimationAssetImportData> tmp_animations;
+
 		for (auto& [id, skeleton] : objectLUT.skeletons)
 		{
 			uint32 numJoints = (uint32)skeleton.joints.size();
 
-			SkeletonAsset out;
+			SkeletonAssetImportData out;
 			out.joints.reserve(numJoints);
 			for (uint32 i = 0; i < numJoints; ++i)
 			{
@@ -2206,11 +2225,11 @@ namespace era_engine
 			{
 				if (objectLUT.meshes[i].skeletonID == id)
 				{
-					result.meshes[i].skeleton_index = (uint32)result.skeletons.size();
+					result.meshes[i].skeleton_index = (uint32)tmp_skeletons.size();
 				}
 			}
 
-			result.skeletons.push_back(std::move(out));
+			tmp_skeletons.push_back(std::move(out));
 		}
 
 		for (fbx_animation& animation : objectLUT.animations)
@@ -2219,7 +2238,7 @@ namespace era_engine
 
 			if (numJoints)
 			{
-				AnimationAsset out;
+				AnimationAssetImportData out;
 				out.duration = convertTime(animation.duration);
 				out.joints.reserve(animation.joints.size());
 				out.name = animation.name;
@@ -2232,7 +2251,7 @@ namespace era_engine
 					fbx_model& model = objectLUT.models[modelIndex];
 					std::string name = name_to_string(model.name);
 
-					animation::AnimationJoint& joint = out.joints[name];
+					animation::AnimationJointImportData& joint = out.joints[name];
 					joint.is_animated = true;
 
 					if (j.curveNodes[0])
@@ -2260,7 +2279,16 @@ namespace era_engine
 					}
 				}
 
-				result.animations.push_back(std::move(out));
+				tmp_animations.push_back(std::move(out));
+			}
+		}
+
+		{
+			std::vector<ref<Skeleton>> imported_skeletons = SkeletonImportUtils::import_skeletons(tmp_skeletons, path, flags);
+
+			if(!imported_skeletons.empty())
+			{
+				AnimationAssetClipUtils::import_animations(tmp_animations, imported_skeletons[0], path, flags);
 			}
 		}
 

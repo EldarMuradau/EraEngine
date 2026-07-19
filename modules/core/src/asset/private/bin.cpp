@@ -10,8 +10,7 @@
 
 #include "rendering/pbr_material.h"
 
-//#define PROFILE(name) CPU_PRINT_PROFILE_BLOCK(name)
-#define PROFILE(name) 
+#define PROFILE(name) ZoneScopedN(name)
 
 namespace era_engine
 {
@@ -121,10 +120,10 @@ namespace era_engine
 
 	static void writeMaterial(const PbrMaterialDesc& material, FILE* file)
 	{
-		std::string albedo = material.albedo.string();
-		std::string normal = material.normal.string();
-		std::string roughness = material.roughness.string();
-		std::string metallic = material.metallic.string();
+		const std::string& albedo = material.albedo;
+		const std::string& normal = material.normal;
+		const std::string& roughness = material.roughness;
+		const std::string& metallic = material.metallic;
 
 		bin_material_header header;
 		header.albedoPathLength = (uint32)albedo.length();
@@ -152,57 +151,7 @@ namespace era_engine
 		fwrite(&material.translucency, sizeof(float), 1, file);
 	}
 
-	static void writeSkeleton(const SkeletonAsset& skeleton, FILE* file)
-	{
-		bin_skeleton_header header;
-		header.numJoints = (uint32)skeleton.joints.size();
-
-		fwrite(&header, sizeof(header), 1, file);
-
-		for (uint32 i = 0; i < header.numJoints; ++i)
-		{
-			uint32 nameLength = (uint32)skeleton.joints[i].name.length();
-			fwrite(&nameLength, sizeof(uint32), 1, file);
-			fwrite(skeleton.joints[i].name.c_str(), sizeof(char), nameLength, file);
-			fwrite(&skeleton.joints[i].limb_type, sizeof(era_engine::animation::LimbType), 1, file);
-			fwrite(&skeleton.joints[i].ik, sizeof(bool), 1, file);
-			fwrite(&skeleton.joints[i].inv_bind_transform, sizeof(mat4), 1, file);
-			fwrite(&skeleton.joints[i].bind_transform, sizeof(mat4), 1, file);
-			fwrite(&skeleton.joints[i].parent_id, sizeof(uint32), 1, file);
-		}
-	}
-
-	static void writeAnimation(const AnimationAsset& animation, FILE* file)
-	{
-		bin_animation_header header;
-		header.duration = animation.duration;
-		header.numJoints = (uint32)animation.joints.size();
-		header.numPositionKeyframes = (uint32)animation.position_keyframes.size();
-		header.numRotationKeyframes = (uint32)animation.rotation_keyframes.size();
-		header.numScaleKeyframes = (uint32)animation.scale_keyframes.size();
-		header.nameLength = (uint32)animation.name.length();
-
-		fwrite(&header, sizeof(header), 1, file);
-		fwrite(animation.name.c_str(), sizeof(char), header.nameLength, file);
-
-		for (auto& [name, joint] : animation.joints)
-		{
-			uint32 nameLength = (uint32)name.length();
-			fwrite(&nameLength, sizeof(uint32), 1, file);
-			fwrite(name.c_str(), sizeof(char), nameLength, file);
-
-			fwrite(&joint, sizeof(animation::AnimationJoint), 1, file);
-		}
-
-		writeArray(animation.position_timestamps, file);
-		writeArray(animation.rotation_timestamps, file);
-		writeArray(animation.scale_timestamps, file);
-		writeArray(animation.position_keyframes, file);
-		writeArray(animation.rotation_keyframes, file);
-		writeArray(animation.scale_keyframes, file);
-	}
-
-	void writeBIN(const ModelAsset& asset, const fs::path& path)
+	void write_bin(const ModelAsset& asset, const fs::path& path)
 	{
 		FILE* file = fopen(path.string().c_str(), "wb");
 
@@ -210,8 +159,6 @@ namespace era_engine
 		header.flags = asset.flags;
 		header.numMeshes = (uint32)asset.meshes.size();
 		header.numMaterials = (uint32)asset.materials.size();
-		header.numSkeletons = (uint32)asset.skeletons.size();
-		header.numAnimations = (uint32)asset.animations.size();
 
 		fwrite(&header, sizeof(header), 1, file);
 
@@ -222,14 +169,6 @@ namespace era_engine
 		for (uint32 i = 0; i < header.numMaterials; ++i)
 		{
 			writeMaterial(asset.materials[i], file);
-		}
-		for (uint32 i = 0; i < header.numSkeletons; ++i)
-		{
-			writeSkeleton(asset.skeletons[i], file);
-		}
-		for (uint32 i = 0; i < header.numAnimations; ++i)
-		{
-			writeAnimation(asset.animations[i], file);
 		}
 
 		fclose(file);
@@ -302,64 +241,7 @@ namespace era_engine
 		return result;
 	}
 
-	static SkeletonAsset readSkeleton(EntireFile& file)
-	{
-		bin_skeleton_header* header = file.consume<bin_skeleton_header>();
-
-		SkeletonAsset result;
-		result.joints.resize(header->numJoints);
-		result.name_to_joint_id.reserve(header->numJoints);
-
-		for (uint32 i = 0; i < header->numJoints; ++i)
-		{
-			uint32 nameLength = *file.consume<uint32>();
-			char* name = file.consume<char>(nameLength);
-
-			result.joints[i].name = std::string(name, nameLength);
-			result.joints[i].limb_type = *file.consume<animation::LimbType>();
-			result.joints[i].ik = *file.consume<bool>();
-			result.joints[i].inv_bind_transform = *file.consume<mat4>();
-			result.joints[i].bind_transform = *file.consume<mat4>();
-			result.joints[i].parent_id = *file.consume<uint32>();
-
-			result.name_to_joint_id[result.joints[i].name] = i;
-		}
-
-		return result;
-	}
-
-	static AnimationAsset readAnimation(EntireFile& file)
-	{
-		bin_animation_header* header = file.consume<bin_animation_header>();
-
-		AnimationAsset result;
-		result.duration = header->duration;
-
-		char* name = file.consume<char>(header->nameLength);
-		result.name = std::string(name, header->nameLength);
-
-		result.joints.reserve(header->numJoints);
-
-		for (uint32 i = 0; i < header->numJoints; ++i)
-		{
-			uint32 nameLength = *file.consume<uint32>();
-			char* name = file.consume<char>(nameLength);
-
-			animation::AnimationJoint joint = *file.consume<animation::AnimationJoint>();
-			result.joints[std::string(name, nameLength)] = joint;
-		}
-
-		readArray(file, result.position_timestamps, header->numPositionKeyframes);
-		readArray(file, result.rotation_timestamps, header->numRotationKeyframes);
-		readArray(file, result.scale_timestamps, header->numScaleKeyframes);
-		readArray(file, result.position_keyframes, header->numPositionKeyframes);
-		readArray(file, result.rotation_keyframes, header->numRotationKeyframes);
-		readArray(file, result.scale_keyframes, header->numScaleKeyframes);
-
-		return result;
-	}
-
-	ModelAsset loadBIN(const fs::path& path)
+	ModelAsset load_bin(const fs::path& path)
 	{
 		PROFILE("Loading BIN");
 
@@ -375,8 +257,6 @@ namespace era_engine
 		ModelAsset result;
 		result.meshes.resize(header->numMeshes);
 		result.materials.resize(header->numMaterials);
-		result.skeletons.resize(header->numSkeletons);
-		result.animations.resize(header->numAnimations);
 
 		for (uint32 i = 0; i < header->numMeshes; ++i)
 		{
@@ -385,14 +265,6 @@ namespace era_engine
 		for (uint32 i = 0; i < header->numMaterials; ++i)
 		{
 			result.materials[i] = readMaterial(file);
-		}
-		for (uint32 i = 0; i < header->numSkeletons; ++i)
-		{
-			result.skeletons[i] = readSkeleton(file);
-		}
-		for (uint32 i = 0; i < header->numAnimations; ++i)
-		{
-			result.animations[i] = readAnimation(file);
 		}
 
 		free_file(file);

@@ -1611,7 +1611,7 @@ namespace era_engine
 					{
 						if (handle)
 						{
-							environment.setFromTexture(getPathFromAssetHandle(handle));
+							environment.setFromTexture(get_path_from_asset_handle(handle));
 						}
 						else
 						{
@@ -1846,7 +1846,7 @@ namespace era_engine
 
 		if (ImGui::PropertyTextureAssetHandle(name, EDITOR_ICON_IMAGE, asset, tex))
 		{
-			fs::path path = getPathFromAssetHandle(asset);
+			fs::path path = get_path_from_asset_handle(asset);
 			fs::path relative = fs::relative(path, fs::current_path());
 			if (auto newTex = loadTextureFromFileAsync(path, loadFlags))
 			{
@@ -1855,7 +1855,7 @@ namespace era_engine
 		}
 	}
 
-	void editMesh(const char* name, ref<multi_mesh>& mesh, uint32 loadFlags)
+	void editMesh(const char* name, ref<MultiMesh>& mesh, uint32 loadFlags)
 	{
 		AssetHandle asset = {};
 		if (mesh)
@@ -1865,9 +1865,9 @@ namespace era_engine
 
 		if (ImGui::PropertyAssetHandle(name, EDITOR_ICON_MESH, asset))
 		{
-			fs::path path = getPathFromAssetHandle(asset);
+			fs::path path = get_path_from_asset_handle(asset);
 			fs::path relative = fs::relative(path, fs::current_path());
-			if (auto newMesh = loadMeshFromFile(path, loadFlags))
+			if (auto newMesh = import_mesh_from_file(path, loadFlags))
 			{
 				mesh = newMesh;
 			}

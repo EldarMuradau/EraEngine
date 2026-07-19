@@ -71,7 +71,7 @@ namespace era_engine
 	}
 
 	NODISCARD static ref<dx_texture> loadTextureInternal(const fs::path& path, AssetHandle handle, uint32 flags,
-		bool async, JobHandle parentJob)
+		bool async, JobHandle parent_job)
 	{
 		if (flags & image_load_flags_gen_mips_on_gpu)
 		{
@@ -123,7 +123,7 @@ namespace era_engine
 			JobHandle job = low_priority_job_queue.createJob<texture_loading_data>([](texture_loading_data& data, JobHandle)
 				{
 					textureLoaderThread(data.texture, data.path, data.flags);
-				}, data, parentJob);
+				}, data, parent_job);
 			job.submit_now();
 
 			result->loadJob = job;
@@ -237,7 +237,7 @@ namespace era_engine
 	static std::mutex mutex;
 
 	static ref<dx_texture> loadTextureFromFileAndHandle(const fs::path& filename, AssetHandle handle, uint32 flags,
-		bool async = false, JobHandle parentJob = {})
+		bool async = false, JobHandle parent_job = {})
 	{
 		if (!fs::exists(filename))
 			return 0;
@@ -249,7 +249,7 @@ namespace era_engine
 		ref<dx_texture> result = textureCache[key].lock();
 		if (!result)
 		{
-			result = loadTextureInternal(filename, handle, flags, async, parentJob);
+			result = loadTextureInternal(filename, handle, flags, async, parent_job);
 			textureCache[key] = result;
 		}
 		return result;
@@ -259,28 +259,28 @@ namespace era_engine
 	{
 		fs::path path = filename.lexically_normal().make_preferred();
 
-		AssetHandle handle = getAssetHandleFromPath(path);
+		AssetHandle handle = get_asset_handle_from_path(path);
 		return loadTextureFromFileAndHandle(path, handle, flags);
 	}
 
 	ref<dx_texture> loadTextureFromHandle(AssetHandle handle, uint32 flags)
 	{
-		fs::path sceneFilename = getPathFromAssetHandle(handle);
+		fs::path sceneFilename = get_path_from_asset_handle(handle);
 		return loadTextureFromFileAndHandle(sceneFilename, handle, flags);
 	}
 
-	ref<dx_texture> loadTextureFromFileAsync(const fs::path& filename, uint32 flags, JobHandle parentJob)
+	ref<dx_texture> loadTextureFromFileAsync(const fs::path& filename, uint32 flags, JobHandle parent_job)
 	{
 		fs::path path = filename.lexically_normal().make_preferred();
 
-		AssetHandle handle = getAssetHandleFromPath(path);
-		return loadTextureFromFileAndHandle(path, handle, flags, true, parentJob);
+		AssetHandle handle = get_asset_handle_from_path(path);
+		return loadTextureFromFileAndHandle(path, handle, flags, true, parent_job);
 	}
 
-	ref<dx_texture> loadTextureFromHandleAsync(AssetHandle handle, uint32 flags, JobHandle parentJob)
+	ref<dx_texture> loadTextureFromHandleAsync(AssetHandle handle, uint32 flags, JobHandle parent_job)
 	{
-		fs::path sceneFilename = getPathFromAssetHandle(handle);
-		return loadTextureFromFileAndHandle(sceneFilename, handle, flags, true, parentJob);
+		fs::path sceneFilename = get_path_from_asset_handle(handle);
+		return loadTextureFromFileAndHandle(sceneFilename, handle, flags, true, parent_job);
 	}
 
 	ref<dx_texture> loadTextureFromMemory(const void* ptr, uint32 size, image_format imageFormat, const fs::path& cacheFilename, uint32 flags)

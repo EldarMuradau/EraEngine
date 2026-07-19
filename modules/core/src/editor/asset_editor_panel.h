@@ -44,7 +44,7 @@ namespace era_engine
 		virtual void beginFrame() override;
 		virtual void endFrame() override;
 
-		void setMesh(ref<multi_mesh> m) { mesh = m; }
+		void setMesh(ref<MultiMesh> m) { mesh = m; }
 		void setScene(ref<EditorScene> _scene) { scene = _scene; }
 
 		bool isHovered() const { return hovered; }
@@ -56,7 +56,7 @@ namespace era_engine
 		virtual ref<dx_texture> getRendering() override;
 		virtual void setDragDropData(void* data, uint32 size) override;
 
-		ref<multi_mesh> mesh;
+		ref<MultiMesh> mesh;
 		ref<EditorScene> scene = nullptr;
 		main_renderer renderer;
 

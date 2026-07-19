@@ -79,10 +79,10 @@ namespace era_engine
 		{
 			mesh_builder builder;
 
-			sphere_render_material = createPBRMaterialAsync({ "", "" });
+			sphere_render_material = create_pbr_material_async({ "", "" });
 			sphere_render_material->shader = pbr_material_shader_double_sided;
 
-			sphere_mesh = make_ref<multi_mesh>();
+			sphere_mesh = make_ref<MultiMesh>();
 			builder.pushSphere({ });
 			sphere_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, sphere_render_material });
 
@@ -101,25 +101,29 @@ namespace era_engine
 		camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
 		camera_entity.add_component<InputSenderComponent>()->add_reciever(camera_entity.add_component<InputReceiverComponent>());
 
-		PbrMaterialDesc defaultPlaneMatDesc;
-		defaultPlaneMatDesc.albedo = get_asset_path("/resources/assets/uv.jpg");
-		defaultPlaneMatDesc.normal = "";
-		defaultPlaneMatDesc.roughness = "";
-		defaultPlaneMatDesc.uv_scale = 15.0f;
-		defaultPlaneMatDesc.metallic_override = 0.35f;
-		defaultPlaneMatDesc.roughness_override = 0.01f;
+		PbrMaterialDesc default_plane_mat_desc;
+		default_plane_mat_desc.albedo = get_asset_path("/resources/assets/uv.jpg");
+		default_plane_mat_desc.normal = "";
+		default_plane_mat_desc.roughness = "";
+		default_plane_mat_desc.uv_scale = 15.0f;
+		default_plane_mat_desc.metallic_override = 0.35f;
+		default_plane_mat_desc.roughness_override = 0.01f;
 
-		auto defaultPlaneMat = createPBRMaterialAsync(defaultPlaneMatDesc);
+		auto default_plane_mat = create_pbr_material_async(default_plane_mat_desc);
 
 		mesh_builder builder;
 
-		auto groundMesh = make_ref<multi_mesh>();
+		ref<MultiMesh> ground_mesh = make_ref<MultiMesh>();
 		builder.pushBox({ vec3(0.f), vec3(30.f, 4.f, 30.f) });
-		groundMesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, defaultPlaneMat });
-
-		if (auto mesh = loadAnimatedMeshFromFileAsync(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"),
-			mesh_creation_flags_unreal_animated_asset))
+		ground_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, default_plane_mat });
+		
+		//if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"),
+		//	mesh_creation_flags_unreal_animated_asset))
 		{
+			GameAssetsProvider provider;
+
+			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
+
 			tiran = world->create_entity("Tiran");
 
 			tiran.add_component<MeshComponent>(mesh);
@@ -127,15 +131,13 @@ namespace era_engine
 			TransformComponent* transform_component = tiran.get_component<TransformComponent>();
 			transform_component->set_world_transform(trs{vec3(-5.0f, -4.8f, 5.0f), quat::identity, vec3(1.0f)});
 
-			mesh->loadJob.wait_for_completion();
+			mesh->load_job.wait_for_completion();
 
 			SkeletonComponent* skeleton_component = tiran.add_component<SkeletonComponent>();
 
 			AnimationComponent* animation_component = tiran.add_component<AnimationComponent>();
 			animation_component->play = true;
 			animation_component->loop = true;
-
-			GameAssetsProvider provider;
 
 			{
 				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0"));
@@ -263,230 +265,248 @@ namespace era_engine
 				//database->load_job.wait_for_completion();
 			}
 
-			{
-				database = make_ref<MotionMatchingDatabase>();
+			//{
+			//	database = make_ref<MotionMatchingDatabase>();
 
-				database->database_id = "LOCOMOTION";
-				database->knn_type = KnnStructureType::HNSW;
+			//	database->database_id = "LOCOMOTION";
+			//	database->knn_type = KnnStructureType::HNSW;
 
-				{
-					PoseFeature* pose_feature = new PoseFeature();
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.pelvis_idx;
-						desc->name = "pelvis_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//	{
+			//		PoseFeature* pose_feature = new PoseFeature();
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.pelvis_idx;
+			//			desc->name = "pelvis_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.pelvis_idx;
-						desc->name = "pelvis_velocity";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.pelvis_idx;
+			//			desc->name = "pelvis_velocity";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::Y;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.neck_idx;
-						desc->name = "neck_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::Y;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.neck_idx;
+			//			desc->name = "neck_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.foot_l_idx;
-						desc->name = "foot_l_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.foot_l_idx;
+			//			desc->name = "foot_l_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::VELOCITY;
-						desc->joint_id = joint_init_ids.foot_l_idx;
-						desc->name = "foot_l_velocity";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::VELOCITY;
+			//			desc->joint_id = joint_init_ids.foot_l_idx;
+			//			desc->name = "foot_l_velocity";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.foot_r_idx;
-						desc->name = "foot_r_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.foot_r_idx;
+			//			desc->name = "foot_r_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::VELOCITY;
-						desc->joint_id = joint_init_ids.foot_r_idx;
-						desc->name = "foot_r_velocity";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::VELOCITY;
+			//			desc->joint_id = joint_init_ids.foot_r_idx;
+			//			desc->name = "foot_r_velocity";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.hand_l_idx;
-						desc->name = "hand_l_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.hand_l_idx;
+			//			desc->name = "hand_l_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::VELOCITY;
-						desc->joint_id = joint_init_ids.hand_l_idx;
-						desc->name = "hand_l_velocity";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::VELOCITY;
+			//			desc->joint_id = joint_init_ids.hand_l_idx;
+			//			desc->name = "hand_l_velocity";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.hand_r_idx;
-						desc->name = "hand_r_location";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.hand_r_idx;
+			//			desc->name = "hand_r_location";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-						desc->basis = FeatureDescBasis::XYZ;
-						desc->type = FeatureDescType::LOCATION;
-						desc->joint_id = joint_init_ids.hand_r_idx;
-						desc->name = "hand_r_velocity";
-						pose_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//			desc->basis = FeatureDescBasis::XYZ;
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->joint_id = joint_init_ids.hand_r_idx;
+			//			desc->name = "hand_r_velocity";
+			//			pose_feature->descriptors.push_back(desc);
+			//		}
 
-					//{
-					//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-					//	desc->basis = FeatureDescBasis::XYZ;
-					//	desc->type = FeatureDescType::LOCATION;
-					//	desc->joint_id = joint_init_ids.calf_l_idx;
-					//	desc->name = "calf_l_location";
-					//	pose_feature->descriptors.push_back(desc);
-					//}
+			//		//{
+			//		//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//		//	desc->basis = FeatureDescBasis::XYZ;
+			//		//	desc->type = FeatureDescType::LOCATION;
+			//		//	desc->joint_id = joint_init_ids.calf_l_idx;
+			//		//	desc->name = "calf_l_location";
+			//		//	pose_feature->descriptors.push_back(desc);
+			//		//}
 
-					//{
-					//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-					//	desc->basis = FeatureDescBasis::XYZ;
-					//	desc->type = FeatureDescType::LOCATION;
-					//	desc->joint_id = joint_init_ids.calf_r_idx;
-					//	desc->name = "calf_r_location";
-					//	pose_feature->descriptors.push_back(desc);
-					//}
+			//		//{
+			//		//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+			//		//	desc->basis = FeatureDescBasis::XYZ;
+			//		//	desc->type = FeatureDescType::LOCATION;
+			//		//	desc->joint_id = joint_init_ids.calf_r_idx;
+			//		//	desc->name = "calf_r_location";
+			//		//	pose_feature->descriptors.push_back(desc);
+			//		//}
 
-					database->features.push_back(pose_feature);
-				}
+			//		database->features.push_back(pose_feature);
+			//	}
 
-				{
-					TrajectoryFeature* trajectory_feature = new TrajectoryFeature();
+			//	{
+			//		TrajectoryFeature* trajectory_feature = new TrajectoryFeature();
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::LOCATION;
-						desc->time_offset = 0.0f;
-						desc->name = "curr_location";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->time_offset = 0.0f;
+			//			desc->name = "curr_location";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::DIRECTION;
-						desc->time_offset = 0.0f;
-						desc->name = "curr_direction";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::DIRECTION;
+			//			desc->time_offset = 0.0f;
+			//			desc->name = "curr_direction";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::LOCATION;
-						desc->time_offset = 0.06f;
-						desc->name = "next_1_location";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->time_offset = 0.06f;
+			//			desc->name = "next_1_location";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::DIRECTION;
-						desc->time_offset = 0.06f;
-						desc->name = "next_1_direction";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::DIRECTION;
+			//			desc->time_offset = 0.06f;
+			//			desc->name = "next_1_direction";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::LOCATION;
-						desc->time_offset = 0.12f;
-						desc->name = "next_2_location";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->time_offset = 0.12f;
+			//			desc->name = "next_2_location";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::DIRECTION;
-						desc->time_offset = 0.12f;
-						desc->name = "next_2_direction";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::DIRECTION;
+			//			desc->time_offset = 0.12f;
+			//			desc->name = "next_2_direction";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::LOCATION;
-						desc->time_offset = 0.18f;
-						desc->name = "next_3_location";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::LOCATION;
+			//			desc->time_offset = 0.18f;
+			//			desc->name = "next_3_location";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					{
-						ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-						desc->type = FeatureDescType::DIRECTION;
-						desc->time_offset = 0.18f;
-						desc->name = "next_3_direction";
-						trajectory_feature->descriptors.push_back(desc);
-					}
+			//		{
+			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+			//			desc->type = FeatureDescType::DIRECTION;
+			//			desc->time_offset = 0.18f;
+			//			desc->name = "next_3_direction";
+			//			trajectory_feature->descriptors.push_back(desc);
+			//		}
 
-					database->features.push_back(trajectory_feature);
-				}
+			//		database->features.push_back(trajectory_feature);
+			//	}
 
-				auto add_animation = [&](std::string_view path)
-					{
-						ref<AnimationAssetClip> animation = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path(path));
-						animation->load_job.wait_for_completion();
-						database->animations.push_back(animation);
-					};
+			//	auto add_animation = [&](std::string_view path)
+			//		{
+			//			ref<AnimationAssetClip> animation = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path(path));
+			//			animation->load_job.wait_for_completion();
+			//			database->animations.push_back(animation);
+			//		};
 
-				database->sample_rate = 30.0f;
-				database->narrow_phase_params.flags = NarrowPhaseFlags::SAME_FRAME_CHECK | NarrowPhaseFlags::EUCLIDIAN_DISTANCE_CHECK;
+			//	database->sample_rate = 30.0f;
+			//	database->narrow_phase_params.flags = NarrowPhaseFlags::SAME_FRAME_CHECK | NarrowPhaseFlags::EUCLIDIAN_DISTANCE_CHECK;
 
-				add_animation("/resources/assets/springtrap/source/animations/animation_clip73");
-				add_animation("/resources/assets/springtrap/source/animations/animation_clip74");
-				add_animation("/resources/assets/springtrap/source/animations/animation_clip75");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip50");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip71");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip72");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip73");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip74");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip75");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip77");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip78");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip79");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip80");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip87");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip88");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip89");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip90");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip91");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip92");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip93");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip94");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip95");
+			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip96");
 
-				database->generate_initial_data();
 
-				database->search_dimension = database->total_features_per_sample;
-				database->static_thresholds.resize(database->total_features_per_sample);
-				database->weights.resize(database->total_features_per_sample, 1.0f);
-				database->mark(skeleton_component);
+			//	database->generate_initial_data();
 
-				database->bake(skeleton.get());
+			//	database->search_dimension = database->total_features_per_sample;
+			//	database->static_thresholds.resize(database->total_features_per_sample);
+			//	database->weights.resize(database->total_features_per_sample, 1.0f);
+			//	database->mark(skeleton_component);
 
-				JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/springtrap/source/mmdb/locomotion"), database.get());
-				save_job.wait_for_completion();
-			}
+			//	database->bake(skeleton.get());
+
+			//	JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/springtrap/source/mmdb/locomotion"), database.get());
+			//	save_job.wait_for_completion();
+			//}
 		}
 
 		//{
@@ -500,7 +520,7 @@ namespace era_engine
 		//	cloth_component->num_z = 30;
 		//}
 
-		/*if (auto mesh = loadMeshFromFileAsync(get_asset_path("/resources/assets/Sponza/sponza.obj"), mesh_creation_flags_unreal_asset))
+		/*if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/Sponza/sponza.obj"), mesh_creation_flags_unreal_asset))
 		{
 			auto sponza = world->create_entity("Sponza");
 			sponza.add_component<MeshComponent>(mesh);
@@ -518,10 +538,11 @@ namespace era_engine
 
 		Entity plane = world->create_entity("Platform");
 		plane.add_component<PlaneComponent>(CollisionType::TERRAIN, vec3(0.f, -5.0, 0.0f));
-		plane.add_component<MeshComponent>(groundMesh);
+		plane.add_component<MeshComponent>(ground_mesh);
 		plane.get_component<TransformComponent>()->set_world_transform(trs{vec3(10, -9.f, 0.f), quat(vec3(1.f, 0.f, 0.f), deg2rad(0.f)), vec3(5.0f, 1.0f, 5.0f)});
 		
-		groundMesh->mesh = builder.createDXMesh();
+		ground_mesh->load_state = AssetLoadState::LOADED;
+		ground_mesh->mesh = builder.createDXMesh();
 	}
 
 	void GameInitSystem::update(float dt)
@@ -560,7 +581,7 @@ namespace era_engine
 			force.mode = ForceMode::FORCE;
 		}
 
-		if (frame_input.keyboard['U'].press_event &&
+		/*if (frame_input.keyboard['U'].press_event &&
 			tiran.is_valid())
 		{
 			using namespace animation;
@@ -587,6 +608,6 @@ namespace era_engine
 
 			animation_component->current_animation = result.animation;
 			animation_component->current_anim_position = result.anim_position;
-		}
+		}*/
 	}
 }

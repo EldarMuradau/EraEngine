@@ -1,23 +1,23 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #include "geometry/mesh.h"
 
-#include "rendering/pbr.h"
+#include <rendering/pbr.h>
 
-#include "core/hash.h"
-#include "core/string.h"
+#include <core/hash.h>
+#include <core/string.h>
+#include <core/traits.h>
+#include <core/log.h>
 
-#include "asset/file_registry.h"
-#include "asset/game_asset.h"
-#include "asset/model_asset.h"
+#include <asset/file_registry.h>
+#include <asset/game_asset.h>
+#include <asset/model_asset.h>
 
-#include "animation/skeleton.h"
-#include "animation/animation_clip_utils.h"
-#include "animation/animation_clip.h"
+#include <animation/skeleton.h>
+#include <animation/animation_clip_utils.h>
+#include <animation/animation_clip.h>
 
 namespace era_engine
 {
-	struct mesh_key
+	struct MeshKey
 	{
 		AssetHandle handle;
 		uint32 flags;
@@ -27,9 +27,9 @@ namespace era_engine
 namespace std
 {
 	template<>
-	struct hash<era_engine::mesh_key>
+	struct hash<era_engine::MeshKey>
 	{
-		size_t operator()(const era_engine::mesh_key& x) const
+		size_t operator()(const era_engine::MeshKey& x) const
 		{
 			size_t seed = 0;
 			hash_combine(seed, x.handle);
@@ -41,43 +41,61 @@ namespace std
 
 namespace era_engine
 {
-	static void meshLoaderThread(ref<multi_mesh> result, const fs::path& sceneFilename, uint32 flags, const mesh_load_callback& cb,
-		bool async, JobHandle parentJob)
+	static void mesh_import_worker(ref<MultiMesh> result, 
+		const fs::path& filename, 
+		uint32 flags, 
+		const MeshLoadCallback& cb,
+		bool async, 
+		JobHandle parent_job)
 	{
 		using namespace animation;
 
 		result->aabb = bounding_box::negativeInfinity();
 
-		ModelAsset asset = load_3d_model_from_file(sceneFilename);
+		result->model_asset = import_3d_model_from_file(filename);
 		mesh_builder builder(flags | mesh_creation_flags_with_skin);
 
-		for (auto& mesh : asset.meshes)
+		for (auto& mesh : result->model_asset->meshes)
 		{
+			if (result->model_asset->materials.empty())
+			{
+				result->model_asset->materials.push_back(PbrMaterialDesc{});
+			}
+
 			for (auto& sub : mesh.submeshes)
 			{
-				PbrMaterialDesc& materialDesc = asset.materials[sub.material_index];
+				PbrMaterialDesc& material_desc = result->model_asset->materials[sub.material_index];
 
-				materialDesc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				// TODO
+				material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 				{
-					if (!materialDesc.albedo.empty() && *materialDesc.albedo.c_str() != 'F')
-						materialDesc.albedo = get_asset_path(convert_path(materialDesc.albedo.string()));
-					if (!materialDesc.normal.empty() && *materialDesc.normal.c_str() != 'F')
-						materialDesc.normal = get_asset_path(convert_path(materialDesc.normal.string()));
-					if (!materialDesc.roughness.empty() && *materialDesc.roughness.c_str() != 'F')
-						materialDesc.roughness = get_asset_path(convert_path(materialDesc.roughness.string()));
-					if (!materialDesc.metallic.empty() && *materialDesc.metallic.c_str() != 'F')
-						materialDesc.metallic = get_asset_path(convert_path(materialDesc.metallic.string()));
+					if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
+					{
+						material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
+					}
+					if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
+					{
+						material_desc.normal = get_asset_path(convert_path(material_desc.normal));
+					}
+					if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
+					{
+						material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
+					}
+					if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
+					{
+						material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
+					}
 				}
 
 				ref<pbr_material> material;
 				if (!async)
 				{
-					material = createPBRMaterial(materialDesc);
+					material = create_pbr_material(material_desc);
 				}
 				else
 				{
-					material = createPBRMaterialAsync(materialDesc, parentJob);
+					material = create_pbr_material_async(material_desc, parent_job);
 				}
 
 				bounding_box aabb;
@@ -88,135 +106,7 @@ namespace era_engine
 				result->aabb.grow(aabb.maxCorner);
 			}
 		}
-
-		GameAssetsProvider provider;
-
-		ref<Skeleton> default_skeleton;
-
-		// Load skeleton
-		if (!asset.skeletons.empty() && (flags & mesh_creation_flags_with_skin))
-		{
-			uint32 skeleton_index = 0;
-			for (SkeletonAsset& skeleton_asset : asset.skeletons)
-			{
-				fs::path skeleton_path = sceneFilename.parent_path();
-				skeleton_path.append("skeletons");
-				skeleton_path.append("skeleton" + std::to_string(skeleton_index));
-
-				if (!fs::exists(fs::path(skeleton_path.string() + AssetExtension<Skeleton>::get_asset_type())))
-				{
-					ref<Skeleton> imported_skeleton = make_ref<Skeleton>();
-
-					if (default_skeleton == nullptr)
-					{
-						default_skeleton = imported_skeleton;
-					}
-
-					imported_skeleton->joints = std::move(skeleton_asset.joints);
-
-					imported_skeleton->default_local_transforms.reserve(imported_skeleton->joints.size());
-					for (size_t i = 0; i < imported_skeleton->joints.size(); ++i)
-					{
-						SkeletonJoint& joint = imported_skeleton->joints[i];
-						JointTransform joint_transform;
-
-						if (joint.parent_id > imported_skeleton->joints.size() || joint.parent_id == INVALID_JOINT)
-						{
-							if (flags & mesh_creation_flags_unreal_asset)
-							{
-								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
-							}
-							else
-							{
-								joint_transform.set_transform(mat4_to_trs(joint.bind_transform));
-							}
-						}
-						else
-						{
-							const auto& parent_bind = imported_skeleton->joints[joint.parent_id].bind_transform;
-							joint_transform.set_transform(mat4_to_trs(invert(parent_bind) * joint.bind_transform));
-						}
-
-						imported_skeleton->default_local_transforms.push_back(joint_transform);
-					}
-
-					imported_skeleton->name_to_joint_id = std::move(skeleton_asset.name_to_joint_id);
-					imported_skeleton->analyze_joints(builder.getPositions(), (uint8*)builder.getOthers() + builder.getSkinOffset(), builder.getOthersSize(), builder.getNumVertices());
-
-					JobHandle skeleton_load_job = provider.save_game_asset_to_file_async<Skeleton>(skeleton_path, imported_skeleton.get(), parentJob);
-					skeleton_load_job.wait_for_completion();
-					skeleton_index++;
-				}
-			}
-		}
-
-
-		{
-			AnimationSkeleton animation_skeleton;
-
-			if (default_skeleton == nullptr &&
-				!asset.animations.empty())
-			{
-				fs::path skeleton_path = sceneFilename.parent_path();
-				skeleton_path.append("skeletons");
-				skeleton_path.append("skeleton" + std::to_string(0));
-
-				default_skeleton = provider.load_game_asset_from_file<Skeleton>(skeleton_path);
-				default_skeleton->load_job.wait_for_completion();
-
-			}
-			animation_skeleton.skeleton = default_skeleton.get();
-
-			uint32 anim_index = 0;
-			uint32 clips_loaded = 0;
-
-			// Load animations
-			for (auto& anim : asset.animations)
-			{
-				fs::path clip_path = sceneFilename.parent_path();
-				clip_path.append("animations");
-				clip_path.append("animation_clip" + std::to_string(anim_index));
-
-				if (!fs::exists(fs::path(clip_path.string() + AssetExtension<AnimationAssetClip>::get_asset_type())))
-				{
-					AnimationAsset& in = anim;
-
-					AnimationClip& clip = animation_skeleton.clips.emplace_back();
-					clip.name = std::move(in.name);
-					clip.is_unreal_asset = flags & mesh_creation_flags_unreal_asset;
-					clip.filename = sceneFilename;
-					clip.length_in_seconds = in.duration;
-					clip.joints.resize(default_skeleton->joints.size(), {});
-
-					clip.position_keyframes = std::move(in.position_keyframes);
-					clip.position_timestamps = std::move(in.position_timestamps);
-					clip.rotation_keyframes = std::move(in.rotation_keyframes);
-					clip.rotation_timestamps = std::move(in.rotation_timestamps);
-					clip.scale_keyframes = std::move(in.scale_keyframes);
-					clip.scale_timestamps = std::move(in.scale_timestamps);
-
-					for (auto& [name, joint] : in.joints)
-					{
-						auto it = default_skeleton->name_to_joint_id.find(name);
-						if (it != default_skeleton->name_to_joint_id.end())
-						{
-							AnimationJoint& j = clip.joints[it->second];
-							j = joint;
-						}
-					}
-
-					clip.root_motion_joint = clip.joints[0];
-
-					ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(animation_skeleton, clips_loaded, default_skeleton.get());
-
-					JobHandle animation_load_job = provider.save_game_asset_to_file_async<AnimationAssetClip>(clip_path, animation_clip.get(), parentJob);
-					animation_load_job.wait_for_completion();
-					clips_loaded++;
-				}
-				anim_index++;
-			}
-		}
-
+		
 		if (cb)
 		{
 			cb(builder, result->submeshes, result->aabb);
@@ -224,101 +114,235 @@ namespace era_engine
 
 		result->mesh = builder.createDXMesh();
 
-		result->loadState.store(AssetLoadState::LOADED, std::memory_order_release);
+		result->load_state.store(AssetLoadState::LOADED, std::memory_order_release);
+
+		GameAssetsProvider provider;
+
+		fs::path mesh_path = filename.parent_path() / filename.stem();
+
+		JobHandle save_job = provider.save_game_asset_to_file_async<MultiMesh>(mesh_path, result.get());
+		save_job.wait_for_completion();
 	}
 
-	static ref<multi_mesh> loadMeshFromFileInternal(const fs::path& sceneFilename, AssetHandle handle, uint32 flags, const mesh_load_callback& cb,
-		bool async, JobHandle parentJob)
+	static ref<MultiMesh> import_mesh_from_file_internal(const fs::path& filename, 
+		AssetHandle handle, 
+		uint32 flags, 
+		const MeshLoadCallback& cb,
+		bool async, 
+		JobHandle parent_job)
 	{
-		ref<multi_mesh> result = make_ref<multi_mesh>();
+		ref<MultiMesh> result = make_ref<MultiMesh>();
 		result->handle = handle;
 		result->flags = flags;
-		result->loadState = AssetLoadState::LOADING;
+		result->load_state = AssetLoadState::LOADING;
 
 		if (!async)
 		{
-			meshLoaderThread(result, sceneFilename, flags, cb, false, {});
-			result->loadJob = {};
+			mesh_import_worker(result, filename, flags, cb, false, {});
+			result->load_job = {};
 			return result;
 		}
 		else
 		{
-			struct mesh_loading_data
+			struct MeshLoadingData
 			{
-				mesh_load_callback cb;
+				MeshLoadCallback cb;
 				fs::path path;
-				ref<multi_mesh> mesh;
+				ref<MultiMesh> mesh;
 				uint32 flags;
 			};
 
-			constexpr int a = sizeof(mesh_loading_data);
+			constexpr int a = sizeof(MeshLoadingData);
 
-			mesh_loading_data data = { cb, sceneFilename, result, flags };
+			MeshLoadingData data = { cb, filename, result, flags };
 
-			JobHandle job = low_priority_job_queue.createJob<mesh_loading_data>([](mesh_loading_data& data, JobHandle job)
+			JobHandle job = low_priority_job_queue.createJob<MeshLoadingData>([](MeshLoadingData& data, JobHandle job)
 				{
-					meshLoaderThread(data.mesh, data.path, data.flags, data.cb, true, job);
-				}, data, parentJob);
+					mesh_import_worker(data.mesh, data.path, data.flags, data.cb, true, job);
+				}, data, parent_job);
 			job.submit_now();
 
-			result->loadJob = job;
+			result->load_job = job;
 
 			return result;
 		}
 	}
 
-	static bool operator==(const mesh_key& a, const mesh_key& b)
+	static bool operator==(const MeshKey& a, const MeshKey& b)
 	{
 		return a.handle == b.handle && a.flags == b.flags;
 	}
 
-	static std::unordered_map<mesh_key, weakref<multi_mesh>> meshCache;
+	static std::unordered_map<MeshKey, weakref<MultiMesh>> mesh_cache;
 	static std::mutex mutex;
 
-	static ref<multi_mesh> loadMeshFromFileAndHandle(const fs::path& filename, AssetHandle handle, uint32 flags, const mesh_load_callback& cb,
-		bool async = false, JobHandle parentJob = {})
+	static ref<MultiMesh> import_mesh_from_file_and_handle(const fs::path& filename, 
+		AssetHandle handle, 
+		uint32 flags, 
+		const MeshLoadCallback& cb,
+		bool async = false, 
+		JobHandle parent_job = {})
 	{
 		if (!fs::exists(filename))
+		{
 			return nullptr;
+		}
 
-		mesh_key key = { handle, flags };
+		MeshKey key = { handle, flags };
 
 		std::lock_guard _lock{ mutex };
-		ref<multi_mesh> result = { meshCache[key].lock(), {} };
+		ref<MultiMesh> result = { mesh_cache[key].lock(), {} };
 		if (!result)
 		{
-			result = loadMeshFromFileInternal(filename, handle, flags, cb, async, parentJob);
-			meshCache[key] = result;
+			result = import_mesh_from_file_internal(filename, handle, flags, cb, async, parent_job);
+			mesh_cache[key] = result;
 		}
 
 		return result;
 	}
 
-	ref<multi_mesh> loadMeshFromFile(const fs::path& filename, uint32 flags, const mesh_load_callback& cb)
+	ref<MultiMesh> import_mesh_from_file(const fs::path& filename, uint32 flags, const MeshLoadCallback& cb)
 	{
 		fs::path path = filename.lexically_normal().make_preferred();
 
-		AssetHandle handle = getAssetHandleFromPath(path);
-		return loadMeshFromFileAndHandle(path, handle, flags, cb);
+		AssetHandle handle = get_asset_handle_from_path(path);
+		return import_mesh_from_file_and_handle(path, handle, flags, cb);
 	}
 
-	ref<multi_mesh> loadMeshFromHandle(AssetHandle handle, uint32 flags, const mesh_load_callback& cb)
+	ref<MultiMesh> import_mesh_from_handle(AssetHandle handle, uint32 flags, const MeshLoadCallback& cb)
 	{
-		fs::path sceneFilename = getPathFromAssetHandle(handle);
-		return loadMeshFromFileAndHandle(sceneFilename, handle, flags, cb);
+		fs::path filename = get_path_from_asset_handle(handle);
+		return import_mesh_from_file_and_handle(filename, handle, flags, cb);
 	}
 
-	ref<multi_mesh> loadMeshFromFileAsync(const fs::path& filename, uint32 flags, JobHandle parentJob, const mesh_load_callback& cb)
+	ref<MultiMesh> import_mesh_from_file_async(const fs::path& filename, uint32 flags, JobHandle parent_job, const MeshLoadCallback& cb)
 	{
 		fs::path path = filename.lexically_normal().make_preferred();
 
-		AssetHandle handle = getAssetHandleFromPath(path);
-		return loadMeshFromFileAndHandle(path, handle, flags, cb, true, parentJob);
+		AssetHandle handle = get_asset_handle_from_path(path);
+		return import_mesh_from_file_and_handle(path, handle, flags, cb, true, parent_job);
 	}
 
-	ref<multi_mesh> loadMeshFromHandleAsync(AssetHandle handle, uint32 flags, JobHandle parentJob, const mesh_load_callback& cb)
+	ref<MultiMesh> import_mesh_from_handle_async(AssetHandle handle, uint32 flags, JobHandle parent_job, const MeshLoadCallback& cb)
 	{
-		fs::path sceneFilename = getPathFromAssetHandle(handle);
-		return loadMeshFromFileAndHandle(sceneFilename, handle, flags, cb, true, parentJob);
+		fs::path filename = get_path_from_asset_handle(handle);
+		return import_mesh_from_file_and_handle(filename, handle, flags, cb, true, parent_job);
+	}
+
+	MultiMesh::~MultiMesh()
+	{
+	}
+
+	bool MultiMesh::serialize(std::ostream& os) const
+	{
+		if (!model_asset.has_value())
+		{
+			ASSERT(model_asset.has_value());
+			return false;
+		}
+
+		const BinaryDataArchive& serialized_data = BinarySerializer::serialize(model_asset);
+
+		try
+		{
+			if (!IO::write_value(os, serialized_data))
+			{
+				return false;
+			}
+		}
+		catch (...)
+		{
+			LOG_ERROR("Exception thrown while serializing asset!");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool MultiMesh::deserialize(std::istream& is)
+	{
+		try
+		{
+			BinaryDataArchive deserialized_data;
+
+			if (!IO::read_value(is, deserialized_data))
+			{
+				return false;
+			}
+
+			if (BinarySerializer::deserialize(BinaryData(deserialized_data), model_asset) != deserialized_data.size())
+			{
+				return false;
+			}
+
+			aabb = bounding_box::negativeInfinity();
+
+			mesh_builder builder(flags | mesh_creation_flags_with_skin);
+
+			for (auto& mesh : model_asset->meshes)
+			{
+				if (model_asset->materials.empty())
+				{
+					model_asset->materials.push_back(PbrMaterialDesc{});
+				}
+
+				for (auto& sub : mesh.submeshes)
+				{
+					PbrMaterialDesc& material_desc = model_asset->materials[sub.material_index];
+
+					// TODO
+					material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+					{
+						if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
+						{
+							material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
+						}
+						if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
+						{
+							material_desc.normal = get_asset_path(convert_path(material_desc.normal));
+						}
+						if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
+						{
+							material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
+						}
+						if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
+						{
+							material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
+						}
+					}
+
+					ref<pbr_material> material = create_pbr_material(material_desc);
+
+					bounding_box aabb;
+					builder.pushMesh(sub, 1.f, &aabb);
+					submeshes.push_back({ builder.endSubmesh(), aabb, trs::identity, material, mesh.name });
+
+					aabb.grow(aabb.minCorner);
+					aabb.grow(aabb.maxCorner);
+				}
+			}
+
+			mesh = builder.createDXMesh();
+
+			if (has_flag(flags, mesh_creation_flags_compact))
+			{
+				model_asset.reset();
+			}
+
+			load_state.store(AssetLoadState::LOADED, std::memory_order_release);
+		}
+		catch (...)
+		{
+			LOG_ERROR("Exception thrown while serializing asset!");
+			return false;
+		}
+
+		return true;
+	}
+
+	std::string MultiMesh::get_asset_type_impl()
+	{
+		return std::string(".emesh");
 	}
 }

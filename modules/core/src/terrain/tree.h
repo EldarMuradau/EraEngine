@@ -32,13 +32,13 @@ namespace era_engine
 		tree_settings settings;
 	};
 
-	void renderTree(struct opaque_render_pass* renderPass, D3D12_GPU_VIRTUAL_ADDRESS transforms, uint32 numInstances, const multi_mesh* mesh, float dt);
+	void renderTree(struct opaque_render_pass* renderPass, D3D12_GPU_VIRTUAL_ADDRESS transforms, uint32 numInstances, const MultiMesh* mesh, float dt);
 
 	void initializeTreePipelines();
 
-	ref<multi_mesh> loadTreeMeshFromFile(const fs::path& sceneFilename);
-	ref<multi_mesh> loadTreeMeshFromHandle(AssetHandle handle);
+	ref<MultiMesh> loadTreeMeshFromFile(const fs::path& sceneFilename);
+	ref<MultiMesh> loadTreeMeshFromHandle(AssetHandle handle);
 
-	ref<multi_mesh> loadTreeMeshFromFileAsync(const fs::path& sceneFilename, JobHandle parentJob = {});
-	ref<multi_mesh> loadTreeMeshFromHandleAsync(AssetHandle handle, JobHandle parentJob = {});
+	ref<MultiMesh> loadTreeMeshFromFileAsync(const fs::path& sceneFilename, JobHandle parent_job = {});
+	ref<MultiMesh> loadTreeMeshFromHandleAsync(AssetHandle handle, JobHandle parent_job = {});
 }

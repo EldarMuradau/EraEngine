@@ -576,7 +576,7 @@ namespace era_engine
 			generator,
 		};
 
-		JobHandle parentJob = high_priority_job_queue.createJob<terrain_gen_job_data>([](terrain_gen_job_data& data, JobHandle parent)
+		JobHandle parent_job = high_priority_job_queue.createJob<terrain_gen_job_data>([](terrain_gen_job_data& data, JobHandle parent)
 			{
 				for (int32 cz = 0; cz < (int32)data.terrain.chunksPerDim; ++cz)
 				{
@@ -659,8 +659,8 @@ namespace era_engine
 				}
 			}, data);
 
-		parentJob.submit_now();
-		parentJob.wait_for_completion();
+		parent_job.submit_now();
+		parent_job.wait_for_completion();
 	}
 
 	void TerrainComponent::generate_chunks_GPU()

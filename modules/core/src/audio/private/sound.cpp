@@ -58,7 +58,7 @@ namespace era_engine
         {
             const sound_spec& spec = getSoundSpec(id);
 
-            fs::path path = getPathFromAssetHandle(spec.asset);
+            fs::path path = get_path_from_asset_handle(spec.asset);
             if (!path.empty())
             {
                 HANDLE fileHandle = openFile(path);

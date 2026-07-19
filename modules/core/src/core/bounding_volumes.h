@@ -5,42 +5,57 @@
 #include "core_api.h"
 
 #include "core/math.h"
+#include "core/serialization/binary_serializer.h"
 
 namespace era_engine
 {
 	struct ERA_CORE_API indexed_triangle16
 	{
 		uint16 a, b, c;
+
+		ERA_BINARY_SERIALIZE(a, b, c)
 	};
 
 	struct ERA_CORE_API indexed_triangle32
 	{
 		uint32 a, b, c;
+
+		ERA_BINARY_SERIALIZE(a, b, c)
 	};
 
 	struct ERA_CORE_API indexed_line16
 	{
 		uint16 a, b;
+
+		ERA_BINARY_SERIALIZE(a, b)
 	};
 
 	struct ERA_CORE_API indexed_line32
 	{
 		uint32 a, b;
+
+		ERA_BINARY_SERIALIZE(a, b)
 	};
 
 	struct ERA_CORE_API index_point32
 	{
 		uint32 a;
+
+		ERA_BINARY_SERIALIZE(a)
 	};
 
 	struct ERA_CORE_API index_point16
 	{
 		uint16 a;
+
+		ERA_BINARY_SERIALIZE(a)
 	};
 
 	struct ERA_CORE_API line_segment
 	{
 		vec3 a, b;
+
+		ERA_BINARY_SERIALIZE(a, b)
 	};
 
 	struct ERA_CORE_API bounding_sphere
@@ -55,6 +70,8 @@ namespace era_engine
 
 		vec3 center;
 		float radius;
+
+		ERA_BINARY_SERIALIZE(center, radius)
 	};
 
 	struct ERA_CORE_API bounding_capsule
@@ -72,6 +89,8 @@ namespace era_engine
 		vec3 positionA;
 		vec3 positionB;
 		float radius;
+
+		ERA_BINARY_SERIALIZE(positionA, positionB, radius)
 	};
 
 	struct ERA_CORE_API bounding_cylinder
@@ -87,6 +106,8 @@ namespace era_engine
 		vec3 positionA;
 		vec3 positionB;
 		float radius;
+
+		ERA_BINARY_SERIALIZE(positionA, positionB, radius)
 	};
 
 	struct ERA_CORE_API bounding_torus
@@ -95,6 +116,8 @@ namespace era_engine
 		vec3 upAxis;
 		float majorRadius;
 		float tubeRadius;
+
+		ERA_BINARY_SERIALIZE(position, upAxis, majorRadius, tubeRadius)
 	};
 
 	union bounding_box_corners
@@ -143,6 +166,8 @@ namespace era_engine
 
 		vec3 minCorner;
 		vec3 maxCorner;
+
+		ERA_BINARY_SERIALIZE(minCorner, maxCorner)
 	};
 
 	struct ERA_CORE_API bounding_oriented_box
@@ -161,6 +186,8 @@ namespace era_engine
 		quat rotation;
 		vec3 center;
 		vec3 radius;
+
+		ERA_BINARY_SERIALIZE(rotation, center, radius)
 	};
 
 	struct ERA_CORE_API bounding_rectangle
@@ -177,6 +204,8 @@ namespace era_engine
 
 		vec2 minCorner;
 		vec2 maxCorner;
+
+		ERA_BINARY_SERIALIZE(minCorner, maxCorner)
 	};
 
 	inline vec4 createPlane(vec3 point, vec3 normal)

@@ -99,7 +99,7 @@ namespace era_engine
 
 	void editTexture(const char* name, ref<dx_texture>& tex, uint32 loadFlags);
 
-	void editMesh(const char* name, ref<multi_mesh>& mesh, uint32 loadFlags);
+	void editMesh(const char* name, ref<MultiMesh>& mesh, uint32 loadFlags);
 
 	void editMaterial(const ref<pbr_material>& material);
 	

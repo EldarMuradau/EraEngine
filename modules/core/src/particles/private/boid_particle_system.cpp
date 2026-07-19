@@ -43,7 +43,7 @@ namespace era_engine
 	void boid_particle_system::initialize(uint32 maxNumParticles, float emitRate)
 	{
 		this->emitRate = emitRate;
-		cartoonMesh = loadAnimatedMeshFromFile(get_asset_path("/resources/assets/cartoon/cartoon.fbx"));
+		cartoonMesh = import_animated_mesh_from_file(get_asset_path("/resources/assets/cartoon/cartoon.fbx"));
 		if (cartoonMesh)
 		{
 			particle_system::initializeAsMesh(sizeof(boid_particle_data), cartoonMesh->mesh, cartoonMesh->submeshes[0].info, maxNumParticles, sort_mode_none);
@@ -63,7 +63,7 @@ namespace era_engine
 		//{
 		//	const dx_mesh& mesh = cartoonMesh->mesh;
 		//	animation::Skeleton& skeleton = cartoonMesh->skeleton;
-		//	animation::AnimationSkeleton& animation_skeleton = cartoonMesh->animation_skeleton;
+		//	animation::AnimationSkeletonImportData& animation_skeleton = cartoonMesh->animation_skeleton;
 
 		//	time += dt;
 		//	time = fmod(time, animation_skeleton.clips[0].length_in_seconds);

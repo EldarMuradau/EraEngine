@@ -28,7 +28,7 @@ namespace era_engine
 				ASSERT(status);
 			}
 
-			JobHandle save_job = provider.save_game_asset_to_file_async<AnimationAssetClip>(getPathFromAssetHandle(animation->handle), animation.get(), {}, false);
+			JobHandle save_job = provider.save_game_asset_to_file_async<AnimationAssetClip>(get_path_from_asset_handle(animation->handle), animation.get(), {}, false);
 			handles.emplace_back(save_job);
 		}
 

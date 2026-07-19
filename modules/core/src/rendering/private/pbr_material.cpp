@@ -49,7 +49,7 @@ namespace era_engine
 	static std::unordered_map<PbrMaterialDesc, weakref<pbr_material>> materialCache;
 	static std::mutex mutex;
 
-	ref<pbr_material> createPBRMaterial(const PbrMaterialDesc& desc)
+	ref<pbr_material> create_pbr_material(const PbrMaterialDesc& desc)
 	{
 		std::lock_guard lock{ mutex };
 
@@ -76,7 +76,7 @@ namespace era_engine
 		return sp;
 	}
 
-	ref<pbr_material> createPBRMaterialAsync(const PbrMaterialDesc& desc, JobHandle parentJob)
+	ref<pbr_material> create_pbr_material_async(const PbrMaterialDesc& desc, JobHandle parent_job)
 	{
 		std::lock_guard lock{ mutex };
 
@@ -85,10 +85,10 @@ namespace era_engine
 		{
 			ref<pbr_material> material = make_ref<pbr_material>();
 
-			if (!desc.albedo.empty()) material->albedo = loadTextureFromFileAsync(desc.albedo, desc.albedo_flags, parentJob);
-			if (!desc.normal.empty()) material->normal = loadTextureFromFileAsync(desc.normal, desc.normal_flags, parentJob);
-			if (!desc.roughness.empty()) material->roughness = loadTextureFromFileAsync(desc.roughness, desc.roughness_flags, parentJob);
-			if (!desc.metallic.empty()) material->metallic = loadTextureFromFileAsync(desc.metallic, desc.metallic_flags, parentJob);
+			if (!desc.albedo.empty()) material->albedo = loadTextureFromFileAsync(desc.albedo, desc.albedo_flags, parent_job);
+			if (!desc.normal.empty()) material->normal = loadTextureFromFileAsync(desc.normal, desc.normal_flags, parent_job);
+			if (!desc.roughness.empty()) material->roughness = loadTextureFromFileAsync(desc.roughness, desc.roughness_flags, parent_job);
+			if (!desc.metallic.empty()) material->metallic = loadTextureFromFileAsync(desc.metallic, desc.metallic_flags, parent_job);
 			material->emission = desc.emission;
 			material->albedoTint = desc.albedo_tint;
 			material->roughnessOverride = desc.roughness_override;
@@ -103,9 +103,9 @@ namespace era_engine
 		return sp;
 	}
 
-	ref<pbr_material> getDefaultPBRMaterial()
+	ref<pbr_material> get_default_pbr_material()
 	{
-		static ref<pbr_material> material = createPBRMaterial({});
+		static ref<pbr_material> material = create_pbr_material({});
 		return material;
 	}
 }

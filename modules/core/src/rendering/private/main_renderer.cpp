@@ -815,7 +815,7 @@ namespace era_engine
 				cl3,
 			};
 
-			JobHandle parentJob = high_priority_job_queue.createJob<render_job_data>([](render_job_data& data, JobHandle parent)
+			JobHandle parent_job = high_priority_job_queue.createJob<render_job_data>([](render_job_data& data, JobHandle parent)
 				{
 					high_priority_job_queue.createJob<render_job_data>([](render_job_data& data, JobHandle)
 						{
@@ -839,8 +839,8 @@ namespace era_engine
 
 				}, jobData);
 
-			parentJob.submit_now();
-			parentJob.wait_for_completion();
+			parent_job.submit_now();
+			parent_job.wait_for_completion();
 
 			ASSERT(cl0);
 			ASSERT(cl1);

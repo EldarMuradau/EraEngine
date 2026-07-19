@@ -5,6 +5,8 @@
 #include "animation/animation.h"
 #include "animation/animation_clip.h"
 
+#include "asset/model_asset.h"
+
 namespace era_engine::animation
 {
     struct ERA_CORE_API TrackInfo final
@@ -43,7 +45,12 @@ namespace era_engine::animation
 
         static ref<AnimationAssetClip> make_clip(const ClipInfo& info);
 
-        static ref<AnimationAssetClip> make_clip(const AnimationSkeleton& old_anim_skeleton, uint32 clip_index, const Skeleton* skeleton);
+        static ref<AnimationAssetClip> make_clip(const AnimationSkeletonImportData& old_anim_skeleton, uint32 clip_index, const Skeleton* skeleton);
+
+        static std::vector<ref<AnimationAssetClip>> import_animations(std::vector<AnimationAssetImportData>& animations_to_import,
+            const ref<Skeleton>& skeleton, 
+            const fs::path& file,
+            uint32 flags = 0);
     };
 
 }

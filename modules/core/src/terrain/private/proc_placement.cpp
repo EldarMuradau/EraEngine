@@ -141,7 +141,7 @@ namespace era_engine
 
 			for (uint32 i = 0; i < 4; ++i)
 			{
-				const ref<multi_mesh>& mesh = layerDesc.meshes[i];
+				const ref<MultiMesh>& mesh = layerDesc.meshes[i];
 				layer.meshes[i] = mesh;
 
 				if (mesh)

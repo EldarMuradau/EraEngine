@@ -201,7 +201,7 @@ namespace era_engine
 	bool Engine::run(const std::function<void(void)>& initial_task /* = nullptr */)
 	{
 		initialize_job_system();
-		initializeFileRegistry();
+		initialize_file_registry();
 
 		initializeRenderUtils();
 

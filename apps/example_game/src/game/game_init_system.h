@@ -24,7 +24,7 @@ namespace era_engine
 	private:
 		Entity camera_entity;
 
-		ref<multi_mesh> sphere_mesh;
+		ref<MultiMesh> sphere_mesh;
 		ref<pbr_material> sphere_render_material;
 
 		ref<MotionMatchingDatabase> database;

@@ -11,6 +11,8 @@
 #include "rendering/outline.h"
 #include "rendering/shadow_map.h"
 
+#include "animation/animation.h"
+
 #include "asset/pbr_material_desc.h"
 
 #include "geometry/mesh.h"
@@ -36,12 +38,12 @@ namespace era_engine
 
 	static bool shouldRender(const camera_frustum_planes& frustum, const MeshComponent& mesh, const TransformComponent& transform)
 	{
-		return mesh.mesh && !mesh.is_hidden && (mesh.mesh->loadState.load() == AssetLoadState::LOADED) && ((mesh.mesh->aabb.maxCorner.x == mesh.mesh->aabb.minCorner.x) || !frustum.cullModelSpaceAABB(mesh.mesh->aabb, transform.get_world_transform()));
+		return mesh.mesh && !mesh.is_hidden && (mesh.mesh->load_state.load() == AssetLoadState::LOADED) && ((mesh.mesh->aabb.maxCorner.x == mesh.mesh->aabb.minCorner.x) || !frustum.cullModelSpaceAABB(mesh.mesh->aabb, transform.get_world_transform()));
 	}
 
 	static bool shouldRender(const bounding_sphere& frustum, const MeshComponent& mesh, const TransformComponent& transform)
 	{
-		return mesh.mesh && !mesh.is_hidden && (mesh.mesh->loadState.load() == AssetLoadState::LOADED) && ((mesh.mesh->aabb.maxCorner.x == mesh.mesh->aabb.minCorner.x) || shouldRender(frustum, mesh.mesh->aabb, transform.get_world_transform()));
+		return mesh.mesh && !mesh.is_hidden && (mesh.mesh->load_state.load() == AssetLoadState::LOADED) && ((mesh.mesh->aabb.maxCorner.x == mesh.mesh->aabb.minCorner.x) || shouldRender(frustum, mesh.mesh->aabb, transform.get_world_transform()));
 	}
 
 	static bool shouldRender(const light_frustum& frustum, const MeshComponent& mesh, const TransformComponent& transform)
@@ -50,11 +52,11 @@ namespace era_engine
 	}
 
 	template <typename group_t>
-	std::unordered_map<multi_mesh*, offset_count> getOffsetsPerMesh(group_t group)
+	std::unordered_map<MultiMesh*, offset_count> getOffsetsPerMesh(group_t group)
 	{
 		uint32 groupSize = (uint32)group.size();
 
-		std::unordered_map<multi_mesh*, offset_count> ocPerMesh;
+		std::unordered_map<MultiMesh*, offset_count> ocPerMesh;
 
 		uint32 index = 0;
 		for (Entity::Handle entityHandle : group)
@@ -176,7 +178,7 @@ namespace era_engine
 	}
 
 	template <typename group_t>
-	static void renderStaticObjectsToMainCamera(group_t group, std::unordered_map<multi_mesh*, offset_count> ocPerMesh,
+	static void renderStaticObjectsToMainCamera(group_t group, std::unordered_map<MultiMesh*, offset_count> ocPerMesh,
 		const camera_frustum_planes& frustum, Allocator& arena, Entity::Handle selectedObjectID,
 		opaque_render_pass* opaqueRenderPass, transparent_render_pass* transparentRenderPass, ldr_render_pass* ldrRenderPass)
 	{
@@ -268,7 +270,7 @@ namespace era_engine
 	}
 
 	template <typename group_t>
-	static void renderStaticObjectsToShadowMap(group_t group, std::unordered_map<multi_mesh*, offset_count> ocPerMesh,
+	static void renderStaticObjectsToShadowMap(group_t group, std::unordered_map<MultiMesh*, offset_count> ocPerMesh,
 		const light_frustum& frustum, Allocator& arena, shadow_render_pass_base* shadowRenderPass)
 	{
 		uint32 groupSize = (uint32)group.size();
@@ -338,7 +340,7 @@ namespace era_engine
 			components_group<TransformComponent, MeshComponent>,
 			specialized_components{});
 
-		std::unordered_map<multi_mesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
+		std::unordered_map<MultiMesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
 
 		renderStaticObjectsToMainCamera(group, ocPerMesh, frustum, arena, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass);
 
@@ -350,7 +352,7 @@ namespace era_engine
 	}
 
 	template <typename group_t>
-	static void renderDynamicObjectsToMainCamera(group_t group, std::unordered_map<multi_mesh*, offset_count> ocPerMesh,
+	static void renderDynamicObjectsToMainCamera(group_t group, std::unordered_map<MultiMesh*, offset_count> ocPerMesh,
 		const camera_frustum_planes& frustum, Allocator& arena, Entity::Handle selectedObjectID,
 		opaque_render_pass* opaqueRenderPass, transparent_render_pass* transparentRenderPass, ldr_render_pass* ldrRenderPass)
 	{
@@ -446,7 +448,7 @@ namespace era_engine
 	}
 
 	template <typename group_t>
-	static void renderDynamicObjectsToShadowMap(group_t group, std::unordered_map<multi_mesh*, offset_count> ocPerMesh,
+	static void renderDynamicObjectsToShadowMap(group_t group, std::unordered_map<MultiMesh*, offset_count> ocPerMesh,
 		const light_frustum& frustum, Allocator& arena, shadow_render_pass_base* shadowRenderPass)
 	{
 		uint32 groupSize = (uint32)group.size();
@@ -512,7 +514,7 @@ namespace era_engine
 			components_group<TransformComponent, MeshComponent>,
 			components_group<animation::AnimationComponent>);
 
-		std::unordered_map<multi_mesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
+		std::unordered_map<MultiMesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
 		renderDynamicObjectsToMainCamera(group, ocPerMesh, frustum, arena, selectedObjectID, opaqueRenderPass, transparentRenderPass, ldrRenderPass);
 
 		for (uint32 i = 0; i < shadow.numShadowRenderPasses; ++i)
@@ -551,7 +553,7 @@ namespace era_engine
 		uint32 index = 0;
 		for (auto [entityHandle, transform, mesh, anim] : group.each())
 		{
-			if (!mesh.mesh || mesh.is_hidden || (mesh.mesh->loadState.load() != AssetLoadState::LOADED))
+			if (!mesh.mesh || mesh.is_hidden || (mesh.mesh->load_state.load() != AssetLoadState::LOADED))
 				continue;
 
 			const trs& world_transform = transform.get_world_transform();
@@ -676,7 +678,7 @@ namespace era_engine
 			return;
 		}
 
-		std::unordered_map<multi_mesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
+		std::unordered_map<MultiMesh*, offset_count> ocPerMesh = getOffsetsPerMesh(group);
 
 		dx_allocation transformAllocation = dxContext.allocateDynamicBuffer(groupSize * sizeof(mat4), 4);
 		mat4* transforms = (mat4*)transformAllocation.cpuPtr;
@@ -755,7 +757,7 @@ namespace era_engine
 		desc.metallic = "";
 		desc.shader = pbr_material_shader_double_sided;
 
-		static auto cloth_material = createPBRMaterial(desc);
+		static auto cloth_material = create_pbr_material(desc);
 
 		uint32 index = 0;
 		for (auto [entity_handle, cloth, render] : group.each())

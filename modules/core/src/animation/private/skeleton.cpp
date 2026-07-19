@@ -6,6 +6,8 @@
 #include "core/io/binary_data.h"
 #include "core/log.h"
 
+#include <geometry/mesh_builder.h>
+
 #include <sstream>
 
 namespace era_engine::animation
@@ -127,7 +129,7 @@ namespace era_engine::animation
 		return local_transforms[joint_id].get_rotation();
 	}
 
-	void Skeleton::analyze_joints(const vec3* positions, const void* others, uint32 other_stride, uint32 num_vertices)
+	void Skeleton::analyze_joints()
 	{
 		for (uint32 jointID = 0; jointID < (uint32)joints.size(); ++jointID)
 		{
@@ -138,33 +140,90 @@ namespace era_engine::animation
 
 			LimbType c = limb_type_none;
 
-			bool left = contains(name, "left") || ends_with(name, ".l") || ends_with(name, "_l");
+			bool left = contains(name, "left") || 
+				ends_with(name, ".l") || 
+				ends_with(name, "_l");
 
-			if (contains(name, "spine") || contains(name, "hip") || contains(name, "rib") || contains(name, "pelvis") || contains(name, "shoulder") || contains(name, "clavicle")) { c = limb_type_torso; }
-			else if (contains(name, "head") || contains(name, "neck")) { c = limb_type_head; }
+			if (contains(name, "spine") ||
+				contains(name, "hip") ||
+				contains(name, "rib") ||
+				contains(name, "pelvis") ||
+				contains(name, "shoulder") ||
+				contains(name, "clavicle"))
+			{
+				c = limb_type_torso;
+			}
+			else if (contains(name, "head") ||
+				contains(name, "neck"))
+			{
+				c = limb_type_head;
+			}
 			else if (contains(name, "arm"))
 			{
 				LimbType parentType = (j.parent_id != INVALID_JOINT) ? joints[j.parent_id].limb_type : limb_type_none;
 
-				if (contains(name, "lower") || contains(name, "lo") || contains(name, "fore")) { c = left ? limb_type_lower_arm_left : limb_type_lower_arm_right; }
-				else if (contains(name, "upper") || contains(name, "up")) { c = left ? limb_type_upper_arm_left : limb_type_upper_arm_right; }
-				else if (parentType == limb_type_torso) { c = left ? limb_type_upper_arm_left : limb_type_upper_arm_right; }
-				else { c = left ? limb_type_lower_arm_left : limb_type_lower_arm_right; }
+				if (contains(name, "lower") ||
+					contains(name, "lo") ||
+					contains(name, "fore"))
+				{
+					c = left ? limb_type_lower_arm_left : limb_type_lower_arm_right;
+				}
+				else if (contains(name, "upper") ||
+					contains(name, "up"))
+				{
+					c = left ? limb_type_upper_arm_left : limb_type_upper_arm_right;
+				}
+				else if (parentType == limb_type_torso)
+				{
+					c = left ? limb_type_upper_arm_left : limb_type_upper_arm_right;
+				}
+				else
+				{
+					c = left ? limb_type_lower_arm_left : limb_type_lower_arm_right;
+				}
 			}
-			else if (contains(name, "hand") || contains(name, "finger") || contains(name, "thumb") || contains(name, "index") || contains(name, "middle") || contains(name, "ring") || contains(name, "pinky"))
+			else if (contains(name, "hand") ||
+				contains(name, "finger") ||
+				contains(name, "thumb") ||
+				contains(name, "index") ||
+				contains(name, "middle") ||
+				contains(name, "ring") ||
+				contains(name, "pinky"))
 			{
 				c = left ? limb_type_hand_left : limb_type_hand_right;
 			}
-			else if (contains(name, "leg") || contains(name, "thigh") || contains(name, "shin") || contains(name, "calf"))
+			else if (contains(name, "leg") ||
+				contains(name, "thigh") ||
+				contains(name, "shin") ||
+				contains(name, "calf"))
 			{
 				LimbType parentType = (j.parent_id != INVALID_JOINT) ? joints[j.parent_id].limb_type : limb_type_none;
 
-				if (contains(name, "lower") || contains(name, "lo") || contains(name, "shin") || contains(name, "calf")) { c = left ? limb_type_lower_leg_left : limb_type_lower_leg_right; }
-				else if (contains(name, "upper") || contains(name, "up") || contains(name, "thigh")) { c = left ? limb_type_upper_leg_left : limb_type_upper_leg_right; }
-				else if (parentType == limb_type_torso) { c = left ? limb_type_upper_leg_left : limb_type_upper_leg_right; }
-				else { c = left ? limb_type_lower_leg_left : limb_type_lower_leg_right; }
+				if (contains(name, "lower") ||
+					contains(name, "lo") ||
+					contains(name, "shin") ||
+					contains(name, "calf"))
+				{
+					c = left ? limb_type_lower_leg_left : limb_type_lower_leg_right;
+				}
+				else if (contains(name, "upper") ||
+					contains(name, "up") ||
+					contains(name, "thigh"))
+				{
+					c = left ? limb_type_upper_leg_left : limb_type_upper_leg_right;
+				}
+				else if (parentType == limb_type_torso)
+				{
+					c = left ? limb_type_upper_leg_left : limb_type_upper_leg_right;
+				}
+				else
+				{
+					c = left ? limb_type_lower_leg_left : limb_type_lower_leg_right;
+				}
 			}
-			else if (contains(name, "foot") || contains(name, "toe") || contains(name, "ball"))
+			else if (contains(name, "foot") ||
+				contains(name, "toe") ||
+				contains(name, "ball"))
 			{
 				c = left ? limb_type_foot_left : limb_type_foot_right;
 			}
@@ -294,5 +353,75 @@ namespace era_engine::animation
 		get_default_pose();
 
 		return true;
+	}
+
+	std::vector<ref<Skeleton>> SkeletonImportUtils::import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import, const fs::path& file, uint32 flags)
+	{
+		std::vector<ref<Skeleton>> result;
+		result.reserve(skeletons_to_import.size());
+
+		std::vector<JobHandle> handles;
+		handles.reserve(skeletons_to_import.size());
+
+		GameAssetsProvider provider;
+
+		// Load skeleton
+		if (!skeletons_to_import.empty() && (flags & mesh_creation_flags_with_skin))
+		{
+			uint32 skeleton_index = 0;
+			for (SkeletonAssetImportData& skeleton_asset : skeletons_to_import)
+			{
+				fs::path skeleton_path = file.parent_path();
+				skeleton_path.append("skeletons");
+				skeleton_path.append("skeleton" + std::to_string(skeleton_index));
+
+				if (!fs::exists(fs::path(skeleton_path.string() + AssetExtension<Skeleton>::get_asset_type())))
+				{
+					ref<Skeleton> imported_skeleton = make_ref<Skeleton>();
+					result.emplace_back(imported_skeleton);
+
+					imported_skeleton->joints = std::move(skeleton_asset.joints);
+
+					imported_skeleton->default_local_transforms.reserve(imported_skeleton->joints.size());
+					for (size_t i = 0; i < imported_skeleton->joints.size(); ++i)
+					{
+						SkeletonJoint& joint = imported_skeleton->joints[i];
+						JointTransform joint_transform;
+
+						if (joint.parent_id > imported_skeleton->joints.size() || joint.parent_id == INVALID_JOINT)
+						{
+							if (flags & mesh_creation_flags_unreal_asset)
+							{
+								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
+							}
+							else
+							{
+								joint_transform.set_transform(mat4_to_trs(joint.bind_transform));
+							}
+						}
+						else
+						{
+							const auto& parent_bind = imported_skeleton->joints[joint.parent_id].bind_transform;
+							joint_transform.set_transform(mat4_to_trs(invert(parent_bind) * joint.bind_transform));
+						}
+
+						imported_skeleton->default_local_transforms.push_back(joint_transform);
+					}
+
+					imported_skeleton->name_to_joint_id = std::move(skeleton_asset.name_to_joint_id);
+					imported_skeleton->analyze_joints();
+
+					handles.emplace_back(provider.save_game_asset_to_file_async<Skeleton>(skeleton_path, imported_skeleton.get()));
+					skeleton_index++;
+				}
+			}
+		}
+
+		for (JobHandle handle : handles)
+		{
+			handle.wait_for_completion();
+		}
+
+		return result;
 	}
 }

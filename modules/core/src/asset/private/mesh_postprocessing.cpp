@@ -8,14 +8,14 @@ namespace era_engine
 {
 	void generateNormalsAndTangents(std::vector<SubmeshAsset>& submeshes, uint32 flags)
 	{
-		if (flags & mesh_flag_gen_tangents)
+		if (flags & MESH_FLAG_GEN_TANGENTS)
 		{
-			flags |= mesh_flag_gen_normals;
+			flags |= MESH_FLAG_GEN_NORNALS;
 		}
 
 		for (SubmeshAsset& sub : submeshes)
 		{
-			if (sub.normals.empty() && flags & mesh_flag_gen_normals)
+			if (sub.normals.empty() && flags & MESH_FLAG_GEN_NORNALS)
 			{
 				printf("Generating normals\n");
 				CPU_PRINT_PROFILE_BLOCK("Generating normals");
@@ -38,7 +38,7 @@ namespace era_engine
 				}
 			}
 
-			if (sub.tangents.empty() && flags & mesh_flag_gen_tangents)
+			if (sub.tangents.empty() && flags & MESH_FLAG_GEN_TANGENTS)
 			{
 				printf("Generating tangents\n");
 				CPU_PRINT_PROFILE_BLOCK("Generating tangents");
@@ -98,12 +98,12 @@ namespace era_engine
 
 	void generateNormalsAndTangents(ref<SubmeshAsset> submesh, uint32 flags)
 	{
-		if (flags & mesh_flag_gen_tangents)
+		if (flags & MESH_FLAG_GEN_TANGENTS)
 		{
-			flags |= mesh_flag_gen_normals;
+			flags |= MESH_FLAG_GEN_NORNALS;
 		}
 
-		if (submesh->normals.empty() && flags & mesh_flag_gen_normals)
+		if (submesh->normals.empty() && flags & MESH_FLAG_GEN_NORNALS)
 		{
 			printf("Generating normals\n");
 			CPU_PRINT_PROFILE_BLOCK("Generating normals");
@@ -126,7 +126,7 @@ namespace era_engine
 			}
 		}
 
-		if (submesh->tangents.empty() && flags & mesh_flag_gen_tangents)
+		if (submesh->tangents.empty() && flags & MESH_FLAG_GEN_TANGENTS)
 		{
 			printf("Generating tangents\n");
 			CPU_PRINT_PROFILE_BLOCK("Generating tangents");

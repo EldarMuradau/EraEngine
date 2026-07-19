@@ -1,39 +1,17 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #pragma once
 
 #include "core_api.h"
 
 #include "core/math.h"
+#include "core/serialization/binary_serializer.h"
+#include "core/bounding_volumes.h"
 
-#include "animation/animation.h"
+#include "asset/pbr_material_desc.h"
 
-#include "geometry/mesh.h"
+#include "animation/animation_common_data.h"
 
 namespace era_engine
 {
-	struct ERA_CORE_API SkeletonAsset
-	{
-		std::vector<animation::SkeletonJoint> joints;
-		std::unordered_map<std::string, uint32> name_to_joint_id;
-	};
-
-	struct ERA_CORE_API AnimationAsset
-	{
-		std::string name;
-		float duration = 0.0f;
-
-		std::unordered_map<std::string, animation::AnimationJoint> joints;
-
-		std::vector<float> position_timestamps;
-		std::vector<float> rotation_timestamps;
-		std::vector<float> scale_timestamps;
-
-		std::vector<vec3> position_keyframes;
-		std::vector<quat> rotation_keyframes;
-		std::vector<vec3> scale_keyframes;
-	};
-
 	struct ERA_CORE_API SubmeshAsset
 	{
 		int32 material_index = 0;
@@ -46,6 +24,8 @@ namespace era_engine
 		std::vector<animation::SkinningWeights> skin;
 
 		std::vector<indexed_triangle16> triangles;
+
+		ERA_BINARY_SERIALIZE(material_index, positions, uvs, normals, tangents, colors, skin, triangles)
 	};
 
 	struct ERA_CORE_API MeshAsset
@@ -53,37 +33,48 @@ namespace era_engine
 		std::string name;
 		std::vector<SubmeshAsset> submeshes;
 		int32 skeleton_index = 0;
+
+		ERA_BINARY_SERIALIZE(name, submeshes, skeleton_index)
 	};
 
 	struct PbrMaterialDesc;
 
 	struct ERA_CORE_API ModelAsset
 	{
+		ModelAsset() = default;
+		~ModelAsset() = default;
+
+		ModelAsset(const ModelAsset&) = default;
+		ModelAsset(ModelAsset&&) noexcept = default;
+
+		ModelAsset& operator=(const ModelAsset&) = default;
+		ModelAsset& operator=(ModelAsset&&) noexcept = default;
+
 		uint32 flags = 0;
 		std::vector<MeshAsset> meshes;
 		std::vector<PbrMaterialDesc> materials;
-		std::vector<SkeletonAsset> skeletons;
-		std::vector<AnimationAsset> animations;
+
+		ERA_BINARY_SERIALIZE(flags, meshes, materials)
 	};
 
 	enum MeshFlags
 	{
-		mesh_flag_load_uvs = (1 << 0),
-		mesh_flag_flip_uvs_vertically = (1 << 1),
-		mesh_flag_load_normals = (1 << 2),
-		mesh_flag_load_tangents = (1 << 3),
-		mesh_flag_gen_normals = (1 << 4), // Only if mesh has no normals.
-		mesh_flag_gen_tangents = (1 << 5), // Only if mesh has no tangents.
-		mesh_flag_load_colors = (1 << 6), // Only if mesh has no tangents.
-		mesh_flag_load_skin = (1 << 7),
+		MESH_FLAG_LOAD_UVS = (1 << 0),
+		MESH_FLAG_FLIP_UVS_VERTICALLY = (1 << 1),
+		MESH_FLAG_LOAD_NORNALS = (1 << 2),
+		MESH_FLAG_LOAD_TANGENTS = (1 << 3),
+		MESH_FLAG_GEN_NORNALS = (1 << 4), // Only if mesh has no normals.
+		MESH_FLAG_GEN_TANGENTS = (1 << 5), // Only if mesh has no tangents.
+		MESH_FLAG_LOAD_COLORS = (1 << 6), // Only if mesh has no tangents.
+		MESH_FLAG_LOAD_SKIN = (1 << 7),
 
-		mesh_flag_default = mesh_flag_load_uvs | mesh_flag_flip_uvs_vertically |
-		mesh_flag_load_normals | mesh_flag_gen_normals |
-		mesh_flag_load_tangents | mesh_flag_gen_tangents |
-		mesh_flag_load_colors | mesh_flag_load_skin,
+		MESH_FLAG_DEFAULT = MESH_FLAG_LOAD_UVS | MESH_FLAG_FLIP_UVS_VERTICALLY |
+							MESH_FLAG_LOAD_NORNALS | MESH_FLAG_GEN_NORNALS |
+							MESH_FLAG_LOAD_TANGENTS | MESH_FLAG_GEN_TANGENTS |
+							MESH_FLAG_LOAD_COLORS | MESH_FLAG_LOAD_SKIN,
 	};
 
-	ERA_CORE_API ModelAsset load_3d_model_from_file(const fs::path& path, uint32 mesh_flags = mesh_flag_default);
+	ERA_CORE_API ModelAsset import_3d_model_from_file(const fs::path& path, uint32 mesh_flags = MESH_FLAG_DEFAULT);
 
 	inline bool is_mesh_extension(const fs::path& extension)
 	{
