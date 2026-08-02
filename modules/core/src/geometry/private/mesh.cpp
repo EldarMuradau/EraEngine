@@ -55,6 +55,28 @@ namespace era_engine
 		result->model_asset = import_3d_model_from_file(filename);
 		mesh_builder builder(flags | mesh_creation_flags_with_skin);
 
+		for (PbrMaterialDesc& material_desc : result->model_asset->materials)
+		{
+			if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
+			{
+				material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
+			}
+			if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
+			{
+				material_desc.normal = get_asset_path(convert_path(material_desc.normal));
+			}
+			if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
+			{
+				material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
+			}
+			if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
+			{
+				material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
+			}
+
+			material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+
 		for (auto& mesh : result->model_asset->meshes)
 		{
 			if (result->model_asset->materials.empty())
@@ -65,28 +87,6 @@ namespace era_engine
 			for (auto& sub : mesh.submeshes)
 			{
 				PbrMaterialDesc& material_desc = result->model_asset->materials[sub.material_index];
-
-				// TODO
-				material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-				{
-					if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
-					{
-						material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
-					}
-					if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
-					{
-						material_desc.normal = get_asset_path(convert_path(material_desc.normal));
-					}
-					if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
-					{
-						material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
-					}
-					if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
-					{
-						material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
-					}
-				}
 
 				ref<pbr_material> material;
 				if (!async)
@@ -289,28 +289,6 @@ namespace era_engine
 				for (auto& sub : mesh.submeshes)
 				{
 					PbrMaterialDesc& material_desc = model_asset->materials[sub.material_index];
-
-					// TODO
-					material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-					{
-						if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
-						{
-							material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
-						}
-						if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
-						{
-							material_desc.normal = get_asset_path(convert_path(material_desc.normal));
-						}
-						if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
-						{
-							material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
-						}
-						if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
-						{
-							material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
-						}
-					}
 
 					ref<pbr_material> material = create_pbr_material(material_desc);
 

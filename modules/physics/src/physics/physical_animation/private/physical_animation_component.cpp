@@ -204,6 +204,9 @@ namespace era_engine::physics
 					limb_component->angular_range = motor_drive.angular_range;
 					limb_component->linear_range = motor_drive.linear_range;
 
+					limb_component->angular_damping_range = motor_drive.angular_damping_range;
+					limb_component->linear_damping_range = motor_drive.linear_damping_range;
+
 					float strength_coeff = limb_details.strength_details.default_strength_coeff;
 					if (strength_type == RagdollProfileStrengthType::SOFT)
 					{

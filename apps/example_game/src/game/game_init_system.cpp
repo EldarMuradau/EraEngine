@@ -79,14 +79,14 @@ namespace era_engine
 		{
 			mesh_builder builder;
 
-			sphere_render_material = create_pbr_material_async({ "", "" });
-			sphere_render_material->shader = pbr_material_shader_double_sided;
+			sphere_render_material = get_default_pbr_material();
 
 			sphere_mesh = make_ref<MultiMesh>();
 			builder.pushSphere({ });
 			sphere_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, sphere_render_material });
 
 			sphere_mesh->mesh = builder.createDXMesh();
+			sphere_mesh->load_state = AssetLoadState::LOADED;
 		}
 
 		RendererHolderRootComponent* renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
@@ -109,7 +109,7 @@ namespace era_engine
 		default_plane_mat_desc.metallic_override = 0.35f;
 		default_plane_mat_desc.roughness_override = 0.01f;
 
-		auto default_plane_mat = create_pbr_material_async(default_plane_mat_desc);
+		auto default_plane_mat = create_pbr_material(default_plane_mat_desc);
 
 		mesh_builder builder;
 
@@ -129,7 +129,7 @@ namespace era_engine
 			tiran.add_component<MeshComponent>(mesh);
 
 			TransformComponent* transform_component = tiran.get_component<TransformComponent>();
-			transform_component->set_world_transform(trs{vec3(-5.0f, -4.8f, 5.0f), quat::identity, vec3(1.0f)});
+			transform_component->set_world_transform(trs{vec3(-5.0f, -4.7f, 5.0f), quat::identity, vec3(1.0f)});
 
 			mesh->load_job.wait_for_completion();
 
@@ -154,7 +154,7 @@ namespace era_engine
 				animation_component->current_anim_position = 0.0f;
 			}
 
-			animation_component->activate_inertial_blend();
+			//animation_component->activate_inertial_blend();
 
 			const ref<Skeleton> skeleton = skeleton_component->skeleton;
 

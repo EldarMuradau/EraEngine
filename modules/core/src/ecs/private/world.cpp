@@ -159,6 +159,7 @@ namespace era_engine
 		world_data->registry.clear();
 		world_data->entity_datas.clear();
 
+		delete world_data->scheduler;
 		delete world_data;
 	}
 
