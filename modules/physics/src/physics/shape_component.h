@@ -130,7 +130,7 @@ namespace era_engine::physics
 		~TriangleMeshShapeComponent() override;
 
 		vec3 size = vec3(1.0f);
-		ref<MeshAsset> asset = nullptr;
+		MeshAsset* asset = nullptr;
 
 		ERA_VIRTUAL_REFLECT(ShapeComponent)
 
@@ -146,7 +146,7 @@ namespace era_engine::physics
 		~ConvexMeshShapeComponent() override;
 
 		vec3 size = vec3(1.0f);
-		ref<MeshAsset> asset = nullptr;
+		MeshAsset* asset = nullptr;
 
 		ERA_VIRTUAL_REFLECT(ShapeComponent)
 

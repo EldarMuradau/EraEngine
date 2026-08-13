@@ -163,8 +163,13 @@ namespace era_engine::physics
 
 		if (!body_is_kinematic)
 		{
-			PxVec3 center_of_mass = create_PxVec3(dynamic_body_component->center_of_mass);
-			PxVec3* center_of_mass_ptr = &center_of_mass;
+			PxVec3 center_of_mass = dynamic_body_component->compute_center_of_mass 
+				? PxVec3() 
+				: create_PxVec3(dynamic_body_component->center_of_mass);
+
+			PxVec3* center_of_mass_ptr = dynamic_body_component->compute_center_of_mass 
+				? nullptr 
+				: &center_of_mass;
 
 			const bool result = PxRigidBodyExt::setMassAndUpdateInertia(
 				*physx_rigid_body,
@@ -346,6 +351,36 @@ namespace era_engine::physics
 		{
 			transform_component->set_world_position(create_vec3(new_position));
 		}
+	}
+
+	ERA_PHYSICS_API std::vector<physx::PxVec3> create_std_vector_px_vec3(const std::vector<vec3>& vec)
+	{
+		using namespace physx;
+
+		std::vector<PxVec3> v;
+		v.reserve(vec.size());
+
+		for (size_t i = 0; i < vec.size(); ++i)
+		{
+			v.emplace_back(create_PxVec3(vec[i]));
+		}
+
+		return v;
+	}
+
+	ERA_PHYSICS_API std::vector<physx::PxVec2> create_std_vector_px_vec2(const std::vector<vec2>& vec)
+	{
+		using namespace physx;
+
+		std::vector<PxVec2> v;
+		v.reserve(vec.size());
+
+		for (size_t i = 0; i < vec.size(); ++i)
+		{
+			v.emplace_back(create_PxVec2(vec[i]));
+		}
+
+		return v;
 	}
 
 }

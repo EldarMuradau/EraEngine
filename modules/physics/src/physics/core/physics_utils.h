@@ -1,5 +1,6 @@
 #pragma once
 
+#include "physics_api.h"
 #include "physics/physx_api.h"
 
 #include <core/math.h>
@@ -12,7 +13,7 @@ namespace era_engine::physics
 	class DynamicBodyComponent;
 	class CharacterControllerComponent;
 
-	class PhysicsUtils final
+	class ERA_PHYSICS_API PhysicsUtils final
 	{
 		PhysicsUtils() = delete;
 	public:
@@ -36,4 +37,8 @@ namespace era_engine::physics
 
 		static void move_cct(CharacterControllerComponent* cct_component, const vec3& offset);
 	};
+
+	ERA_PHYSICS_API std::vector<physx::PxVec3> create_std_vector_px_vec3(const std::vector<vec3>& vec);
+
+	ERA_PHYSICS_API std::vector<physx::PxVec2> create_std_vector_px_vec2(const std::vector<vec2>& vec);
 }

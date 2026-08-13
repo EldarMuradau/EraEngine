@@ -1099,6 +1099,10 @@ namespace era_engine
 			{
 				position = vec3d{position.x / 100.0, position.y / 100.0, position.z / 100.0 };
 			}
+			else if (flags & mesh_creation_flags_m_to_sm)
+			{
+				position = vec3d{ position.x * 100.0, position.y * 100.0, position.z * 100.0 };
+			}
 			result.positions.push_back(vec3((float)position.x, (float)position.y, (float)position.z));
 			++result.vertexOffsetCounts[decodedIndex].count;
 
@@ -1166,6 +1170,14 @@ namespace era_engine
 				for (uint32 i = 0; i < (uint32)result.normals.size(); ++i)
 				{
 					result.normals[i] = vec3((float)ptr[i].x, (float)ptr[i].y, (float)ptr[i].z);
+					if (flags & mesh_creation_flags_sm_to_m)
+					{
+						result.normals[i] = result.normals[i] / 100.0f;
+					}
+					else if (flags & mesh_creation_flags_sm_to_m)
+					{
+						result.normals[i] = result.normals[i] * 100.0f;
+					}
 				}
 
 				result.normals = mapDataToVertices(result.normals, indices, mapping, reference, result.vertexOffsetCounts, result.originalToNewVertex,
@@ -1191,6 +1203,14 @@ namespace era_engine
 				for (uint32 i = 0; i < (uint32)result.tangents.size(); ++i)
 				{
 					result.tangents[i] = vec3((float)ptr[i].x, (float)ptr[i].y, (float)ptr[i].z);
+					if (flags & mesh_creation_flags_sm_to_m)
+					{
+						result.tangents[i] = result.tangents[i] / 100.0f;
+					}
+					else if (flags & mesh_creation_flags_sm_to_m)
+					{
+						result.tangents[i] = result.tangents[i] * 100.0f;
+					}
 				}
 
 				result.tangents = mapDataToVertices(result.tangents, indices, mapping, reference, result.vertexOffsetCounts, result.originalToNewVertex,
@@ -1910,7 +1930,7 @@ namespace era_engine
 	};
 
 	static offset_count transferAnimationCurve(fbx_animation_curve_node* curveNode, std::vector<vec3>& outValues, std::vector<float>& outTimes, int64 animationDuration,
-		const std::vector<int64>& animationTimes, const std::vector<float>& animationValues, bool sm_to_m = false)
+		const std::vector<int64>& animationTimes, const std::vector<float>& animationValues, uint32 flags = 0)
 	{
 		fbx_animation_curve* x = curveNode->xCurve;
 		fbx_animation_curve* y = curveNode->yCurve;
@@ -1929,9 +1949,13 @@ namespace era_engine
 			value.y = sampleAnimationCurve(y, time, animationTimes, animationValues);
 			value.z = sampleAnimationCurve(z, time, animationTimes, animationValues);
 
-			if (sm_to_m)
+			if (flags & mesh_creation_flags_sm_to_m)
 			{
 				value /= 100.0f;
+			}
+			else if(flags & mesh_creation_flags_m_to_sm)
+			{
+				value *= 100.0f;
 			}
 
 			outValues.push_back(value);
@@ -2215,6 +2239,10 @@ namespace era_engine
 				{
 					joint_inv_bind_transform.position /= 100.0f;
 				}
+				else if (flags & mesh_creation_flags_m_to_sm)
+				{
+					joint_inv_bind_transform.position *= 100.0f;
+				}
 				out.joints.push_back({ std::move(name), animation::limb_type_none, false, trs_to_mat4(joint_inv_bind_transform), 
 					invert(trs_to_mat4(joint_inv_bind_transform)), joint->parentID });
 			}
@@ -2257,7 +2285,7 @@ namespace era_engine
 					if (j.curveNodes[0])
 					{
 						offset_count position = transferAnimationCurve(j.curveNodes[0], out.position_keyframes, out.position_timestamps, animation.duration,
-							animationTimes, animationValues, flags & mesh_creation_flags_sm_to_m);
+							animationTimes, animationValues, flags);
 						joint.first_position_keyframe = position.offset;
 						joint.num_position_keyframes = position.count;
 					}
@@ -2265,7 +2293,7 @@ namespace era_engine
 					if (j.curveNodes[1])
 					{
 						offset_count rotation = transferAnimationCurve(j.curveNodes[1], out.rotation_keyframes, out.rotation_timestamps, animation.duration,
-							animationTimes, animationValues, definitions.defaultRotationOrder, flags);
+							animationTimes, animationValues, definitions.defaultRotationOrder, flags & (~mesh_creation_flags_sm_to_m) & (~mesh_creation_flags_m_to_sm));
 						joint.first_rotation_keyframe = rotation.offset;
 						joint.num_rotation_keyframes = rotation.count;
 					}

@@ -32,6 +32,7 @@
 #include <physics/pbd/pbd_cloth_component.h>
 #include <physics/vehicles/w4_vehicle_component.h>
 #include <physics/physical_animation/dismemberment/ragdoll_dismemberment_component.h>
+#include "physics/destructions/destructible_component.h"
 
 #include <motion_matching/trajectory/trajectory_component.h>
 #include <motion_matching/motion/motion_component.h>
@@ -116,12 +117,12 @@ namespace era_engine
 		ref<MultiMesh> ground_mesh = make_ref<MultiMesh>();
 		builder.pushBox({ vec3(0.f), vec3(30.f, 4.f, 30.f) });
 		ground_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, default_plane_mat });
+
+		GameAssetsProvider provider;
 		
 		//if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"),
 		//	mesh_creation_flags_unreal_animated_asset))
 		{
-			GameAssetsProvider provider;
-
 			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
 
 			tiran = world->create_entity("Tiran");
@@ -494,7 +495,6 @@ namespace era_engine
 			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip95");
 			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip96");
 
-
 			//	database->generate_initial_data();
 
 			//	database->search_dimension = database->total_features_per_sample;
@@ -529,12 +529,27 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -3.75f, 35.0f));
 		}*/
 
+		//if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
 		{
-			Entity vehicle = world->create_entity("Vehicle");
-			vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
-			vehicle.add_component<physics::W4VehicleComponent>();
-			camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
+			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box"), true, {}, mesh_creation_flags_default);
+			mesh->load_job.wait_for_completion();
+
+			Entity box = world->create_entity("Box");
+			box.add_component<MeshComponent>(mesh)->is_hidden = true;
+
+			TransformComponent* transform_component = box.get_component<TransformComponent>();
+			transform_component->set_world_position(vec3(5.0f, 0.0f, -5.0f));
+
+			DestructibleComponent* descructible_component = box.add_component<DestructibleComponent>(DestructibleComponent::Type::FRACTURE_BASED);
+			descructible_component->fracture_desc.chunks_count = 10;
 		}
+
+		//{
+		//	Entity vehicle = world->create_entity("Vehicle");
+		//	vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 5.0f, 0.0f));
+		//	vehicle.add_component<physics::W4VehicleComponent>();
+		//	camera_entity.get_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
+		//}
 
 		Entity plane = world->create_entity("Platform");
 		plane.add_component<PlaneComponent>(CollisionType::TERRAIN, vec3(0.f, -5.0, 0.0f));

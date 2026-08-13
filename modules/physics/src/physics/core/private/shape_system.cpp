@@ -25,7 +25,7 @@ namespace era_engine::physics
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
 			.method("update", &ShapeSystem::update)
 			(metadata("update_group", update_types::PHYSICS),
-			metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}))
+			metadata("After", std::vector<std::string>{"PhysicsSystem::process_added_components"}))
 			.method("process_skeleton_attachments", &ShapeSystem::process_skeleton_attachments)(metadata("update_group", update_types::AFTER_PHYSICS));
 	}
 

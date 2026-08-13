@@ -25,6 +25,8 @@ namespace era_engine::physics
 		void sync_physics_to_component_changes(float dt);
 		void sync_component_to_physics();
 
+		void process_added_components(float);
+
 		void process_added_bodies();
 		void process_added_ccts();
 

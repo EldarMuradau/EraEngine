@@ -52,7 +52,7 @@ namespace era_engine
 
 		result->aabb = bounding_box::negativeInfinity();
 
-		result->model_asset = import_3d_model_from_file(filename);
+		result->model_asset = import_3d_model_from_file(filename, flags);
 		mesh_builder builder(flags | mesh_creation_flags_with_skin);
 
 		for (PbrMaterialDesc& material_desc : result->model_asset->materials)

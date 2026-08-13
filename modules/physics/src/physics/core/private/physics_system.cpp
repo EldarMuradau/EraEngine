@@ -26,7 +26,11 @@ namespace era_engine::physics
 		registration::class_<PhysicsSystem>("PhysicsSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
 			.method("clear_pending_collisions", &PhysicsSystem::clear_pending_collisions)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS_CONCURRENT))
-			.method("update", &PhysicsSystem::update)(metadata("update_group", update_types::PHYSICS));
+
+			.method("update", &PhysicsSystem::update)(metadata("update_group", update_types::PHYSICS))
+
+			.method("process_added_components", &PhysicsSystem::process_added_components)(metadata("update_group", update_types::PHYSICS),
+				metadata("Before", std::vector<std::string>{"PhysicsSystem::update"}));
 	}
 
 	PhysicsSystem::PhysicsSystem(World* _world)
@@ -55,18 +59,6 @@ namespace era_engine::physics
 	void PhysicsSystem::update(float dt)
 	{
 		ZoneScopedN("PhysicsSystem::update");
-
-		{
-			ZoneScopedN("PhysicsSystem::process_added_bodies");
-
-			process_added_bodies();
-		}
-
-		{
-			ZoneScopedN("PhysicsSystem::process_added_ccts");
-
-			process_added_ccts();
-		}
 
 		{
 			ZoneScopedN("PhysicsSystem::sync_physics_to_component_changes");
@@ -377,6 +369,23 @@ namespace era_engine::physics
 		}
 	}
 
+	void PhysicsSystem::process_added_components(float)
+	{
+		ZoneScopedN("PhysicsSystem::process_added_components");
+
+		{
+			ZoneScopedN("PhysicsSystem::process_added_bodies");
+
+			process_added_bodies();
+		}
+
+		{
+			ZoneScopedN("PhysicsSystem::process_added_ccts");
+
+			process_added_ccts();
+		}
+	}
+
 	void PhysicsSystem::process_added_bodies()
 	{
 		using namespace physx;
@@ -421,19 +430,19 @@ namespace era_engine::physics
 
 			dynamic_body_component->actor = PhysicsUtils::create_rigid_dynamic(PxTransform(pospx, rotpx), user_data);
 
-			for (ShapeComponent* shape_component : colliders)
-			{
-				PhysicsEngine::execute_write([&]() {
+			PhysicsEngine::execute_write([&]() {
+				for (ShapeComponent* shape_component : colliders)
+				{
 					PxShape* shape = shape_component->create_shape();
 
 					dynamic_body_component->actor->attachShape(*shape);
 
 					ShapeUtils::setup_filtering(world, shape, static_cast<uint32>(shape_component->collision_type.get()), shape_component->collision_filter_data);
+				}
 				});
-			}
 
 			physics_core->add_actor_locked(dynamic_body_component, dynamic_body_component->actor);
-			PhysicsEngine::execute_write([&](){
+			PhysicsEngine::execute_write([dynamic_body_component](){
 					PxRigidDynamic* dynamic_body = dynamic_body_component->get_rigid_dynamic();
 
 					const PxVec3 center_of_mass = create_PxVec3(dynamic_body_component->center_of_mass);

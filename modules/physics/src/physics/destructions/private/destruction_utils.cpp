@@ -115,20 +115,22 @@ namespace era_engine::physics
         return *reinterpret_cast<NvBlastID*>(h);
     }
 
+    BlastRandomGenerator::BlastRandomGenerator()
+    {
+        eng = std::make_unique<std::mt19937>(rd());
+        eng->seed(seed_result);
+    }
+
     float BlastRandomGenerator::getRandomValue()
     {
-        std::random_device rd;
-
-        std::mt19937 eng(rd());
-        eng.seed(seed_result);
-
         std::uniform_real_distribution<float> distr(0.0f, 1.0f);
-        return distr(eng);
+        return distr(*eng.get());
     }
 
     void BlastRandomGenerator::seed(int32_t seed)
     {
         seed_result = seed;
+        eng->seed(seed_result);
     }
 
     VoronoiSitesGenerator::VoronoiSitesGenerator(ref<NvMesh> mesh)
@@ -152,12 +154,21 @@ namespace era_engine::physics
         PX_RELEASE(fracture)
     }
 
-    std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>> FractureUtils::fracture_nvmesh_into_submeshes(uint32 total_chunks, ref<NvMesh> mesh, bool replace /*= false*/)
+    std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>> FractureUtils::fracture_nvmesh_into_submeshes(uint32 total_chunks, 
+        ref<NvMesh> mesh, 
+        bool replace /*= false*/, 
+        uint32 chunk_id/* = 0*/)
     {
         FractureTool fracture_tool = FractureTool();
 
         fracture_tool.fracture->setRemoveIslands(true);
         fracture_tool.fracture->setSourceMeshes(&mesh->mesh, 1);
+
+        if (fracture_tool.fracture->isMeshContainOpenEdges(mesh->mesh))
+        {
+            LOG_WARNING("NvBlast> Mesh contains open edges!");
+            //return {};
+        }
 
         VoronoiSitesGenerator generator = VoronoiSitesGenerator(mesh);
         generator.generator->setBaseMesh(mesh->mesh);
@@ -165,9 +176,9 @@ namespace era_engine::physics
         generator.generator->uniformlyGenerateSitesInMesh(total_chunks);
 
         const NvcVec3* sites;
-        size_t nb_sites = generator.generator->getVoronoiSites(sites);
+        const size_t nb_sites = generator.generator->getVoronoiSites(sites);
 
-        int result = fracture_tool.fracture->voronoiFracturing(0, nb_sites, sites, replace);
+        const int result = fracture_tool.fracture->voronoiFracturing(chunk_id, nb_sites, sites, replace);
         if (result != 0)
         {
             LOG_ERROR("NvBlast> Failed to fracture mesh!");
@@ -176,7 +187,7 @@ namespace era_engine::physics
 
         fracture_tool.fracture->finalizeFracturing();
 
-        size_t mesh_count = fracture_tool.fracture->getChunkCount();
+        const size_t mesh_count = fracture_tool.fracture->getChunkCount();
 
         std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>> meshes;
         meshes.reserve(mesh_count);
@@ -188,8 +199,11 @@ namespace era_engine::physics
 
         for (size_t i = 1; i < mesh_count; ++i)
         {
-            uint32 nb_trigs = fracture_tool.fracture->getBaseMesh(i, trigs);
+            const uint32 nb_trigs = fracture_tool.fracture->getBaseMesh(i, trigs);
+
             std::vector<Nv::Blast::Triangle> trig_list;
+            trig_list.reserve(nb_trigs);
+
             for (size_t j = 0; j < nb_trigs; ++j)
             {
                 trig_list.push_back(trigs[j]);
@@ -202,7 +216,7 @@ namespace era_engine::physics
         {
             std::vector<Nv::Blast::Triangle>& chunk = chunk_meshes[i];
 
-            size_t chunk_size = chunk.size();
+            const size_t chunk_size = chunk.size();
             std::vector<physx::PxVec3> pos;
             pos.reserve(chunk_size * 3);
 
@@ -237,18 +251,11 @@ namespace era_engine::physics
 
             ref<NvMesh> mesh = make_ref<NvMesh>(pos, norm, tex, indexs);
 
-            if (fracture_tool.fracture->isMeshContainOpenEdges(mesh->mesh))
-            {
-                LOG_WARNING("NvBlast> Mesh contains open edges!");
-                //return {};
-            }
-
             ref<SubmeshAsset> chunk_mesh = mesh->create_render_submesh();
 
-            meshes.push_back(std::make_pair(chunk_mesh, mesh));
+            meshes.push_back(std::make_pair(std::move(chunk_mesh), std::move(mesh)));
         }
 
-        return { meshes };
+        return meshes;
     }
-
 }

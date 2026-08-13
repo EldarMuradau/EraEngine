@@ -179,7 +179,7 @@ namespace era_engine::physics
     physx::PxShape* TriangleMeshShapeComponent::create_shape()
     {
         using namespace physx;
-        PxTriangleMesh* mesh = ShapeUtils::build_triangle_mesh(asset.get(), size);
+        PxTriangleMesh* mesh = ShapeUtils::build_triangle_mesh(asset, size);
         ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
@@ -205,7 +205,7 @@ namespace era_engine::physics
     physx::PxShape* ConvexMeshShapeComponent::create_shape()
     {
         using namespace physx;
-        PxConvexMesh* mesh = ShapeUtils::build_convex_mesh(asset.get(), size);
+        PxConvexMesh* mesh = ShapeUtils::build_convex_mesh(asset, size);
         ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr

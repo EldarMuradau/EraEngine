@@ -19,23 +19,26 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		SubmeshAsset root = asset->submeshes[0];
+		const SubmeshAsset& root = asset->submeshes[0];
 
-		const auto& positions = root.positions;
+		const std::vector<vec3>& positions = root.positions;
 
-		size_t vertices_count = positions.size();
+		const size_t vertices_count = positions.size();
 
 		PxArray<PxVec3> vertices;
+		vertices.reserve(vertices_count);
+
+		const PxVec3 px_size = create_PxVec3(size);
 		for (size_t i = 0; i < vertices_count; i++)
 		{
-			vertices.pushBack(PxVec3(positions[i].x, positions[i].y, positions[i].z) * create_PxVec3(size));
+			vertices.pushBack(PxVec3(positions[i].x, positions[i].y, positions[i].z) * px_size);
 		}
 
 		PxConvexMeshDesc mesh_desc;
 		mesh_desc.points.count = vertices.size();
 		mesh_desc.points.stride = sizeof(PxVec3);
 		mesh_desc.points.data = &vertices[0];
-		mesh_desc.flags = PxConvexFlag::eCOMPUTE_CONVEX | PxConvexFlag::eDISABLE_MESH_VALIDATION | PxConvexFlag::eFAST_INERTIA_COMPUTATION;
+		mesh_desc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
 		try
 		{
@@ -53,7 +56,8 @@ namespace era_engine::physics
 		}
 		catch (...)
 		{
-			//LOG_ERROR("Physics> Failed to create physics triangle mesh");
+			LOG_ERROR("Physics> Failed to create physics triangle mesh!");
+			throw;
 		}
 		return nullptr;
 	}
@@ -244,14 +248,14 @@ namespace era_engine::physics
 		return (1.0f / 6.0f) * (-v321 + v231 + v312 - v132 - v213 + v123);
 	}
 
-	float ShapeUtils::volume_of_mesh(ref<SubmeshAsset> mesh)
+	float ShapeUtils::volume_of_mesh(const SubmeshAsset& mesh)
 	{
 		float volume = 0.0f;
 
-		const auto& vertices = mesh->positions;
-		const auto& triangles = mesh->triangles;
+		const auto& vertices = mesh.positions;
+		const auto& triangles = mesh.triangles;
 
-		for (int i = 0; i < mesh->triangles.size(); i++)
+		for (int i = 0; i < mesh.triangles.size(); i++)
 		{
 			const vec3& p1 = vertices[triangles[i].a];
 			const vec3& p2 = vertices[triangles[i].b];

@@ -1,7 +1,5 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
-#include "physics/core/physics.h"
 #include "physics/body_component.h"
+#include "physics/core/physics.h"
 #include "physics/shape_component.h"
 #include "physics/cct_component.h"
 #include "physics/core/physics_utils.h"

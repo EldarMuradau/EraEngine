@@ -142,6 +142,12 @@ namespace era_engine
 					variant after = system_method.get_metadata("After");
 					variant before = system_method.get_metadata("Before");
 
+					array_range<parameter_info> params = system_method.get_parameter_infos();
+					if (params.size() != 1)
+					{
+						ASSERT(params.size() == 1);
+					}
+
 					std::vector<std::string> dependencies = after.is_valid() ? after.get_value<std::vector<std::string>>() : std::vector<std::string>{};
 					std::vector<std::string> dependent = before.is_valid() ? before.get_value<std::vector<std::string>>() : std::vector<std::string>{};
 

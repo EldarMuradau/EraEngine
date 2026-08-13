@@ -77,7 +77,7 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		allocator.initialize(MB(256U));
+		allocator.initialize(MB(128));
 
 		allocator_callback = new PhysicsAllocatorCallback();
 		foundation = PxCreateFoundation(PX_PHYSICS_VERSION, *allocator_callback, error_reporter);

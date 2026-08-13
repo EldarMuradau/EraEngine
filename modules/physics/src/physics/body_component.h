@@ -103,6 +103,8 @@ namespace era_engine::physics
 		ERA_VIRTUAL_REFLECT(BodyComponent)
 
 	public:
+		bool compute_center_of_mass = true;
+
 		ObservableMember<bool> use_gravity = true;
 		ObservableMember<bool> ccd = false;
 		ObservableMember<bool> kinematic = false;

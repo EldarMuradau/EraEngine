@@ -37,7 +37,7 @@ namespace era_engine::physics
 
 		static float signed_volume_of_triangle(const vec3& p1, const vec3& p2, const vec3& p3);
 
-		static float volume_of_mesh(ref<SubmeshAsset> mesh);
+		static float volume_of_mesh(const SubmeshAsset& mesh);
 	};
 
 }

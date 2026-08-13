@@ -10,6 +10,8 @@
 
 namespace era_engine::physics
 {
+	class NvMesh;
+
     enum class AnchorFlags : uint8
     {
         NONE = 0,
@@ -26,7 +28,8 @@ namespace era_engine::physics
 	struct alignas(16) FractureDescriptor
 	{
 		uint32 chunks_count = 5;
-		float break_force = 100.0f;
+		float break_force = 500.0f;
+		float density = 700.0f;
 
 		AnchorFlags anchor = AnchorFlags::NONE;
 	};
@@ -44,15 +47,35 @@ namespace era_engine::physics
 		DestructibleComponent(ref<Entity::EcsData> _data, Type _base_type);
 		~DestructibleComponent() override;
 
+		DestructibleComponent& operator=(const DestructibleComponent& other);
+		DestructibleComponent& operator=(DestructibleComponent&& other);
+
+		bool operator==(const DestructibleComponent& other) const;
+		bool operator!=(const DestructibleComponent& other) const;
+
 		Type base_type = Type::FRACTURE_BASED;
 
 		union
 		{
-			ref<DestructibleAsset> family_asset; // Only if FAMILY_BASED.
 			FractureDescriptor fracture_desc; // Only if FRACTURE_BASED.
+			ref<DestructibleAsset> family_asset; // Only if FAMILY_BASED.
 		};
+
+		ERA_VIRTUAL_REFLECT(Component)
 
 	protected:
 		friend class DestructionSystem;
+	};
+
+	class ERA_PHYSICS_API DestructibleChunkComponent : public Component
+	{
+	public:
+		DestructibleChunkComponent();
+		DestructibleChunkComponent(ref<Entity::EcsData> _data);
+		~DestructibleChunkComponent() override;
+
+		ref<NvMesh> nv_mesh;
+
+		ERA_VIRTUAL_REFLECT(Component)
 	};
 }

@@ -72,8 +72,8 @@ namespace era_engine::physics
 		collisions_holder_rc = world->add_root_component<CollisionsHolderRootComponent>();
 		renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
 
-		const float stiffness_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 0.85f : 1.0f;
-		const float damping_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 0.35f : 1.0f;
+		const float stiffness_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 8.0f : 2.0f;
+		const float damping_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 2.0f : 1.0f;
 
 		{
 			idle_profile = make_ref<RagdollProfile>();

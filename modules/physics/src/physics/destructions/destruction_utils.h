@@ -36,12 +36,17 @@ namespace era_engine::physics
 	class BlastRandomGenerator : public Nv::Blast::RandomGeneratorBase
 	{
 	public:
+		BlastRandomGenerator();
+
 		float getRandomValue() override;
 
 		void seed(int32_t seed) override;
 
 	private:
 		int32 seed_result = 5489U;
+
+		std::random_device rd;
+        std::unique_ptr<std::mt19937> eng;
 	};
 
 	struct VoronoiSitesGenerator
@@ -66,6 +71,9 @@ namespace era_engine::physics
 	public:
 		FractureUtils() = delete;
 
-		static std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>> fracture_nvmesh_into_submeshes(uint32 total_chunks, ref<NvMesh> mesh, bool replace = false);
+		static std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>> fracture_nvmesh_into_submeshes(uint32 total_chunks, 
+			ref<NvMesh> mesh, 
+			bool replace = false, 
+			uint32 chunk_id = 0);
 	};
 }
