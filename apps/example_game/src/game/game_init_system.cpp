@@ -538,10 +538,11 @@ namespace era_engine
 			box.add_component<MeshComponent>(mesh)->is_hidden = true;
 
 			TransformComponent* transform_component = box.get_component<TransformComponent>();
-			transform_component->set_world_position(vec3(5.0f, 0.0f, -5.0f));
+			transform_component->set_world_position(vec3(5.0f, -4.0f, -5.0f));
 
 			DestructibleComponent* descructible_component = box.add_component<DestructibleComponent>(DestructibleComponent::Type::FRACTURE_BASED);
 			descructible_component->fracture_desc.chunks_count = 10;
+			descructible_component->fracture_desc.break_force = 30.0f;
 		}
 
 		//{

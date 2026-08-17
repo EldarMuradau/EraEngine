@@ -69,13 +69,13 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 200.0f,
-		const float max_angular_velocity = 200.0f)
+		const float max_contact_impulse = 400.0f,
+		const float max_angular_velocity = 400.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
 		dynamic_body_component->ccd.get_for_write() = true;
-		dynamic_body_component->max_depenetration_velocity = 100.0f;
+		dynamic_body_component->max_depenetration_velocity = 200.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->linear_damping.get_for_write() = 0.15f;

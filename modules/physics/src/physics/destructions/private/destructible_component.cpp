@@ -10,7 +10,7 @@ namespace era_engine::physics
 		registration::class_<DestructibleComponent>("DestructibleComponent")
 			.constructor<>();
 
-		registration::class_<DestructibleChunkComponent>("DestructibleChunkComponent")
+		registration::class_<DestructibleFractureChunkComponent>("DestructibleFractureChunkComponent")
 			.constructor<>();
 	}
 
@@ -41,6 +41,7 @@ namespace era_engine::physics
 		Component::operator=(other);
 
 		base_type = other.base_type;
+		load_state = other.load_state;
 
 		if (base_type == Type::FAMILY_BASED)
 		{
@@ -50,6 +51,8 @@ namespace era_engine::physics
 		{
 			fracture_desc = other.fracture_desc;
 		}
+
+		chunks = other.chunks;
 
 		return *this;
 	}
@@ -64,6 +67,7 @@ namespace era_engine::physics
 		Component::operator=(std::forward<DestructibleComponent>(other));
 
 		base_type = other.base_type;
+		load_state = other.load_state;
 
 		if (base_type == Type::FAMILY_BASED)
 		{
@@ -73,6 +77,8 @@ namespace era_engine::physics
 		{
 			fracture_desc = std::move(other.fracture_desc);
 		}
+
+		chunks = std::move(other.chunks);
 
 		return *this;
 	}
@@ -87,16 +93,16 @@ namespace era_engine::physics
 		return !operator==(other);
 	}
 
-	DestructibleChunkComponent::DestructibleChunkComponent()
+	DestructibleFractureChunkComponent::DestructibleFractureChunkComponent()
 	{
 	}
 
-	DestructibleChunkComponent::DestructibleChunkComponent(ref<Entity::EcsData> _data)
+	DestructibleFractureChunkComponent::DestructibleFractureChunkComponent(ref<Entity::EcsData> _data)
 		: Component(_data)
 	{
 	}
 
-	DestructibleChunkComponent::~DestructibleChunkComponent()
+	DestructibleFractureChunkComponent::~DestructibleFractureChunkComponent()
 	{
 	}
 }

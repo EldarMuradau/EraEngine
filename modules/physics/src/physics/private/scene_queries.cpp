@@ -347,12 +347,14 @@ namespace era_engine::physics
 		{
 			if (physx_buffer_out->hasBlock)
 			{
+				result_buffer_out[hit_index].shape_component = static_cast<ShapeComponent*>(physx_buffer_out->block.shape->userData);
 				result_buffer_out[hit_index].type = SceneQueryHitType::BLOCK;
 				++hit_index;
 			}
 
 			for (uint32 i = 0; i < physx_buffer_out->getNbTouches() && hit_index < result_buffer_size; ++i)
 			{
+				result_buffer_out[hit_index].shape_component = static_cast<ShapeComponent*>(physx_buffer_out->touches[i].shape->userData);
 				result_buffer_out[hit_index].type = SceneQueryHitType::TOUCH;
 				++hit_index;
 			}

@@ -28,7 +28,7 @@ namespace era_engine::physics
 	struct alignas(16) FractureDescriptor
 	{
 		uint32 chunks_count = 5;
-		float break_force = 500.0f;
+		float break_force = 50.0f; // Per 1 kg of mass.
 		float density = 700.0f;
 
 		AnchorFlags anchor = AnchorFlags::NONE;
@@ -43,6 +43,14 @@ namespace era_engine::physics
 			FAMILY_BASED
 		};
 
+		enum class LoadState : uint8
+		{
+			UNLOADED = 0,
+			INITIALIZATION,
+			POST_PROCESSING,
+			LOADED
+		};
+
 		DestructibleComponent();
 		DestructibleComponent(ref<Entity::EcsData> _data, Type _base_type);
 		~DestructibleComponent() override;
@@ -54,6 +62,9 @@ namespace era_engine::physics
 		bool operator!=(const DestructibleComponent& other) const;
 
 		Type base_type = Type::FRACTURE_BASED;
+		LoadState load_state = LoadState::UNLOADED;
+
+		std::vector<EntityPtr> chunks;
 
 		union
 		{
@@ -67,14 +78,15 @@ namespace era_engine::physics
 		friend class DestructionSystem;
 	};
 
-	class ERA_PHYSICS_API DestructibleChunkComponent : public Component
+	class ERA_PHYSICS_API DestructibleFractureChunkComponent : public Component
 	{
 	public:
-		DestructibleChunkComponent();
-		DestructibleChunkComponent(ref<Entity::EcsData> _data);
-		~DestructibleChunkComponent() override;
+		DestructibleFractureChunkComponent();
+		DestructibleFractureChunkComponent(ref<Entity::EcsData> _data);
+		~DestructibleFractureChunkComponent() override;
 
 		ref<NvMesh> nv_mesh;
+		std::vector<EntityPtr> connectors;
 
 		ERA_VIRTUAL_REFLECT(Component)
 	};
