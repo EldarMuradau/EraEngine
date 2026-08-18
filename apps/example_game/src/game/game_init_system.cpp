@@ -542,7 +542,9 @@ namespace era_engine
 
 			DestructibleComponent* descructible_component = box.add_component<DestructibleComponent>(DestructibleComponent::Type::FRACTURE_BASED);
 			descructible_component->fracture_desc.chunks_count = 10;
-			descructible_component->fracture_desc.break_force = 30.0f;
+			descructible_component->fracture_desc.density = 100.0f;
+			descructible_component->fracture_desc.break_force = 20.0f;
+			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.8f);
 		}
 
 		//{
@@ -572,11 +574,11 @@ namespace era_engine
 		{
 			Entity sphere = world->create_entity("Sphere");
 
-			static ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->get_default_material();
+			const ref<PhysicsMaterial>& material = PhysicsEngine::get_physics_core()->get_default_material();
 
 			SphereShapeComponent* sphere_shape_component = sphere.add_component<SphereShapeComponent>();
 			sphere_shape_component->collision_type = static_cast<CollisionType>(GameCollisionType::DYNAMICS);
-			sphere_shape_component->radius = 0.2f;
+			sphere_shape_component->radius = 0.25f;
 			sphere_shape_component->material = material;
 			sphere.add_component<MeshComponent>(sphere_mesh);
 
@@ -587,10 +589,10 @@ namespace era_engine
 
 			DynamicBodyComponent* dynamic_body_component = sphere.add_component<DynamicBodyComponent>();
 			dynamic_body_component->ccd.get_for_write() = true;
-			dynamic_body_component->mass.get_for_write() = 30.0f;
+			dynamic_body_component->mass.get_for_write() = 50.0f;
 			dynamic_body_component->simulated.get_for_write() = true;
 			dynamic_body_component->use_gravity.get_for_write() = true;
-			dynamic_body_component->sleep_threshold.get_for_write() = 0.1f;
+			dynamic_body_component->sleep_threshold.get_for_write() = 0.05f;
 
 			Force& force = dynamic_body_component->forces.emplace_back();
 			force.force = (camera_holder_component->get_render_camera()->rotation * quat(vec3(0.0f, 1.0f, 0.0f), M_PI)) * vec3(0.0f, 0.0f, 1.0f) * sphere_speed;

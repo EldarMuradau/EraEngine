@@ -26,6 +26,8 @@ namespace era_engine
 
 	void World::init()
 	{
+		std::lock_guard _lock{ world_data->sync };
+
 		ref<Entity::EcsData> new_data = make_ref<Entity::EcsData>(world_data->registry.create(), Entity::NullHandle, this, &world_data->registry);
 		world_data->entity_datas.emplace(new_data->entity_handle, new_data);
 		world_data->root_entity = Entity(new_data);
@@ -60,7 +62,7 @@ namespace era_engine
 	{
 		std::lock_guard _lock{ world_data->sync };
 
-		if (world_data->entity_datas.find(_handle) == world_data->entity_datas.end())
+		if (world_data->entity_datas.find(_handle) == world_data->entity_datas.cend())
 		{
 			if (world_data->registry.create(_handle) == Entity::NullHandle)
 			{
@@ -117,6 +119,7 @@ namespace era_engine
 			}
 		}
 
+		std::lock_guard _lock{ world_data->sync };
 		world_data->registry.destroy(_handle);
 		world_data->entity_datas.erase(_handle);
 	}
@@ -130,17 +133,21 @@ namespace era_engine
 		return Entity::Null;
 	}
 
-	Entity World::get_entity(Entity::Handle _handle)
+	Entity World::get_entity(Entity::Handle _handle) const
 	{
-		if (world_data->entity_datas.find(_handle) == world_data->entity_datas.end())
+		std::lock_guard _lock{ world_data->sync };
+
+		if (world_data->entity_datas.find(_handle) == world_data->entity_datas.cend())
 		{
 			return Entity();
 		}
-		return Entity(world_data->entity_datas[_handle]);
+		return Entity(world_data->entity_datas.at(_handle));
 	}
 
 	void World::destroy(bool _destroy_components)
 	{
+		std::lock_guard _lock{ world_data->sync };
+
 		for (auto iter = world_data->entity_datas.begin(); iter != world_data->entity_datas.end();)
 		{
 			if (iter->first == Entity::NullHandle)

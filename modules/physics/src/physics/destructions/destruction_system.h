@@ -36,15 +36,13 @@ namespace era_engine::physics
 			const trs& world_transform,
 			const ref<pbr_material>& material,
 			const std::pair<ref<SubmeshAsset>, ref<NvMesh>>& mesh,
-			float density,
-			float& radius) const;
+			DestructibleComponent* destructibe_component) const;
 
 		std::vector<EntityPtr> build_chunks(Entity parent,
 			const trs& world_transform,
 			const ref<pbr_material>& material,
 			const std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>>& meshes,
-			float density,
-			std::vector<float>& radiuses) const;
+			DestructibleComponent* destructibe_component) const;
 
 		bool connect_touching_chunks(Entity parent, DestructibleComponent* destructibe_component) const;
 

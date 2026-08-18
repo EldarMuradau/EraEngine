@@ -12,6 +12,11 @@ namespace era_engine::physics
 			.constructor<>();
 	}
 
+	AggregateHolderComponent::AggregateHolderComponent()
+	{
+		ASSERT(!PhysicsEngine::get_physics_core()->is_gpu());
+	}
+
 	AggregateHolderComponent::AggregateHolderComponent(ref<Entity::EcsData> _data)
 		: Component(_data)
 	{

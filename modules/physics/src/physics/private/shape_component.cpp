@@ -189,6 +189,9 @@ namespace era_engine::physics
         shape = physics->get_physics()->createShape(PxTriangleMeshGeometry(mesh, PxMeshScale(create_PxVec3(size))), 
             *used_material, true);
         shape->userData = this;
+        PhysicsEngine::execute_write([&]() {
+            shape->setRestOffset(-0.005f);
+            });
 
         return shape;
     }
@@ -215,6 +218,9 @@ namespace era_engine::physics
         shape = physics->get_physics()->createShape(PxConvexMeshGeometry(mesh, PxMeshScale(create_PxVec3(size))), 
             *used_material, true);
         shape->userData = this;
+        PhysicsEngine::execute_write([&]() {
+            shape->setRestOffset(-0.005f);
+            });
 
         return shape;
     }

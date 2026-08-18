@@ -13,7 +13,7 @@ namespace era_engine::physics
 	class ERA_PHYSICS_API AggregateHolderComponent : public Component
 	{
 	public:
-		AggregateHolderComponent() = default;
+		AggregateHolderComponent();
 
 		AggregateHolderComponent(ref<Entity::EcsData> _data);
 		~AggregateHolderComponent() override;

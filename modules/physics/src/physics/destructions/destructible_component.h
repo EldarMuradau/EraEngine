@@ -3,6 +3,7 @@
 #include "physics_api.h"
 
 #include "physics/destructions/destruction_types.h"
+#include "physics/material.h"
 
 #include <core/math.h>
 
@@ -66,6 +67,8 @@ namespace era_engine::physics
 
 		std::vector<EntityPtr> chunks;
 
+		ref<PhysicsMaterial> material;
+
 		union
 		{
 			FractureDescriptor fracture_desc; // Only if FRACTURE_BASED.
@@ -87,6 +90,8 @@ namespace era_engine::physics
 
 		ref<NvMesh> nv_mesh;
 		std::vector<EntityPtr> connectors;
+
+		float radius_length = 0.0f;
 
 		ERA_VIRTUAL_REFLECT(Component)
 	};

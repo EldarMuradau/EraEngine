@@ -42,7 +42,7 @@ namespace era_engine::physics
 
 		physx::PxScene* get_scene() const;
 		physx::PxPhysics* get_physics() const;
-		ref<PhysicsMaterial> get_default_material() const;
+		const ref<PhysicsMaterial>& get_default_material() const;
 
 		const PhysicsDescriptor& get_descriptor() const;
 

@@ -78,7 +78,7 @@ namespace era_engine
 
 		Entity try_create_entity_in_place(const Entity& place, const char* _name);
 
-		Entity get_entity(Entity::Handle _handle);
+		Entity get_entity(Entity::Handle _handle) const;
 
 		Entity get_root_entity() const;
 

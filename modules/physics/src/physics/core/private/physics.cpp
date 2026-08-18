@@ -13,6 +13,8 @@
 #include "ecs/world.h"
 #include "ecs/editor/editor_scene.h"
 
+#include "dx/dx_context.h"
+
 #include "omnipvd/PxOmniPvd.h"
 
 #include "pvdruntime/OmniPvdWriter.h"
@@ -158,12 +160,15 @@ namespace era_engine::physics
 		if (descriptor.broad_phase == PxBroadPhaseType::eGPU)
 		{
 			PxCudaContextManagerDesc cuda_context_manager_desc;
+			cuda_context_manager_desc.graphicsDevice = get_dx_context()->device.Get();
+
 			cuda_context_manager = PxCreateCudaContextManager(*foundation, cuda_context_manager_desc, &profiler_callback);
 			scene_desc.cudaContextManager = cuda_context_manager;
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
-			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 4;
-			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 4;
+			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 16;
+			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 16;
+			scene_desc.gpuDynamicsConfig.heapCapacity *= 16;
 
 			scene_desc.sceneQueryUpdateMode = PxSceneQueryUpdateMode::eBUILD_ENABLED_COMMIT_DISABLED;
 		}
@@ -255,7 +260,7 @@ namespace era_engine::physics
 		return physics;
 	}
 
-	ref<PhysicsMaterial> Physics::get_default_material() const
+	const ref<PhysicsMaterial>& Physics::get_default_material() const
 	{
 		return default_material;
 	}
@@ -268,11 +273,9 @@ namespace era_engine::physics
 	ref<PhysicsMaterial> Physics::create_material(float restitution, float static_friction, float dynamic_friction)
 	{
 		ref<PhysicsMaterial> material = make_ref<PhysicsMaterial>(physics, restitution, static_friction, dynamic_friction);
-		{
-			ScopedSpinLock lock{ sync };
-			materials.emplace_back(material);
-		}
-		return material;
+		
+		ScopedSpinLock lock{ sync };
+		return materials.emplace_back(std::move(material));
 	}
 
 	physx::PxCudaContextManager* Physics::get_cuda_context_manager() const

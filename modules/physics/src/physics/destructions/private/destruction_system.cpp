@@ -31,7 +31,7 @@ namespace era_engine::physics
 			.method("update", &DestructionSystem::update)(metadata("update_group", update_types::BEFORE_PHYSICS));
 	}
 
-	DestructionSystem::DestructionSystem(World* _world)
+		DestructionSystem::DestructionSystem(World* _world)
 		: System(_world)
 	{
 	}
@@ -91,13 +91,19 @@ namespace era_engine::physics
 						continue;
 					}
 					destructibe_component->load_state = DestructibleComponent::LoadState::LOADED;
+
+					for (EntityPtr chunk : destructibe_component->chunks)
+					{
+						DynamicBodyComponent* body_component = chunk.get().get_component<DynamicBodyComponent>();
+						body_component->simulated.get_for_write() = true;
+					}
 				}
 				break;
 
 				default:
 					break;
 				}
-				
+
 			}
 			else
 			{
@@ -167,21 +173,11 @@ namespace era_engine::physics
 			meshes = FractureUtils::fracture_nvmesh_into_submeshes(destructibe_component->fracture_desc.chunks_count, nv_mesh);
 		}
 
-		std::vector<float> radius_array;
-		radius_array.resize(destructibe_component->fracture_desc.chunks_count);
-
 		destructibe_component->chunks = build_chunks(entity,
 			entity.get_component<TransformComponent>()->get_world_transform(),
 			get_default_pbr_material(),
 			meshes,
-			destructibe_component->fracture_desc.density,
-			radius_array);
-
-		for (EntityPtr chunk : destructibe_component->chunks)
-		{
-			DynamicBodyComponent* body_component = chunk.get().get_component<DynamicBodyComponent>();
-			body_component->simulated.get_for_write() = true;
-		}
+			destructibe_component);
 
 		return true;
 	}
@@ -189,9 +185,8 @@ namespace era_engine::physics
 	EntityPtr DestructionSystem::build_chunk(Entity parent,
 		const trs& world_transform,
 		const ref<pbr_material>& material,
-		const std::pair<ref<SubmeshAsset>, ref<NvMesh>>& mesh, 
-		float density,
-		float& radius) const
+		const std::pair<ref<SubmeshAsset>, ref<NvMesh>>& mesh,
+		DestructibleComponent* destructibe_component) const
 	{
 		mesh_builder builder{ mesh_creation_flags_default, mesh_index_uint32 };
 
@@ -208,7 +203,6 @@ namespace era_engine::physics
 
 		created_mesh->mesh = builder.createDXMesh();
 
-		radius = created_mesh->aabb.volume();
 		created_mesh->load_state = AssetLoadState::LOADED;
 
 		Entity created_entity = world->create_entity("Chunk");
@@ -218,12 +212,14 @@ namespace era_engine::physics
 
 		DestructibleFractureChunkComponent* chunk_component = created_entity.add_component<DestructibleFractureChunkComponent>();
 		chunk_component->nv_mesh = mesh.second;
+		chunk_component->radius_length = created_mesh->aabb.volume();
 
 		ConvexMeshShapeComponent* convex_mesh_component = created_entity.add_component<ConvexMeshShapeComponent>();
 		convex_mesh_component->asset = &created_mesh->model_asset->meshes[0];
 		convex_mesh_component->collision_type = CollisionType::ALL;
+		convex_mesh_component->material = destructibe_component->material == nullptr ? PhysicsEngine::get_physics_core()->get_default_material() : destructibe_component->material;
 
-		float mass = ShapeUtils::volume_of_mesh(*mesh.first) * density;
+		float mass = ShapeUtils::volume_of_mesh(*mesh.first) * destructibe_component->fracture_desc.density;
 		ASSERT(mass > 0.0f);
 
 		mass = max(1.0f, mass);
@@ -231,15 +227,18 @@ namespace era_engine::physics
 		DynamicBodyComponent* dynamic_body = created_entity.add_component<DynamicBodyComponent>();
 		dynamic_body->mass.get_for_write() = mass;
 		dynamic_body->use_gravity.get_for_write() = true;
-		dynamic_body->max_depenetration_velocity.get_for_write() = 200.0f;
-		dynamic_body->solver_position_iterations_count.get_for_write() = 64;
+		dynamic_body->max_depenetration_velocity.get_for_write() = 20.0f;
+		dynamic_body->angular_damping.get_for_write() = 0.05f;
+		dynamic_body->linear_damping.get_for_write() = 0.01f;
+		dynamic_body->solver_position_iterations_count.get_for_write() = 32;
+		dynamic_body->ccd.get_for_write() = true;
 		if (PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver)
 		{
-			dynamic_body->solver_velocity_iterations_count.get_for_write() = 8;
+			dynamic_body->solver_velocity_iterations_count.get_for_write() = 4;
 		}
 		else
 		{
-			dynamic_body->solver_velocity_iterations_count.get_for_write() = 32;
+			dynamic_body->solver_velocity_iterations_count.get_for_write() = 16;
 		}
 		dynamic_body->simulated.get_for_write() = false;
 
@@ -247,11 +246,10 @@ namespace era_engine::physics
 	}
 
 	std::vector<EntityPtr> DestructionSystem::build_chunks(Entity parent,
-		const trs& world_transform, 
-		const ref<pbr_material>& material, 
+		const trs& world_transform,
+		const ref<pbr_material>& material,
 		const std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>>& meshes,
-		float density,
-		std::vector<float>& radiuses) const
+		DestructibleComponent* destructibe_component) const
 	{
 		std::vector<EntityPtr> result;
 		result.reserve(meshes.size());
@@ -265,7 +263,7 @@ namespace era_engine::physics
 
 		for (size_t i = 0; i < meshes.size(); ++i)
 		{
-			result.emplace_back(build_chunk(parent, world_transform, material, meshes[i], density, radiuses[i]));
+			result.emplace_back(build_chunk(parent, world_transform, material, meshes[i], destructibe_component));
 		}
 
 		return result;
@@ -277,8 +275,6 @@ namespace era_engine::physics
 		{
 			connect_with_neighbours(destructibe_component, chunk_ptr.get());
 		}
-
-		// TODO: achor chunks
 
 		return true;
 	}
@@ -313,7 +309,6 @@ namespace era_engine::physics
 		OverlapQuery::Params params;
 		params.geometry.type = SceneQueryGeometry::Type::SPHERE;
 		params.geometry.sphere_radius = 0.01f;
-		params.distance = 0.01f;
 
 		constexpr const uint32 MAX_CONNECTED_TO_VERTEX_COUNT = 32;
 		SceneQueryPositionedHit overlap_buffer[MAX_CONNECTED_TO_VERTEX_COUNT];
@@ -349,18 +344,25 @@ namespace era_engine::physics
 					continue;
 				}
 
+				const trs& chunk_world_transform = chunk.get_component<TransformComponent>()->get_world_transform();
+				const trs& neighbour_world_transform = neighbour.get_component<TransformComponent>()->get_world_transform();
+
 				FixedJointComponent::BaseDescriptor descriptor;
 				descriptor.connected_entity = chunk;
-				descriptor.local_frame = inv_vertex_world_transform * chunk.get_component<TransformComponent>()->get_world_transform();
+				descriptor.local_frame = inv_vertex_world_transform * chunk_world_transform;
 				descriptor.second_connected_entity = neighbour;
-				descriptor.second_local_frame = inv_vertex_world_transform * neighbour.get_component<TransformComponent>()->get_world_transform();
+				descriptor.second_local_frame = inv_vertex_world_transform * neighbour_world_transform;
 
 				Entity connector = world->create_entity();
+
 				FixedJointComponent* fixed_joint_component = connector.add_component<FixedJointComponent>(descriptor);
 				fixed_joint_component->enable_collision.get_for_write() = true;
 
-				const float chunk_mass = chunk.get_component<DynamicBodyComponent>()->mass;
-				const float neighbour_mass = neighbour.get_component<DynamicBodyComponent>()->mass;
+				const DynamicBodyComponent* chunk_body = chunk.get_component<DynamicBodyComponent>();
+				const DynamicBodyComponent* neighbour_body = neighbour.get_component<DynamicBodyComponent>();
+
+				const float chunk_mass = chunk_body->mass;
+				const float neighbour_mass = neighbour_body->mass;
 
 				fixed_joint_component->break_force.get_for_write() = parent_destructibe_component->fracture_desc.break_force * (chunk_mass + neighbour_mass);
 
