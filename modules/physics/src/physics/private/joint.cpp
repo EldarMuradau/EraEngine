@@ -104,7 +104,6 @@ namespace era_engine::physics
 
 	JointComponent::~JointComponent()
 	{
-		PX_RELEASE(joint)
 	}
 
 	JointComponent::State JointComponent::get_state() const

@@ -16,6 +16,7 @@ namespace era_engine::physics
 {
 	class NvMesh;
 	class DestructibleComponent;
+	class JointComponent;
 
 	class DestructionSystem final : public System
 	{
@@ -43,6 +44,8 @@ namespace era_engine::physics
 			const ref<pbr_material>& material,
 			const std::vector<std::pair<ref<SubmeshAsset>, ref<NvMesh>>>& meshes,
 			DestructibleComponent* destructibe_component) const;
+
+		void process_broken_joint(JointComponent* broken_joint) const;
 
 		bool connect_touching_chunks(Entity parent, DestructibleComponent* destructibe_component) const;
 

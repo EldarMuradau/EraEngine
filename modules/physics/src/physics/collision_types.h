@@ -47,6 +47,6 @@ namespace era_engine::physics
 
 	enum class FilterData : uint32
 	{
-		HAS_FILTER_DATA_FLAG = (1 << 0)
+		HAS_FILTER_DATA_FLAG = (1 << 0),
 	};
 }

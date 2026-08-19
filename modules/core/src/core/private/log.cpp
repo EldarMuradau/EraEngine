@@ -56,6 +56,7 @@ namespace era_engine
 		va_end(args);
 
 		messages.push_back({ buffer, type, 5.f, file, function, line });
+		std::cout << messages.back().text << std::endl;
 
 		set_scroll_to_bottom = true;
 
@@ -75,6 +76,7 @@ namespace era_engine
 		va_end(args);
 
 		messages.push_back({ buffer, type, 5.f, nullptr, nullptr, 0 });
+		std::cout << messages.back().text << std::endl;
 
 		set_scroll_to_bottom = true;
 
@@ -143,7 +145,7 @@ namespace era_engine
 			{
 				for (uint32 i = 0; i < count; ++i)
 				{
-					auto& msg = messages[i];
+					const auto& msg = messages[i];
 					if (msg.file)
 					{
 						ImGui::TextColored(color_per_type[msg.type], "%s (%s [%u])", msg.text, msg.function, msg.line);

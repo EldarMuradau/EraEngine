@@ -40,6 +40,8 @@
 
 #include <algorithm>
 
+#include "physics/core/physics.h"
+
 namespace Nv
 {
 namespace Blast
@@ -210,9 +212,10 @@ NV_INLINE bool serializeConvexMesh(const PxConvexMesh& convexMesh, PxCooking& co
 	desc.polygons.stride = sizeof(PxHullPolygon);
 
 	PxCookingParams cookingParams = PxCookingParams(PxGetPhysics().getTolerancesScale());
-#if PX_GPU_BROAD_PHASE
-	cookingParams.buildGPUData = true;
-#endif
+	if (era_engine::physics::PhysicsEngine::get_physics_core()->is_gpu())
+	{
+		cookingParams.buildGPUData = true;
+	}
 	//cookingParams.meshWeldTolerance = 0.15f;
 	cookingParams.convexMeshCookingType = PxConvexMeshCookingType::eQUICKHULL;
 	cookingParams.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;

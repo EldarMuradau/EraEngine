@@ -29,9 +29,22 @@ namespace era_engine::physics
 		vertices.reserve(vertices_count);
 
 		const PxVec3 px_size = create_PxVec3(size);
+
+		PxVec3 center_of_mass(0.0f, 0.0f, 0.0f);
 		for (size_t i = 0; i < vertices_count; i++)
 		{
-			vertices.pushBack(PxVec3(positions[i].x, positions[i].y, positions[i].z) * px_size);
+			center_of_mass += create_PxVec3(positions[i]);
+		}
+
+		center_of_mass /= static_cast<float>(vertices_count);
+
+		for (size_t i = 0; i < vertices_count; i++)
+		{
+			PxVec3 original_pos = create_PxVec3(positions[i]);
+
+			PxVec3 scaled_pos = center_of_mass + (original_pos - center_of_mass) * px_size;
+
+			vertices.pushBack(scaled_pos);
 		}
 
 		PxConvexMeshDesc mesh_desc;
@@ -142,13 +155,13 @@ namespace era_engine::physics
 		{
 			if (mesh_desc.triangles.count > 0 && mesh_desc.isValid())
 			{
-				PxCookingParams cookingParams = PxCookingParams(PhysicsEngine::get_physics_core()->get_tolerance_scale());
-#if PX_GPU_BROAD_PHASE
-				cookingParams.buildGPUData = true;
-#endif
-				cookingParams.suppressTriangleMeshRemapTable = false;
-				cookingParams.midphaseDesc = PxMeshMidPhase::eBVH34;
-				return PxCreateTriangleMesh(cookingParams, mesh_desc);
+				PxCookingParams cooking_params = PxCookingParams(PhysicsEngine::get_physics_core()->get_tolerance_scale());
+				if (PhysicsEngine::get_physics_core()->is_gpu())
+				{
+					cooking_params.buildGPUData = true;
+				}
+				cooking_params.midphaseDesc = PxMeshMidPhase::eBVH34;
+				return PxCreateTriangleMesh(cooking_params, mesh_desc);
 			}
 		}
 		catch (...)
@@ -206,7 +219,10 @@ namespace era_engine::physics
 		return nullptr;
 	}
 
-	void ShapeUtils::setup_filtering(World* world, physx::PxShape* shape, uint32 collision_type, std::optional<uint32> collision_filter_data)
+	void ShapeUtils::setup_filtering(World* world,
+		physx::PxShape* shape,
+		uint32 collision_type,
+		std::optional<uint32> collision_filter_data)
 	{
 		// - word0 is collision types mask
 		// - word1 is mask with types to collide with

@@ -22,6 +22,12 @@ namespace era_engine::physics
 		void on_spherical_joint_created(entt::registry& registry, entt::entity entity_handle);
 		void on_revolute_joint_created(entt::registry& registry, entt::entity entity_handle);
 
+		void on_fixed_joint_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_distance_joint_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_d6_joint_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_spherical_joint_removed(entt::registry& registry, entt::entity entity_handle);
+		void on_revolute_joint_removed(entt::registry& registry, entt::entity entity_handle);
+
 		ERA_VIRTUAL_REFLECT(System)
 
 	private:

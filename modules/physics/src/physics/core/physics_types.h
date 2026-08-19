@@ -188,22 +188,23 @@ namespace era_engine::physics
 		float length = 0.f;
 	};
 
-	struct ExplodeOverlapCallback : physx::PxOverlapCallback
+	class ExplodeOverlapCallback : public physx::PxOverlapCallback
 	{
-		ExplodeOverlapCallback(physx::PxVec3 worldPos, float radius, float explosiveImpulse)
-			: worldPosition(worldPos)
-			, radius(radius)
-			, explosiveImpulse(explosiveImpulse)
-			, physx::PxOverlapCallback(hitBuffer, sizeof(hitBuffer) / sizeof(hitBuffer[0])) {}
+	public:
+		ExplodeOverlapCallback(const physx::PxVec3& _world_pos, float _radius, float _explosive_impulse)
+			: world_position(_world_pos)
+			, radius(_radius)
+			, explosive_impulse(_explosive_impulse)
+			, physx::PxOverlapCallback(hit_buffer, sizeof(hit_buffer) / sizeof(hit_buffer[0])) {}
 
 		physx::PxAgain processTouches(const physx::PxOverlapHit* buffer, physx::PxU32 nbHits);
 
 	private:
-		std::set<physx::PxRigidDynamic*> actorBuffer;
-		float explosiveImpulse;
-		float radius;
-		physx::PxVec3 worldPosition;
-		physx::PxOverlapHit hitBuffer[512];
+		std::set<physx::PxRigidDynamic*> actor_buffer;
+		float explosive_impulse = 1.0f;
+		float radius = 1.0f;
+		physx::PxVec3 world_position;
+		physx::PxOverlapHit hit_buffer[512];
 	};
 
 	class JointComponent;

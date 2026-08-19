@@ -217,6 +217,7 @@ namespace era_engine::physics
 		ConvexMeshShapeComponent* convex_mesh_component = created_entity.add_component<ConvexMeshShapeComponent>();
 		convex_mesh_component->asset = &created_mesh->model_asset->meshes[0];
 		convex_mesh_component->collision_type = CollisionType::ALL;
+		convex_mesh_component->size = vec3(0.995f);
 		convex_mesh_component->material = destructibe_component->material == nullptr ? PhysicsEngine::get_physics_core()->get_default_material() : destructibe_component->material;
 
 		float mass = ShapeUtils::volume_of_mesh(*mesh.first) * destructibe_component->fracture_desc.density;
@@ -227,9 +228,9 @@ namespace era_engine::physics
 		DynamicBodyComponent* dynamic_body = created_entity.add_component<DynamicBodyComponent>();
 		dynamic_body->mass.get_for_write() = mass;
 		dynamic_body->use_gravity.get_for_write() = true;
-		dynamic_body->max_depenetration_velocity.get_for_write() = 20.0f;
-		dynamic_body->angular_damping.get_for_write() = 0.05f;
-		dynamic_body->linear_damping.get_for_write() = 0.01f;
+		dynamic_body->max_depenetration_velocity.get_for_write() = 2.0f;
+		dynamic_body->angular_damping.get_for_write() = 0.1f;
+		dynamic_body->linear_damping.get_for_write() = 0.05f;
 		dynamic_body->solver_position_iterations_count.get_for_write() = 32;
 		dynamic_body->ccd.get_for_write() = true;
 		if (PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver)
@@ -267,6 +268,11 @@ namespace era_engine::physics
 		}
 
 		return result;
+	}
+
+	void DestructionSystem::process_broken_joint(JointComponent* broken_joint) const
+	{
+		broken_joint->get_entity().remove_component<FixedJointComponent>();
 	}
 
 	bool DestructionSystem::connect_touching_chunks(Entity parent, DestructibleComponent* destructibe_component) const
@@ -310,7 +316,7 @@ namespace era_engine::physics
 		params.geometry.type = SceneQueryGeometry::Type::SPHERE;
 		params.geometry.sphere_radius = 0.01f;
 
-		constexpr const uint32 MAX_CONNECTED_TO_VERTEX_COUNT = 32;
+		constexpr const uint32 MAX_CONNECTED_TO_VERTEX_COUNT = 16;
 		SceneQueryPositionedHit overlap_buffer[MAX_CONNECTED_TO_VERTEX_COUNT];
 
 		for (uint32 vectex_id = 0; vectex_id < nb_vertices; ++vectex_id)
@@ -355,8 +361,10 @@ namespace era_engine::physics
 
 				Entity connector = world->create_entity();
 
-				FixedJointComponent* fixed_joint_component = connector.add_component<FixedJointComponent>(descriptor);
-				fixed_joint_component->enable_collision.get_for_write() = true;
+				FixedJointComponent* joint_component = connector.add_component<FixedJointComponent>(descriptor);
+
+				joint_component->enable_collision = false;
+				joint_component->on_broken_callback = std::bind(&DestructionSystem::process_broken_joint, this, std::placeholders::_1);
 
 				const DynamicBodyComponent* chunk_body = chunk.get_component<DynamicBodyComponent>();
 				const DynamicBodyComponent* neighbour_body = neighbour.get_component<DynamicBodyComponent>();
@@ -364,7 +372,7 @@ namespace era_engine::physics
 				const float chunk_mass = chunk_body->mass;
 				const float neighbour_mass = neighbour_body->mass;
 
-				fixed_joint_component->break_force.get_for_write() = parent_destructibe_component->fracture_desc.break_force * (chunk_mass + neighbour_mass);
+				joint_component->break_force = parent_destructibe_component->fracture_desc.break_force * (chunk_mass + neighbour_mass);
 
 				chunk_component->connectors.emplace_back(EntityPtr{ connector });
 			}

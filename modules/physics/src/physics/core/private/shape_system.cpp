@@ -76,7 +76,10 @@ namespace era_engine::physics
 			if (shape_component.collision_filter_data.is_changed() ||
 				shape_component.collision_type.is_changed())
 			{
-				ShapeUtils::setup_filtering(world, shape_component.get_shape(), static_cast<uint32>(shape_component.collision_type.get()), shape_component.collision_filter_data);
+				ShapeUtils::setup_filtering(world, 
+					shape_component.get_shape(), 
+					static_cast<uint32>(shape_component.collision_type.get()), 
+					shape_component.collision_filter_data);
 				shape_component.collision_type.sync_changes();
 				shape_component.collision_filter_data.sync_changes();
 			}
@@ -112,7 +115,10 @@ namespace era_engine::physics
 			if (shape_component.collision_filter_data.is_changed() ||
 				shape_component.collision_type.is_changed())
 			{
-				ShapeUtils::setup_filtering(world, shape_component.get_shape(), static_cast<uint32>(shape_component.collision_type.get()), shape_component.collision_filter_data);
+				ShapeUtils::setup_filtering(world,
+					shape_component.get_shape(),
+					static_cast<uint32>(shape_component.collision_type.get()),
+					shape_component.collision_filter_data);
 				shape_component.collision_type.sync_changes();
 				shape_component.collision_filter_data.sync_changes();
 			}
@@ -148,7 +154,10 @@ namespace era_engine::physics
 			if (shape_component.collision_filter_data.is_changed() ||
 				shape_component.collision_type.is_changed())
 			{
-				ShapeUtils::setup_filtering(world, shape_component.get_shape(), static_cast<uint32>(shape_component.collision_type.get()), shape_component.collision_filter_data);
+				ShapeUtils::setup_filtering(world,
+					shape_component.get_shape(),
+					static_cast<uint32>(shape_component.collision_type.get()),
+					shape_component.collision_filter_data);
 				shape_component.collision_type.sync_changes();
 				shape_component.collision_filter_data.sync_changes();
 			}
@@ -184,7 +193,10 @@ namespace era_engine::physics
 			if (shape_component.collision_filter_data.is_changed() ||
 				shape_component.collision_type.is_changed())
 			{
-				ShapeUtils::setup_filtering(world, shape_component.get_shape(), static_cast<uint32>(shape_component.collision_type.get()), shape_component.collision_filter_data);
+				ShapeUtils::setup_filtering(world,
+					shape_component.get_shape(),
+					static_cast<uint32>(shape_component.collision_type.get()),
+					shape_component.collision_filter_data);
 				shape_component.collision_type.sync_changes();
 				shape_component.collision_filter_data.sync_changes();
 			}
@@ -220,7 +232,10 @@ namespace era_engine::physics
 			if (shape_component.collision_filter_data.is_changed() ||
 				shape_component.collision_type.is_changed())
 			{
-				ShapeUtils::setup_filtering(world, shape_component.get_shape(), static_cast<uint32>(shape_component.collision_type.get()), shape_component.collision_filter_data);
+				ShapeUtils::setup_filtering(world,
+					shape_component.get_shape(),
+					static_cast<uint32>(shape_component.collision_type.get()),
+					shape_component.collision_filter_data);
 				shape_component.collision_type.sync_changes();
 				shape_component.collision_filter_data.sync_changes();
 			}

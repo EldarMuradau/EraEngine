@@ -25,7 +25,7 @@ namespace era_engine::physics
 
 		PxShape* buffer[1];
 		plane->getShapes(buffer, 1);
-		ShapeUtils::setup_filtering(get_world(), buffer[0], static_cast<uint32>(_collision_type), std::optional<uint32>{});
+		ShapeUtils::setup_filtering(get_world(), buffer[0], static_cast<uint32>(_collision_type), std::nullopt);
 
 		PhysicsEngine::execute_write([&]() {
 			physics->get_scene()->addActor(*plane);

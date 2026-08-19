@@ -42,13 +42,11 @@ namespace era_engine::physics
 		{
 			pair_flags = physx::PxPairFlag::eCONTACT_DEFAULT;
 			pair_flags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
+			pair_flags |= physx::PxPairFlag::eNOTIFY_CONTACT_POINTS;
 			pair_flags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
 			pair_flags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
 			pair_flags |= physx::PxPairFlag::eNOTIFY_TOUCH_PERSISTS;
 			pair_flags |= physx::PxPairFlag::ePOST_SOLVER_VELOCITY;
-			pair_flags |= physx::PxPairFlag::eNOTIFY_CONTACT_POINTS;
-			pair_flags |= physx::PxPairFlag::eSOLVE_CONTACT;
-			pair_flags |= physx::PxPairFlag::eDETECT_DISCRETE_CONTACT;
 
 			return physx::PxFilterFlag::eDEFAULT;
 		}
@@ -97,7 +95,7 @@ namespace era_engine::physics
 		tolerance_scale.length = 1.0f;
 		tolerance_scale.speed = 10.0f;
 
-		physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, tolerance_scale, true, pvd, omni_pvd);
+		physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, tolerance_scale, false, pvd, omni_pvd);
 
 		if (!PxInitExtensions(*physics, pvd))
 		{
@@ -115,6 +113,7 @@ namespace era_engine::physics
 		dispatcher = PxDefaultCpuDispatcherCreate(nb_cpu_dispatcher_threads);
 
 		blast_core = make_ref<BlastCore>(*this);
+		materials.reserve(64);
 
 #if PX_VEHICLE
 		if (!PxInitVehicleSDK(*physics))
@@ -149,6 +148,10 @@ namespace era_engine::physics
 		if (descriptor.enable_tgs_solver)
 		{
 			scene_desc.solverType = PxSolverType::eTGS;
+		}
+		else
+		{
+			scene_desc.solverType = PxSolverType::ePGS;
 		}
 		scene_desc.flags |= PxSceneFlag::eENABLE_CCD;
 		scene_desc.flags |= PxSceneFlag::eENABLE_ACTIVE_ACTORS;

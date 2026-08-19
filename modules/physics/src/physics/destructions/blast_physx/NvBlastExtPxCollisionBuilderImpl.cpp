@@ -37,6 +37,8 @@
 #include <vector>
 #include <set>
 
+#include "physics/core/physics.h"
+
 using namespace physx;
 
 #define SAFE_ARRAY_NEW(T, x) ((x) > 0) ? reinterpret_cast<T*>(NVBLAST_ALLOC(sizeof(T) * (x))) : nullptr;
@@ -106,9 +108,10 @@ CollisionHull* ExtPxCollisionBuilderImpl::buildCollisionGeometry(uint32_t vertic
 	convexMeshDescr.flags         = PxConvexFlag::eCOMPUTE_CONVEX;
 
 	PxCookingParams cookingParams = PxCookingParams(PxGetPhysics().getTolerancesScale());
-#if PX_GPU_BROAD_PHASE
-	cookingParams.buildGPUData = true;
-#endif
+	if (era_engine::physics::PhysicsEngine::get_physics_core()->is_gpu())
+	{
+		cookingParams.buildGPUData = true;
+	}
 	//cookingParams.meshWeldTolerance = 0.15f;
 	cookingParams.convexMeshCookingType = PxConvexMeshCookingType::eQUICKHULL;
 	cookingParams.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;
@@ -206,10 +209,10 @@ physx::PxConvexMesh* ExtPxCollisionBuilderImpl::buildConvexMesh(const CollisionH
 	convexMeshDescr.polygons.stride = sizeof(PxHullPolygon);
 
 	PxCookingParams cookingParams = PxCookingParams(PxGetPhysics().getTolerancesScale());
-#if PX_GPU_BROAD_PHASE
-	cookingParams.buildGPUData = true;
-#endif
-	//cookingParams.meshWeldTolerance = 0.15f;
+	if (era_engine::physics::PhysicsEngine::get_physics_core()->is_gpu())
+	{
+		cookingParams.buildGPUData = true;
+	}
 	cookingParams.convexMeshCookingType = PxConvexMeshCookingType::eQUICKHULL;
 	cookingParams.meshPreprocessParams = PxMeshPreprocessingFlag::eENABLE_INERTIA;
 	return PxCreateConvexMesh(cookingParams, convexMeshDescr, PxGetPhysics().getPhysicsInsertionCallback());

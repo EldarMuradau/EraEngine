@@ -35,8 +35,16 @@ namespace era_engine::physics
 	{
 		entt::registry& registry = world->get_registry();
 		registry.on_construct<D6JointComponent>().connect<&JointsSystem::on_d6_joint_created>(this);
+		registry.on_construct<SphericalJointComponent>().connect<&JointsSystem::on_spherical_joint_created>(this);
+		registry.on_construct<RevoluteJointComponent>().connect<&JointsSystem::on_revolute_joint_created>(this);
 		registry.on_construct<FixedJointComponent>().connect<&JointsSystem::on_fixed_joint_created>(this);
 		registry.on_construct<DistanceJointComponent>().connect<&JointsSystem::on_distance_joint_created>(this);
+
+		registry.on_destroy<D6JointComponent>().connect<&JointsSystem::on_d6_joint_removed>(this);
+		registry.on_destroy<SphericalJointComponent>().connect<&JointsSystem::on_spherical_joint_removed>(this);
+		registry.on_destroy<RevoluteJointComponent>().connect<&JointsSystem::on_revolute_joint_removed>(this);
+		registry.on_destroy<FixedJointComponent>().connect<&JointsSystem::on_fixed_joint_removed>(this);
+		registry.on_destroy<DistanceJointComponent>().connect<&JointsSystem::on_distance_joint_removed>(this);
 	}
 
 	void JointsSystem::update(float dt)
@@ -1114,6 +1122,96 @@ namespace era_engine::physics
 		ScopedSpinLock _lock{ sync };
 
 		revolute_joints_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
+	}
+
+	void JointsSystem::on_fixed_joint_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		FixedJointComponent* joint_component = entity.get_component<FixedJointComponent>();
+
+		PhysicsEngine::execute_write([&]()
+			{
+				physx::PxJoint* joint = joint_component->joint;
+				if (joint->isReleasable())
+				{
+					PX_RELEASE(joint)
+				}
+			});
+	}
+
+	void JointsSystem::on_distance_joint_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		DistanceJointComponent* joint_component = entity.get_component<DistanceJointComponent>();
+
+		PhysicsEngine::execute_write([&]()
+			{
+				physx::PxJoint* joint = joint_component->joint;
+				if (joint->isReleasable())
+				{
+					PX_RELEASE(joint)
+				}
+			});
+	}
+
+	void JointsSystem::on_d6_joint_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		D6JointComponent* joint_component = entity.get_component<D6JointComponent>();
+
+		PhysicsEngine::execute_write([&]()
+			{
+				physx::PxJoint* joint = joint_component->joint;
+				if (joint->isReleasable())
+				{
+					PX_RELEASE(joint)
+				}
+			});
+	}
+
+	void JointsSystem::on_spherical_joint_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		SphericalJointComponent* joint_component = entity.get_component<SphericalJointComponent>();
+
+		PhysicsEngine::execute_write([&]()
+			{
+				physx::PxJoint* joint = joint_component->joint;
+				if (joint->isReleasable())
+				{
+					PX_RELEASE(joint)
+				}
+			});
+	}
+
+	void JointsSystem::on_revolute_joint_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		ScopedSpinLock _lock{ sync };
+
+		Entity entity = world->get_entity(entity_handle);
+
+		RevoluteJointComponent* joint_component = entity.get_component<RevoluteJointComponent>();
+
+		PhysicsEngine::execute_write([&]()
+			{
+				physx::PxJoint* joint = joint_component->joint;
+				if (joint->isReleasable())
+				{
+					PX_RELEASE(joint)
+				}
+			});
 	}
 
 }

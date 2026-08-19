@@ -11,7 +11,6 @@
 
 namespace era_engine::physics
 {
-
 	static void clear_collider_from_collection(const BodyComponent* collider,
 		physx::PxArray<SimulationEventCallback::CollidersPair>& collection)
 	{
@@ -199,8 +198,8 @@ namespace era_engine::physics
 	void SimulationEventCallback::onContact(const physx::PxContactPairHeader& pair_header, const physx::PxContactPair* pairs, physx::PxU32 nb_pairs)
 	{
 		using namespace physx;
-		const PxU32 bufferSize = PX_CONTACT_BUFFER_SIZE;
-		PxContactPairPoint contacts[bufferSize];
+		const PxU32 buffer_size = PX_CONTACT_BUFFER_SIZE;
+		PxContactPairPoint contacts[buffer_size];
 
 		Collision collision{};
 		PxContactPairExtraDataIterator iter(pair_header.extraDataStream, pair_header.extraDataStreamSize);
@@ -208,27 +207,27 @@ namespace era_engine::physics
 		for (PxU32 i = 0; i < nb_pairs; i++)
 		{
 			const PxContactPair& cp = pairs[i];
-			PxU32 nbContacts = pairs[i].extractContacts(contacts, bufferSize);
+			PxU32 nb_contacts = pairs[i].extractContacts(contacts, buffer_size);
 
-			const bool hasPostVelocities = !cp.flags.isSet(PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH);
+			const bool has_post_velocities = !cp.flags.isSet(PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH);
 
-			for (PxU32 j = 0; j < nbContacts; j++)
+			for (PxU32 j = 0; j < nb_contacts; j++)
 			{
 				const PxVec3& point = contacts[j].position;
 				const PxVec3& impulse = contacts[j].impulse;
-				PxU32 internalFaceIndex0 = contacts[j].internalFaceIndex0;
-				PxU32 internalFaceIndex1 = contacts[j].internalFaceIndex1;
+				PxU32 internal_face_index0 = contacts[j].internalFaceIndex0;
+				PxU32 internal_face_index1 = contacts[j].internalFaceIndex1;
 
 				collision.impulse += impulse;
 
 				UNUSED(point);
-				UNUSED(internalFaceIndex0);
-				UNUSED(internalFaceIndex1);
+				UNUSED(internal_face_index0);
+				UNUSED(internal_face_index1);
 			}
 
 			collision.this_velocity = collision.other_velocity = PxVec3(0.0f);
 
-			if (hasPostVelocities && iter.nextItemSet())
+			if (has_post_velocities && iter.nextItemSet())
 			{
 				if (iter.contactPairIndex != i)
 				{
@@ -243,8 +242,8 @@ namespace era_engine::physics
 
 			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				auto r1 = pair_header.actors[0]->is<PxRigidActor>();
-				auto r2 = pair_header.actors[1]->is<PxRigidActor>();
+				PxRigidActor* r1 = pair_header.actors[0]->is<PxRigidActor>();
+				PxRigidActor* r2 = pair_header.actors[1]->is<PxRigidActor>();
 
 				if (!r1 || !r2)
 				{
@@ -272,8 +271,8 @@ namespace era_engine::physics
 			}
 			else if (cp.events & physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				auto r1 = pair_header.actors[0]->is<PxRigidActor>();
-				auto r2 = pair_header.actors[1]->is<PxRigidActor>();
+				PxRigidActor* r1 = pair_header.actors[0]->is<PxRigidActor>();
+				PxRigidActor* r2 = pair_header.actors[1]->is<PxRigidActor>();
 
 				if (!r1 || !r2)
 				{
@@ -305,22 +304,23 @@ namespace era_engine::physics
 	physx::PxAgain ExplodeOverlapCallback::processTouches(const physx::PxOverlapHit* buffer, physx::PxU32 nbHits)
 	{
 		using namespace physx;
+
 		PxSceneWriteLock lock{ *PhysicsEngine::get_physics_core()->get_scene()};
 		for (PxU32 i = 0; i < nbHits; ++i)
 		{
 			PxRigidActor* actor = buffer[i].actor;
-			PxRigidDynamic* rigidDynamic = actor->is<PxRigidDynamic>();
-			if (rigidDynamic && !(rigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC))
+			PxRigidDynamic* rigid_dynamic = actor->is<PxRigidDynamic>();
+			if (rigid_dynamic && !(rigid_dynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC))
 			{
-				if (actorBuffer.find(rigidDynamic) == actorBuffer.end())
+				if (actor_buffer.find(rigid_dynamic) == actor_buffer.cend())
 				{
-					actorBuffer.insert(rigidDynamic);
-					PxVec3 dr = rigidDynamic->getGlobalPose().transform(rigidDynamic->getCMassLocalPose()).p - worldPosition;
-					float distance = dr.magnitude();
-					float factor = PxClamp(1.0f - (distance * distance) / (radius * radius), 0.0f, 1.0f);
-					float impulse = factor * explosiveImpulse * 1000.0f;
-					PxVec3 vel = dr.getNormalized() * impulse / rigidDynamic->getMass();
-					rigidDynamic->setLinearVelocity(rigidDynamic->getLinearVelocity() + vel);
+					actor_buffer.insert(rigid_dynamic);
+					const PxVec3 dr = rigid_dynamic->getGlobalPose().transform(rigid_dynamic->getCMassLocalPose()).p - world_position;
+					const float distance = dr.magnitude();
+					const float factor = PxClamp(1.0f - (distance * distance) / (radius * radius), 0.0f, 1.0f);
+					const float impulse = factor * explosive_impulse * 1000.0f;
+					const PxVec3 vel = dr.getNormalized() * impulse / rigid_dynamic->getMass();
+					rigid_dynamic->setLinearVelocity(rigid_dynamic->getLinearVelocity() + vel);
 				}
 			}
 		}
@@ -356,7 +356,7 @@ namespace era_engine::physics
 		cct_collision_info.direction = create_vec3(hit.dir);
 		cct_collision_info.length = hit.length;
 
-		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
+		const ref<SimulationEventCallback>& event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
 		event_callback->cct_collisions.pushBack(cct_collision_info);
 	}
 
@@ -379,7 +379,7 @@ namespace era_engine::physics
 		cct_collision_info.direction = create_vec3(hit.dir);
 		cct_collision_info.length = hit.length;
 
-		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
+		const ref<SimulationEventCallback>& event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
 		event_callback->cct_collisions.pushBack(cct_collision_info);
 	}
 

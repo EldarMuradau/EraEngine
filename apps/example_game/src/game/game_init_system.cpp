@@ -541,9 +541,9 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -4.0f, -5.0f));
 
 			DestructibleComponent* descructible_component = box.add_component<DestructibleComponent>(DestructibleComponent::Type::FRACTURE_BASED);
-			descructible_component->fracture_desc.chunks_count = 10;
+			descructible_component->fracture_desc.chunks_count = 15;
 			descructible_component->fracture_desc.density = 100.0f;
-			descructible_component->fracture_desc.break_force = 20.0f;
+			descructible_component->fracture_desc.break_force = 200.0f;
 			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.8f);
 		}
 

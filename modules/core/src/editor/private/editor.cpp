@@ -31,9 +31,9 @@
 #include "ecs/rendering/mesh_component.h"
 #include "ecs/editor/entity_editor_utils.h"
 
-//#include "physics/core/physics.h"
 //#include "physics/body_component.h"
 //#include "physics/shape_component.h"
+//#include "physics/core/physics.h"
 
 #include <fontawesome/list.h>
 
@@ -1716,35 +1716,34 @@ namespace era_engine
 			{
 				if (ImGui::BeginProperties())
 				{
-					const auto& physicsRef = physics::PhysicsEngine::get_physics_core();
-					float frame_rate = physicsRef->frame_rate;
+					const auto& physics_ref = physics::PhysicsEngine::get_physics_core();
+					float frame_rate = physics_ref->frame_rate;
 
 					ImGui::PropertyInput("Frame rate", frame_rate);
-					if (frame_rate != physicsRef->frame_rate)
+					if (frame_rate != physics_ref->frame_rate)
 					{
-						physicsRef->frame_rate = frame_rate;
+						physics_ref->frame_rate = frame_rate;
 					}
 
-					if (physicsRef->frame_rate < 30)
+					if (physics_ref->frame_rate < 30)
 					{
 						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, 1.f));
 						ImGui::PropertyValue("", "Low frame rate");
 						ImGui::PopStyleColor();
 					}
 
-					uint32 nbaa = physicsRef->nb_active_actors.load(std::memory_order_relaxed);
-					uint32 nba = physicsRef->actors_map.size();
+					uint32 nbaa = physics_ref->nb_active_actors.load(std::memory_order_relaxed);
+					uint32 nba = physics_ref->actors_map.size();
 					ImGui::PropertyValue("Number of active actors", std::to_string(nbaa).c_str());
 					ImGui::PropertyValue("Number of actors", std::to_string(nba).c_str());
-					if (this->scene->is_pausable())
+					if (physics::PhysicsEngine::get_physics_core()->is_gpu())
 					{
-						ImGui::PropertyCheckbox("Render physics shapes", renderPhysicsShapes);
+						ImGui::PropertyValue("Broad phase", "GPU");
 					}
-#if PX_GPU_BROAD_PHASE
-					ImGui::PropertyValue("Broad phase", "GPU");
-#else
-					ImGui::PropertyValue("Broad phase", "PABP (CPU)");
-#endif
+					else
+					{
+						ImGui::PropertyValue("Broad phase", "PABP (CPU)");
+					}
 					ImGui::EndProperties();
 				}
 
