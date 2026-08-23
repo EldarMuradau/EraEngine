@@ -306,7 +306,7 @@ namespace era_engine
 
 	struct height_generator_warped : height_generator
 	{
-		terrain_generation_settings settings;
+		TerrainGenerationSettings settings;
 
 		virtual float height(vec2 position) const override
 		{
@@ -425,12 +425,12 @@ namespace era_engine
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
-		rttr::registration::class_<TerrainComponent>("TerrainComponent")
+		registration::class_<TerrainComponent>("TerrainComponent")
 			.constructor<>()
 			.property("genSettings", &TerrainComponent::genSettings);
 	}
 
-	TerrainComponent::TerrainComponent(ref<Entity::EcsData> _data, uint32 _chunks_per_dim, float _chunk_size, float _amplitude_scale, ref<pbr_material> ground_material, ref<pbr_material> rock_material, ref<pbr_material> _mud_material, const terrain_generation_settings& _gen_settings)
+	TerrainComponent::TerrainComponent(ref<Entity::EcsData> _data, uint32 _chunks_per_dim, float _chunk_size, float _amplitude_scale, ref<pbr_material> ground_material, ref<pbr_material> rock_material, ref<pbr_material> _mud_material, const TerrainGenerationSettings& _gen_settings)
 		: Component(_data),
 		chunksPerDim(_chunks_per_dim),
 		chunkSize(_chunk_size),
@@ -452,7 +452,7 @@ namespace era_engine
 
 	void TerrainComponent::update()
 	{
-		if (memcmp(&genSettings, &oldGenSettings, sizeof(terrain_generation_settings)) != 0)
+		if (memcmp(&genSettings, &oldGenSettings, sizeof(TerrainGenerationSettings)) != 0)
 		{
 			generate_chunks_GPU();
 
@@ -460,7 +460,14 @@ namespace era_engine
 		}
 	}
 
-	void TerrainComponent::render(const render_camera& camera, opaque_render_pass* renderPass, sun_shadow_render_pass* shadowPass, ldr_render_pass* ldrPass, vec3 positionOffset, bool selected, TransformComponent* waterPlaneTransforms, uint32 numWaters)
+	void TerrainComponent::render(const render_camera& camera, 
+		opaque_render_pass* renderPass, 
+		sun_shadow_render_pass* shadowPass, 
+		ldr_render_pass* ldrPass, 
+		vec3 positionOffset, 
+		bool selected, 
+		TransformComponent* waterPlaneTransforms,
+		uint32 numWaters)
 	{
 		camera_frustum_planes frustum = camera.getWorldSpaceFrustumPlanes();
 		camera_frustum_planes sunFrustum = {};
@@ -509,7 +516,7 @@ namespace era_engine
 		{
 			for (int32 x = 0; x < (int32)chunksPerDim; ++x)
 			{
-				const terrain_chunk& c = chunk(x, z);
+				const TerrainChunk& c = chunk(x, z);
 
 				int32 lod = lods[z * lodStride + x];
 
@@ -700,7 +707,6 @@ namespace era_engine
 					cl->setPipelineState(*terrainGenerationPipeline.pipeline);
 					cl->setComputeRootSignature(*terrainGenerationPipeline.rootSignature);
 					cl->setComputeDynamicConstantBuffer(TERRAIN_GENERATION_RS_SETTINGS, settingsCBV);
-
 
 					vec2 minCorner = vec2(cx * chunkSize, cz * chunkSize);
 

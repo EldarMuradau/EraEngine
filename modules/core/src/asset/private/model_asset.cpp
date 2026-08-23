@@ -2,6 +2,7 @@
 
 #include "asset/model_asset.h"
 #include "asset/bin.h"
+#include "asset/model_importer.h"
 #include "core/log.h"
 
 #include "rendering/pbr_material.h"
@@ -45,14 +46,8 @@ namespace era_engine
 
 		std::transform(extension.begin(), extension.end(), extension.begin(),
 			[](char c) { return std::tolower(c); });
-		if (extension == ".fbx")
-		{
-			result = load_fbx(path, mesh_flags);
-		}
-		else if (extension == ".obj")
-		{
-			result = load_obj(path, mesh_flags);
-		}
+
+		result = universal_load_model(path, mesh_flags);
 
 		fs::create_directories(cache_filepath.parent_path());
 		write_bin(result, cache_filepath);

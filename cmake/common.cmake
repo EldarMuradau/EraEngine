@@ -270,3 +270,22 @@ function(require_physx target)
     target_include_directories(${target} PUBLIC ${ERA_ENGINE_PATH}/modules/thirdparty-physx/src/blast/include/extensions/authoring)
     target_include_directories(${target} PUBLIC ${ERA_ENGINE_PATH}/modules/thirdparty-physx/src/blast/include/extensions/authoringCommon)
 endfunction()
+
+set(ASSIMP_DEBUG_LIBS
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-assimp/lib/Debug/assimp-vc143-mtd.lib
+)
+
+set(ASSIMP_RELEASE_LIBS
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-assimp/lib/Release/assimp-vc143-mt.lib
+)
+
+function(require_assimp target)
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${ERA_ENGINE_PATH}/modules/thirdparty-assimp/bin/$<CONFIGURATION>
+        $<TARGET_FILE_DIR:${target}>
+    )
+
+    target_link_libraries(${target} ${ASSIMP_RELEASE_LIBS} ${ASSIMP_DEBUG_LIBS})
+    target_include_directories(${target} PUBLIC ${ERA_ENGINE_PATH}/modules/thirdparty-assimp/include)
+endfunction()

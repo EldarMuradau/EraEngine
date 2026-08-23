@@ -8,5 +8,7 @@ era_begin(core "MODULE")
     require_thirdparty_module(core rttr_core)
     require_thirdparty_module(core DirectXTex)
 
+    require_assimp(core)
+
     target_compile_definitions(core PRIVATE ERA_CORE TRACY_IMPORTS)
 era_end(core)

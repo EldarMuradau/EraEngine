@@ -31,7 +31,7 @@ namespace era_engine::physics
 			.method("update", &DestructionSystem::update)(metadata("update_group", update_types::BEFORE_PHYSICS));
 	}
 
-		DestructionSystem::DestructionSystem(World* _world)
+	DestructionSystem::DestructionSystem(World* _world)
 		: System(_world)
 	{
 	}
@@ -90,13 +90,14 @@ namespace era_engine::physics
 						++iter;
 						continue;
 					}
-					destructibe_component->load_state = DestructibleComponent::LoadState::LOADED;
 
 					for (EntityPtr chunk : destructibe_component->chunks)
 					{
 						DynamicBodyComponent* body_component = chunk.get().get_component<DynamicBodyComponent>();
 						body_component->simulated.get_for_write() = true;
 					}
+
+					destructibe_component->load_state = DestructibleComponent::LoadState::LOADED;
 				}
 				break;
 
@@ -223,7 +224,7 @@ namespace era_engine::physics
 		float mass = ShapeUtils::volume_of_mesh(*mesh.first) * destructibe_component->fracture_desc.density;
 		ASSERT(mass > 0.0f);
 
-		mass = max(1.0f, mass);
+		mass = max(0.01f, mass);
 
 		DynamicBodyComponent* dynamic_body = created_entity.add_component<DynamicBodyComponent>();
 		dynamic_body->mass.get_for_write() = mass;

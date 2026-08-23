@@ -24,38 +24,6 @@ namespace era_engine
 
 namespace era_engine::animation
 {
-	struct ERA_CORE_API AnimationSkeletonImportData
-	{
-		SkeletonPose sampleAnimation(const AnimationClipImportData& clip, float time, trs* outRootMotion = 0) const;
-		SkeletonPose sampleAnimation(uint32 index, float time, trs* outRootMotion = 0) const;
-
-		std::vector<uint32> getClipsByName(const std::string& name);
-
-		std::vector<AnimationClipImportData> clips;
-		std::vector<fs::path> files;
-
-		Skeleton* skeleton = nullptr;
-	};
-
-	struct ERA_CORE_API AnimationInstanceImportData
-	{
-		AnimationInstanceImportData() { }
-		AnimationInstanceImportData(const AnimationClipImportData* clip, float startTime = 0.0f);
-
-		void set(const AnimationClipImportData* clip, float startTime = 0.0f);
-		SkeletonPose update(const AnimationSkeletonImportData& skeleton, float dt, trs& outDeltaRootMotion);
-
-		bool valid() const { return clip != nullptr; }
-
-		const AnimationClipImportData* clip = nullptr;
-		float time = 0.0f;
-
-		trs lastRootMotion;
-
-		bool paused = false;
-		bool finished = false;
-	};
-
 	class ERA_CORE_API AnimationComponent : public Component
 	{
 	public:

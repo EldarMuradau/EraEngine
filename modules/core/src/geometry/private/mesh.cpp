@@ -41,6 +41,25 @@ namespace std
 
 namespace era_engine
 {
+	inline std::string convert_material_path(std::string_view input_path, const std::filesystem::path& model_filepath)
+	{
+		std::filesystem::path model_dir = model_filepath.parent_path();
+
+		std::filesystem::path texture_path(input_path);
+
+		if (texture_path.is_absolute())
+		{
+			return texture_path.string();
+		}
+
+		std::filesystem::path full_path = (model_dir / texture_path).lexically_normal();
+
+		std::string converted_path = full_path.string();
+		replace_all(converted_path, "\\", "/");
+
+		return converted_path;
+	}
+
 	static void mesh_import_worker(ref<MultiMesh> result, 
 		const fs::path& filename, 
 		uint32 flags, 
@@ -59,19 +78,19 @@ namespace era_engine
 		{
 			if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
 			{
-				material_desc.albedo = get_asset_path(convert_path(material_desc.albedo));
+				material_desc.albedo = convert_material_path(material_desc.albedo, filename);
 			}
 			if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
 			{
-				material_desc.normal = get_asset_path(convert_path(material_desc.normal));
+				material_desc.normal = convert_material_path(material_desc.normal, filename);
 			}
 			if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
 			{
-				material_desc.roughness = get_asset_path(convert_path(material_desc.roughness));
+				material_desc.roughness = convert_material_path(material_desc.roughness, filename);
 			}
 			if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
 			{
-				material_desc.metallic = get_asset_path(convert_path(material_desc.metallic));
+				material_desc.metallic = convert_material_path(material_desc.metallic, filename);
 			}
 
 			material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -289,6 +308,7 @@ namespace era_engine
 				for (auto& sub : mesh.submeshes)
 				{
 					PbrMaterialDesc& material_desc = model_asset->materials[sub.material_index];
+					material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 					ref<pbr_material> material = create_pbr_material(material_desc);
 

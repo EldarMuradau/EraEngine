@@ -21,7 +21,7 @@ namespace era_engine
 				CPU_PRINT_PROFILE_BLOCK("Generating normals");
 
 				sub.normals.resize(sub.positions.size(), vec3(0.f));
-				for (indexed_triangle16 tri : sub.triangles)
+				for (indexed_triangle32 tri : sub.triangles)
 				{
 					vec3 a = sub.positions[tri.a];
 					vec3 b = sub.positions[tri.b];
@@ -46,7 +46,7 @@ namespace era_engine
 				sub.tangents.resize(sub.positions.size(), vec3(0.f));
 				if (!sub.uvs.empty())
 				{
-					for (indexed_triangle16 tri : sub.triangles)
+					for (indexed_triangle32 tri : sub.triangles)
 					{
 						vec3 a = sub.positions[tri.a];
 						vec3 b = sub.positions[tri.b];
@@ -109,7 +109,7 @@ namespace era_engine
 			CPU_PRINT_PROFILE_BLOCK("Generating normals");
 
 			submesh->normals.resize(submesh->positions.size(), vec3(0.f));
-			for (indexed_triangle16 tri : submesh->triangles)
+			for (indexed_triangle32 tri : submesh->triangles)
 			{
 				vec3 a = submesh->positions[tri.a];
 				vec3 b = submesh->positions[tri.b];
@@ -134,7 +134,7 @@ namespace era_engine
 			submesh->tangents.resize(submesh->positions.size(), vec3(0.f));
 			if (!submesh->uvs.empty())
 			{
-				for (indexed_triangle16 tri : submesh->triangles)
+				for (indexed_triangle32 tri : submesh->triangles)
 				{
 					vec3 a = submesh->positions[tri.a];
 					vec3 b = submesh->positions[tri.b];
@@ -207,7 +207,7 @@ namespace era_engine
 				printf("Too many vertices for 16-bit indices. Splitting mesh!\n");
 			}
 
-			sub.triangles.push_back(indexed_triangle16{ a.index, b.index, c.index });
+			sub.triangles.push_back(indexed_triangle32{ a.index, b.index, c.index });
 
 			b = c;
 			bIndex = cIndex;
@@ -242,7 +242,7 @@ namespace era_engine
 				return { 0, false };
 			}
 
-			vertexToIndex.insert({ vertex, (uint16)vertexIndex });
+			vertexToIndex.insert({ vertex, (uint32)vertexIndex });
 
 			sub.positions.push_back(position);
 			if (!uvs.empty()) { sub.uvs.push_back(uv); }
@@ -251,7 +251,7 @@ namespace era_engine
 			if (!colors.empty()) { sub.colors.push_back(color); }
 			if (!skins.empty()) { sub.skin.push_back(skin); }
 
-			return { (uint16)vertexIndex, true };
+			return { (uint32)vertexIndex, true };
 		}
 		else
 			return { it->second, true };

@@ -621,8 +621,6 @@ namespace era_engine
 		opaque_render_pass* opaqueRenderPass, transparent_render_pass* transparentRenderPass, ldr_render_pass* ldrRenderPass, sun_shadow_render_pass* sunShadowRenderPass,
 		compute_pass* computePass, float dt)
 	{
-		CPU_PROFILE_BLOCK("Terrain");
-
 		MemoryMarker tempMemoryMarker = arena.get_marker();
 		TransformComponent* waterPlaneTransforms = arena.allocate<TransformComponent>(world->number_of_components_of_type<WaterComponent>());
 		uint32 numWaterPlanes = 0;

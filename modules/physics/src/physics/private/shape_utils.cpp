@@ -28,23 +28,33 @@ namespace era_engine::physics
 		PxArray<PxVec3> vertices;
 		vertices.reserve(vertices_count);
 
-		const PxVec3 px_size = create_PxVec3(size);
-
-		PxVec3 center_of_mass(0.0f, 0.0f, 0.0f);
-		for (size_t i = 0; i < vertices_count; i++)
+		if (!fuzzy_equals(size, vec3(1.0f)))
 		{
-			center_of_mass += create_PxVec3(positions[i]);
+			const PxVec3 px_size = create_PxVec3(size);
+
+			PxVec3 center_of_mass(0.0f, 0.0f, 0.0f);
+			for (size_t i = 0; i < vertices_count; ++i)
+			{
+				center_of_mass += create_PxVec3(positions[i]);
+			}
+
+			center_of_mass /= static_cast<float>(vertices_count);
+
+			for (size_t i = 0; i < vertices_count; ++i)
+			{
+				PxVec3 original_pos = create_PxVec3(positions[i]);
+
+				PxVec3 scaled_pos = center_of_mass + (original_pos - center_of_mass) * px_size;
+
+				vertices.pushBack(scaled_pos);
+			}
 		}
-
-		center_of_mass /= static_cast<float>(vertices_count);
-
-		for (size_t i = 0; i < vertices_count; i++)
+		else
 		{
-			PxVec3 original_pos = create_PxVec3(positions[i]);
-
-			PxVec3 scaled_pos = center_of_mass + (original_pos - center_of_mass) * px_size;
-
-			vertices.pushBack(scaled_pos);
+			for (size_t i = 0; i < vertices_count; ++i)
+			{
+				vertices.pushBack(create_PxVec3(positions[i]));
+			}
 		}
 
 		PxConvexMeshDesc mesh_desc;
@@ -75,7 +85,7 @@ namespace era_engine::physics
 		return nullptr;
 	}
 
-	physx::PxTriangleMesh* ShapeUtils::build_triangle_mesh(const MeshAsset* asset, const vec3& size)
+	physx::PxTriangleMesh* ShapeUtils::build_triangle_mesh(const MeshAsset* asset)
 	{
 		using namespace physx;
 		size_t submeshes_count = asset->submeshes.size();
@@ -87,13 +97,11 @@ namespace era_engine::physics
 		PxArray<PxU32> output_indices;
 		PxReal maximal_triangle_edge_length = 0.0f;
 
-		PxVec3 physics_model_size = create_PxVec3(size);
-
 		size_t total_triangles_count = 0;
 
 		for (size_t s = 0; s < submeshes_count; s++)
 		{
-			SubmeshAsset root = asset->submeshes[s];
+			const SubmeshAsset& root = asset->submeshes[s];
 
 			const auto& triangles = root.triangles;
 			const auto& positions = root.positions;
@@ -120,7 +128,7 @@ namespace era_engine::physics
 
 			for (size_t i = 0; i < vertices_count; i++)
 			{
-				vertices.pushBack(PxVec3(positions[i].x, positions[i].y, positions[i].z) * physics_model_size);
+				vertices.pushBack(create_PxVec3(positions[i]));
 			}
 		}
 

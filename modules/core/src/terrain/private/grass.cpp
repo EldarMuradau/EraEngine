@@ -66,7 +66,7 @@ namespace era_engine
 		grassCommandSignature = createCommandSignature({}, &argumentDesc, 1, sizeof(grass_draw));
 	}
 
-	static grass_cb createGrassCB(const grass_settings& settings, vec2 windDirection, uint32 numVertices)
+	static grass_cb createGrassCB(const GrassSettings& settings, vec2 windDirection, uint32 numVertices)
 	{
 		grass_cb cb;
 		cb.numVertices = numVertices;
@@ -75,13 +75,13 @@ namespace era_engine
 		return cb;
 	}
 
-	static grass_cb createGrassCB_LOD0(const grass_settings& settings, vec2 windDirection)
+	static grass_cb createGrassCB_LOD0(const GrassSettings& settings, vec2 windDirection)
 	{
 		const uint32 numVerticesLOD0 = numSegmentsLOD0 * 2 + 1;
 		return createGrassCB(settings, windDirection, numVerticesLOD0);
 	}
 
-	static grass_cb createGrassCB_LOD1(const grass_settings& settings, vec2 windDirection)
+	static grass_cb createGrassCB_LOD1(const GrassSettings& settings, vec2 windDirection)
 	{
 		const uint32 numVerticesLOD0 = numSegmentsLOD0 * 2 + 1;
 		const uint32 numVerticesLOD1 = numVerticesLOD0 / 2 + 1;
@@ -90,7 +90,7 @@ namespace era_engine
 
 	struct grass_render_data
 	{
-		grass_settings settings;
+		GrassSettings settings;
 		ref<dx_buffer> drawBuffer;
 		ref<dx_buffer> bladeBufferLOD0;
 		ref<dx_buffer> bladeBufferLOD1;
@@ -193,15 +193,15 @@ namespace era_engine
 
 	struct grass_update_data
 	{
-		struct grass_update_terrain_chunk
+		struct grass_update_TerrainChunk
 		{
 			ref<dx_texture> heightmap;
 			ref<dx_texture> normalmap;
 		};
 
-		std::vector<grass_update_terrain_chunk> chunks;
+		std::vector<grass_update_TerrainChunk> chunks;
 
-		grass_settings settings;
+		GrassSettings settings;
 
 		camera_frustum_planes cameraFrustum;
 		vec3 cameraPosition;
@@ -328,13 +328,13 @@ namespace era_engine
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
-		rttr::registration::class_<GrassComponent>("GrassComponent")
+		registration::class_<GrassComponent>("GrassComponent")
 			.constructor<>()
-			.constructor<ref<Entity::EcsData>, const grass_settings&>()
+			.constructor<ref<Entity::EcsData>, const GrassSettings&>()
 			.property("settings", &GrassComponent::settings);
 	}
 
-	GrassComponent::GrassComponent(ref<Entity::EcsData> _data, const grass_settings& _settings)
+	GrassComponent::GrassComponent(ref<Entity::EcsData> _data, const GrassSettings& _settings)
 		: Component(_data), settings(_settings)
 	{
 		uint32 num_vertices_LOD0 = numSegmentsLOD0 * 2 + 1;
@@ -346,15 +346,15 @@ namespace era_engine
 
 		draw_buffer = createBuffer(sizeof(grass_draw), 2, &draw, true);
 		count_buffer = createBuffer(sizeof(uint32), 2, 0, true, true);
-		blade_buffer_LOD0 = createBuffer(sizeof(grass_blade), 1000000, 0, true);
-		blade_buffer_LOD1 = createBuffer(sizeof(grass_blade), 1000000, 0, true);
+		blade_buffer_LOD0 = createBuffer(sizeof(grass_blade), settings.numGrassBladesPerChunkDim * 2000, 0, true);
+		blade_buffer_LOD1 = createBuffer(sizeof(grass_blade), settings.numGrassBladesPerChunkDim * 2000, 0, true);
 	}
 
 	GrassComponent::~GrassComponent()
 	{
 	}
 
-	void GrassComponent::generate(compute_pass* compute_pass, const render_camera& camera, const TerrainComponent& terrain, vec3 position_offset, float dt)
+	void GrassComponent::generate(compute_pass* compute_pass, const render_camera& camera, const TerrainComponent& terrain, const vec3& position_offset, float dt)
 	{
 		prev_time = time;
 		time += dt;
@@ -383,14 +383,14 @@ namespace era_engine
 		data.bladeBufferLOD0 = blade_buffer_LOD0;
 		data.bladeBufferLOD1 = blade_buffer_LOD1;
 
-		compute_pass_event eventTime = grass_settings::depthPrepass ? compute_pass_before_depth_prepass : compute_pass_before_opaque;
+		compute_pass_event eventTime = GrassSettings::depthPrepass ? compute_pass_before_depth_prepass : compute_pass_before_opaque;
 		compute_pass->addTask<grass_update_pipeline>(eventTime, std::move(data));
 	}
 
 	void GrassComponent::render(opaque_render_pass* render_pass)
 	{
 		grass_render_data data = { settings, draw_buffer, blade_buffer_LOD0, blade_buffer_LOD1, wind_direction, (uint32_t)component_data->entity_handle };
-		if (grass_settings::depthPrepass)
+		if (GrassSettings::depthPrepass)
 		{
 			render_pass->renderObject<grass_pipeline, grass_depth_prepass_pipeline>(data, data);
 		}

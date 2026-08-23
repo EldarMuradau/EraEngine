@@ -10,6 +10,7 @@ era_begin(unittests "APP")
     require_module(unittests imgui)
     require_module(unittests base)
     require_module(unittests core)
+    require_assimp(unittests)
     require_module(unittests physics)
     require_module(unittests dynx)
 

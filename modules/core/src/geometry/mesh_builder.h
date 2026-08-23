@@ -168,7 +168,7 @@ namespace era_engine
 
 	struct ERA_CORE_API mesh_builder
 	{
-		mesh_builder(uint32 vertexFlags = mesh_creation_flags_default, mesh_index_type indexType = mesh_index_uint16);
+		mesh_builder(uint32 vertexFlags = mesh_creation_flags_default, mesh_index_type indexType = mesh_index_uint32);
 		mesh_builder(const mesh_builder& mesh) = delete;
 		mesh_builder(mesh_builder&& mesh) = default;
 		~mesh_builder();

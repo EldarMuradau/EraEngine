@@ -321,6 +321,8 @@ namespace era_engine::physics
 			}
 		}
 
+		static vec3 gravity = create_vec3(PX_GRAVITY);
+
 		for (auto [entity_handle, changed_flag, cct_component] : world->group(components_group<TransformComponent, CharacterControllerComponent>).each())
 		{
 			PxCapsuleController* controller = cct_component.controller;
@@ -330,13 +332,18 @@ namespace era_engine::physics
 				continue;
 			}
 
-			const vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
+			vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
+			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING)
+			{
+				offset += gravity * dt * dt / 2.0f;
+			}
 
 			if (!fuzzy_equals(offset, vec3::zero))
 			{
 				PhysicsUtils::move_cct(&cct_component, offset);
 			}
 
+			cct_component.last_offset = cct_component.offset;
 			cct_component.offset = vec3::zero;
 		}
 	}

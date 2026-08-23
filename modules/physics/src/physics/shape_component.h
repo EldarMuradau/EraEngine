@@ -50,7 +50,7 @@ namespace era_engine::physics
 		ObservableMember<bool> use_in_scene_queries = true;
 		ObservableMember<bool> is_trigger = false;
 
-		ref<PhysicsMaterial> material = nullptr;
+		ref<PhysicsMaterial> material;
 
 		void sync_with_joint(weakref<Entity::EcsData> _entity_reference, uint32 _connected_joint_id);
 		void set_attacment_state(bool active);

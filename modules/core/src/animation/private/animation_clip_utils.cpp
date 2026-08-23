@@ -106,13 +106,12 @@ namespace era_engine::animation
 		return clip;
 	}
 
-	ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(const AnimationSkeletonImportData& old_anim_skeleton, uint32 clip_index, const Skeleton* skeleton)
+	ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(const AnimationClipAssetImportData& anim_import_data, const Skeleton* skeleton, uint32 flags/* = 0*/)
 	{
 		const float sample_rate = SAMPLE_RATE;
-		const AnimationClipImportData& old_type_clip = old_anim_skeleton.clips.at(clip_index);
 
 		ClipInfo clip_info;
-		clip_info.num_samples = std::lrintf(old_type_clip.length_in_seconds * sample_rate);
+		clip_info.num_samples = anim_import_data.poses.size();
 		clip_info.sample_rate = sample_rate;
 		clip_info.curves = {};
 
@@ -121,17 +120,17 @@ namespace era_engine::animation
 		clip_info.tracks.resize(skeleton->joints.size());
 		for (uint32 current_sample = 0; current_sample < clip_info.num_samples; ++current_sample)
 		{
-			SkeletonPose current_pose = old_anim_skeleton.sampleAnimation(old_type_clip, current_sample * timestamp);
+			const SkeletonPose& current_pose = anim_import_data.poses.at(current_sample);
 
 			for (uint32 i = 0; i < skeleton->joints.size(); ++i)
 			{
 				TrackInfo& track_info = clip_info.tracks[i];
 				track_info.joint_id = skeleton->joints[i].name;
 				track_info.parent_index = skeleton->joints[i].parent_id == INVALID_JOINT ? acl::k_invalid_track_index : skeleton->joints[i].parent_id;
-				if (old_type_clip.is_unreal_asset &&
+				if (flags & mesh_creation_flags_yzx_to_xyz &&
 					track_info.parent_index == acl::k_invalid_track_index)
 				{
-					track_info.joint_transforms.emplace_back(current_pose.get_joint_transform(i).get_transform() * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
+					track_info.joint_transforms.emplace_back(current_pose.get_joint_transform(i).get_transform() * trs { vec3::zero, euler_to_quat(vec3(0.0f, M_PI / 2.0f, 0.0f)), vec3(1.0f) });
 				}
 				else
 				{
@@ -143,7 +142,7 @@ namespace era_engine::animation
 		return make_clip(clip_info);
 	}
 
-	std::vector<ref<AnimationAssetClip>> AnimationAssetClipUtils::import_animations(std::vector<AnimationAssetImportData>& animations_to_import,
+	std::vector<ref<AnimationAssetClip>> AnimationAssetClipUtils::import_animations(std::vector<AnimationClipAssetImportData>& animations_to_import,
 		const ref<Skeleton>& skeleton,
 		const fs::path& file,
 		uint32 flags/* = 0*/)
@@ -153,12 +152,7 @@ namespace era_engine::animation
 
 		GameAssetsProvider provider;
 
-		AnimationSkeletonImportData animation_skeleton;
-		animation_skeleton.clips.reserve(animations_to_import.size());
-		animation_skeleton.skeleton = skeleton.get();
-
 		uint32 anim_index = 0;
-		uint32 clips_loaded = 0;
 
 		std::vector<JobHandle> handles;
 		handles.reserve(animations_to_import.size());
@@ -171,38 +165,9 @@ namespace era_engine::animation
 
 			if (!fs::exists(fs::path(clip_path.string() + AssetExtension<AnimationAssetClip>::get_asset_type())))
 			{
-				AnimationAssetImportData& in = anim;
-
-				AnimationClipImportData& clip = animation_skeleton.clips.emplace_back();
-				clip.name = std::move(in.name);
-				clip.is_unreal_asset = flags & mesh_creation_flags_unreal_asset;
-				clip.filename = clip_path;
-				clip.length_in_seconds = in.duration;
-				clip.joints.resize(skeleton->joints.size(), {});
-
-				clip.position_keyframes = std::move(in.position_keyframes);
-				clip.position_timestamps = std::move(in.position_timestamps);
-				clip.rotation_keyframes = std::move(in.rotation_keyframes);
-				clip.rotation_timestamps = std::move(in.rotation_timestamps);
-				clip.scale_keyframes = std::move(in.scale_keyframes);
-				clip.scale_timestamps = std::move(in.scale_timestamps);
-
-				for (auto& [name, joint] : in.joints)
-				{
-					auto it = skeleton->name_to_joint_id.find(name);
-					if (it != skeleton->name_to_joint_id.end())
-					{
-						AnimationJointImportData& j = clip.joints[it->second];
-						j = joint;
-					}
-				}
-
-				clip.root_motion_joint = clip.joints[0];
-
-				ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(animation_skeleton, clips_loaded, skeleton.get());
+				ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(anim, skeleton.get(), flags);
 
 				handles.emplace_back(provider.save_game_asset_to_file_async<AnimationAssetClip>(clip_path, animation_clip.get()));
-				clips_loaded++;
 
 				result.push_back(std::move(animation_clip));
 			}

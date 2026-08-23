@@ -23,7 +23,7 @@ namespace era_engine::physics
 		ShapeUtils() = delete;
 	public:
 		static physx::PxConvexMesh* build_convex_mesh(const MeshAsset* asset, const vec3& size);
-		static physx::PxTriangleMesh* build_triangle_mesh(const MeshAsset* asset, const vec3& size);
+		static physx::PxTriangleMesh* build_triangle_mesh(const MeshAsset* asset);
 
 		static bool is_trigger(const physx::PxFilterData& data);
 

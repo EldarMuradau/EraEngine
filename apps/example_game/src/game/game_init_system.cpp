@@ -39,16 +39,17 @@
 #include <motion_matching/features/pose_feature.h>
 #include <motion_matching/features/trajectory_feature.h>
 #include <motion_matching/motion_matching_database.h>
+#include <motion_matching/features/motion_matching_feature_set.h>
 
 #include <audio/audio.h>
 
 #include <terrain/terrain.h>
+#include <terrain/grass.h>
 
 #include <animation/skinning.h>
 
 #include <rttr/policy.h>
 #include <rttr/registration>
-#include <motion_matching/features/motion_matching_feature_set.h>
 
 namespace era_engine
 {
@@ -119,9 +120,45 @@ namespace era_engine
 		ground_mesh->submeshes.push_back({ builder.endSubmesh(), {}, trs::identity, default_plane_mat });
 
 		GameAssetsProvider provider;
-		
-		//if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"),
-		//	mesh_creation_flags_unreal_animated_asset))
+
+		{
+			if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"), mesh_creation_flags_animated | mesh_creation_flags_sm_to_m))
+			{
+				//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Walking"), true, {}, mesh_creation_flags_animated);
+
+				Entity character = world->create_entity("Character");
+
+				character.add_component<MeshComponent>(mesh);
+
+				TransformComponent* transform_component = character.get_component<TransformComponent>();
+				transform_component->set_world_transform(trs{ vec3(0.0f, -4.7f, 2.0f), quat::identity, vec3(1.0f) });
+
+				mesh->load_job.wait_for_completion();
+
+				SkeletonComponent* skeleton_component = character.add_component<SkeletonComponent>();
+
+				{
+					ref<Skeleton> character_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/test_character/skeletons/skeleton0"));
+					character_skeleton->load_job.wait_for_completion();
+					skeleton_component->skeleton = character_skeleton;
+					skeleton_component->draw_sceleton = true;
+					skeleton_component->apply_pose(character_skeleton->get_default_pose());
+				}
+
+				AnimationComponent* animation_component = character.add_component<AnimationComponent>();
+				animation_component->play = true;
+				animation_component->loop = true;
+
+				{
+					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/animation_clip0"));
+					anim_clip->load_job.wait_for_completion();
+					animation_component->current_animation = anim_clip;
+					animation_component->current_anim_position = 0.0f;
+				}
+			}
+		}
+
+		// if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset))
 		{
 			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
 
@@ -144,7 +181,7 @@ namespace era_engine
 				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0"));
 				tiran_skeleton->load_job.wait_for_completion();
 				skeleton_component->skeleton = tiran_skeleton;
-				skeleton_component->draw_sceleton = true;
+				//skeleton_component->draw_sceleton = true;
 				skeleton_component->apply_pose(tiran_skeleton->get_default_pose());
 			}
 
@@ -529,9 +566,9 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -3.75f, 35.0f));
 		}*/
 
-		//if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
+		if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
 		{
-			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box"), true, {}, mesh_creation_flags_default);
+			//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box"), true, {}, mesh_creation_flags_default);
 			mesh->load_job.wait_for_completion();
 
 			Entity box = world->create_entity("Box");
@@ -541,10 +578,10 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -4.0f, -5.0f));
 
 			DestructibleComponent* descructible_component = box.add_component<DestructibleComponent>(DestructibleComponent::Type::FRACTURE_BASED);
-			descructible_component->fracture_desc.chunks_count = 15;
+			descructible_component->fracture_desc.chunks_count = 10;
 			descructible_component->fracture_desc.density = 100.0f;
 			descructible_component->fracture_desc.break_force = 200.0f;
-			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.8f);
+			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.7f);
 		}
 
 		//{
@@ -555,12 +592,56 @@ namespace era_engine
 		//}
 
 		Entity plane = world->create_entity("Platform");
-		plane.add_component<PlaneComponent>(CollisionType::TERRAIN, vec3(0.f, -5.0, 0.0f));
+		plane.add_component<PlanePhysicsComponent>(CollisionType::TERRAIN, vec3(0.0f, -5.0f, 0.0f));
 		plane.add_component<MeshComponent>(ground_mesh);
-		plane.get_component<TransformComponent>()->set_world_transform(trs{vec3(10, -9.f, 0.f), quat(vec3(1.f, 0.f, 0.f), deg2rad(0.f)), vec3(5.0f, 1.0f, 5.0f)});
+		plane.get_component<TransformComponent>()->set_world_transform(trs{vec3(10.0f, -9.0f, 0.0f), quat(vec3(1.0f, 0.0f, 0.0f), deg2rad(0.0f)), vec3(5.0f, 1.0f, 5.0f)});
 		
 		ground_mesh->load_state = AssetLoadState::LOADED;
 		ground_mesh->mesh = builder.createDXMesh();
+
+		{
+			/*uint32 num_terrain_chunks = 4;
+			float terrain_chunk_size = 10.f;
+
+			PbrMaterialDesc terrain_ground_desc;
+			terrain_ground_desc.albedo = get_asset_path("/resources/assets/terrain/grass.bmp");
+			terrain_ground_desc.normal = get_asset_path("/resources/assets/terrain/grass_normal.bmp");
+			terrain_ground_desc.albedo_flags &= ~image_load_flags_compress;
+
+			PbrMaterialDesc terrain_rock_desc;
+			terrain_rock_desc.albedo = get_asset_path("/resources/assets/terrain/rock.bmp");
+			terrain_rock_desc.normal = get_asset_path("/resources/assets/terrain/rock_normal.bmp");
+
+			PbrMaterialDesc terrain_mud_desc;
+
+			auto terrain_ground_material = create_pbr_material(terrain_ground_desc);
+			auto terrain_rock_material = create_pbr_material(terrain_rock_desc);
+			auto terrain_mud_material = create_pbr_material(terrain_mud_desc);
+
+			Entity terrain = world->create_entity("Terrain");
+
+			terrain.get_component<TransformComponent>()->set_world_position(vec3(0.0f, 25.0f, 0.0f));
+
+			terrain.add_component<TerrainComponent>(num_terrain_chunks, terrain_chunk_size, 10.f, terrain_ground_material, terrain_rock_material, terrain_mud_material)->update();*/
+			//terrain.add_component<TerrainPhysicsComponent>(CollisionType::TERRAIN, vec3(0.0f, 25.0, 0.0f));
+			//terrain.add_component<GrassComponent>(GrassSettings{ .bladeHeight = 0.15f, .bladeWidth = 0.0075f,.numGrassBladesPerChunkDim = 150 });
+
+			//std::vector<proc_placement_layer_desc> layers =
+			//{
+			//	proc_placement_layer_desc {
+			//		"Trees and rocks",
+			//		5.f,
+			//		{ 
+			//			loadMeshFromFile("assets/hoewa/hoewa1.fbx"), 
+			//			loadMeshFromFile("assets/hoewa/hoewa2.fbx"),
+			//			loadMeshFromFile("assets/desert/rock1.fbx"),
+			//			loadMeshFromFile("assets/desert/rock4.fbx"),
+			//		}
+			//	}
+			//};
+			//.addComponent<heightmap_collider_component>(numTerrainChunks, terrainChunkSize, physics_material{ physics_material_type_metal, 0.1f, 1.f, 4.f })
+			//.addComponent<proc_placement_component>(layers) // TODO: This could be deferred if we want to load the meshes asynchronously.
+		}
 	}
 
 	void GameInitSystem::update(float dt)

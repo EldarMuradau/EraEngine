@@ -22,7 +22,7 @@ namespace era_engine
 	public:
 		ProcPlacementComponent() = default;
 		ProcPlacementComponent(ref<Entity::EcsData> _data, const std::vector<proc_placement_layer_desc>& _layers);
-		virtual ~ProcPlacementComponent();
+		~ProcPlacementComponent() override;
 
 		void generate(const render_camera& camera, const TerrainComponent& terrain, const vec3& position_offset);
 		void render(struct ldr_render_pass* render_pass);

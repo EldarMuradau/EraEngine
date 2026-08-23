@@ -390,9 +390,9 @@ namespace era_engine::animation
 
 						if (joint.parent_id > imported_skeleton->joints.size() || joint.parent_id == INVALID_JOINT)
 						{
-							if (flags & mesh_creation_flags_unreal_asset)
+							if (flags & mesh_creation_flags_yzx_to_xyz)
 							{
-								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
+								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, M_PI / 2.0f, 0.0f)), vec3(1.0f) });
 							}
 							else
 							{

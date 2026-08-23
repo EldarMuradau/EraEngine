@@ -189,52 +189,76 @@ namespace era_engine::physics
 
 	void PhysicsUtils::manual_set_physics_transform_locked(Entity entity, const vec3& pos, const quat& rot, bool update_transform_component)
 	{
+		TransformComponent* transform_component = entity.get_component<TransformComponent>();
+		manual_set_physics_transform_locked(entity, trs{ pos, rot, transform_component->get_world_transform().scale }, update_transform_component);
+	}
+
+	void PhysicsUtils::manual_set_physics_transform_locked(Entity entity, const trs& transform, bool update_transform_component)
+	{
 		using namespace physx;
 
-		BodyComponent* body_component = get_body_component(entity);
-
-		if (body_component == nullptr)
-		{
-			return;
-		}
-
-		if (body_component->actor == nullptr)
-		{
-			return;
-		}
-
-		PxTransform physics_transform = PxTransform(create_PxVec3(pos), create_PxQuat(rot));
+		PxTransform physics_transform = PxTransform(create_PxVec3(transform.position), create_PxQuat(transform.rotation));
 
 		if (!physics_transform.isValid())
 		{
 			return;
 		}
 
-		PhysicsEngine::execute_write([&]() {
-			PxRigidDynamic* rigid_dynamic = body_component->actor->is<PxRigidDynamic>();
-			if (!body_component->actor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) &&
-				rigid_dynamic != nullptr &&
-				rigid_dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC) &&
-				dynamic_cast<DynamicBodyComponent*>(body_component)->kinematic_motion_type.get() == KinematicMotionType::VELOCITY)
+		BodyComponent* body_component = get_body_component(entity);
+		if (body_component != nullptr)
+		{
+			if (body_component->actor != nullptr)
 			{
-				rigid_dynamic->setKinematicTarget(physics_transform);
+				PhysicsEngine::execute_write([&]() {
+					PxRigidDynamic* rigid_dynamic = body_component->actor->is<PxRigidDynamic>();
+					if (!body_component->actor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) &&
+						rigid_dynamic != nullptr &&
+						rigid_dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC) &&
+						dynamic_cast<DynamicBodyComponent*>(body_component)->kinematic_motion_type.get() == KinematicMotionType::VELOCITY)
+					{
+						rigid_dynamic->setKinematicTarget(physics_transform);
+					}
+					else
+					{
+						body_component->actor->setGlobalPose(physics_transform);
+					}
+					});
 			}
-			else
+		}
+		else
+		{
+			CharacterControllerComponent* cct_component = entity.get_component_if_exists<CharacterControllerComponent>();
+			if (cct_component != nullptr)
 			{
-				body_component->actor->setGlobalPose(physics_transform);
+				PxCapsuleController* cct = cct_component->controller;
+				if (cct != nullptr)
+				{
+					PhysicsEngine::execute_write([&]() {
+						const PxExtendedVec3 current_foot_pos = cct->getFootPosition();
+						const PxExtendedVec3 desired_pos = PxExtendedVec3{ physics_transform.p.x, physics_transform.p.y, physics_transform.p.z };
+
+						if (current_foot_pos != desired_pos)
+						{
+							cct->setFootPosition(desired_pos);
+						}
+
+						const vec3 current_entity_up = normalize(transform.rotation * vec3::up);
+						const vec3 current_cct_up = create_vec3(cct->getUpDirection());
+
+						if (!fuzzy_equals(current_entity_up, current_cct_up))
+						{
+							cct->setUpDirection(create_PxVec3(current_entity_up));
+						}
+						});
+				}
 			}
-		});
+		}
 
 		if (update_transform_component)
 		{
 			TransformComponent* transform_component = entity.get_component<TransformComponent>();
-			transform_component->set_world_transform(trs(pos, rot, transform_component->get_world_transform().scale));
+			transform_component->set_world_transform(transform);
 		}
-	}
-
-	void PhysicsUtils::manual_set_physics_transform_locked(Entity entity, const trs& transform, bool update_transform_component)
-	{
-		manual_set_physics_transform_locked(entity, transform.position, transform.rotation, update_transform_component);
 	}
 
 	void PhysicsUtils::manual_clear_force_and_torque(DynamicBodyComponent* body_component)
@@ -343,6 +367,12 @@ namespace era_engine::physics
 		}
 
 		cct_component->current_collision_flags = component_collision_flags;
+
+		if (has_flag(component_collision_flags, CharacterControllerCollisionFlags::DOWN) && cct_component->move_mode == CharacterControllerMoveMode::WALKING)
+		{
+			const float gravity = PX_GRAVITY.y;
+			cct_component->velocity.get_for_write().y = 0.5f * gravity;
+		}
 
 		PxExtendedVec3 new_position = physx_cct->getFootPosition();
 

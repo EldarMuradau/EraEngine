@@ -8,6 +8,7 @@ era_begin(editor "APP")
     require_module(editor imgui)
     require_module(editor base)
     require_module(editor core)
+    require_assimp(editor)
     require_module(editor physics)
     require_module(editor dynx)
 

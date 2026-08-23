@@ -9,6 +9,15 @@
 
 namespace era_engine::animation
 {
+    struct ERA_CORE_API AnimationClipAssetImportData
+    {
+        std::string name;
+        float duration = 0.0f;
+
+        std::vector<SkeletonPose> poses;
+        std::vector<float> timestamps;
+    };
+
     struct ERA_CORE_API TrackInfo final
     {
         std::vector<trs> joint_transforms;
@@ -45,9 +54,9 @@ namespace era_engine::animation
 
         static ref<AnimationAssetClip> make_clip(const ClipInfo& info);
 
-        static ref<AnimationAssetClip> make_clip(const AnimationSkeletonImportData& old_anim_skeleton, uint32 clip_index, const Skeleton* skeleton);
+        static ref<AnimationAssetClip> make_clip(const AnimationClipAssetImportData& anim_import_data, const Skeleton* skeleton, uint32 flags = 0);
 
-        static std::vector<ref<AnimationAssetClip>> import_animations(std::vector<AnimationAssetImportData>& animations_to_import,
+        static std::vector<ref<AnimationAssetClip>> import_animations(std::vector<AnimationClipAssetImportData>& animations_to_import,
             const ref<Skeleton>& skeleton, 
             const fs::path& file,
             uint32 flags = 0);

@@ -67,7 +67,7 @@ namespace era_engine
 	private:
 		struct add_vertex_result
 		{
-			uint16 index;
+			uint32 index;
 			bool success;
 		};
 

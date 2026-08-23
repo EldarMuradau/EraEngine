@@ -71,6 +71,8 @@ namespace era_engine::physics
         ObservableMember<vec3> velocity = vec3::zero;
         ObservableMember<vec3> offset = vec3::zero;
 
+        vec3 last_offset = vec3::zero;
+
         ERA_VIRTUAL_REFLECT(Component)
 
     private:

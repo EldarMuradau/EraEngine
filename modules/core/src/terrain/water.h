@@ -26,7 +26,7 @@ namespace era_engine
 	public:
 		WaterComponent() = default;
 		WaterComponent(ref<Entity::EcsData> _data, const water_settings& _settings = water_settings{});
-		virtual ~WaterComponent();
+		~WaterComponent() override;
 
 		void render(const render_camera& camera, struct transparent_render_pass* render_pass, const vec3& position_offset, const vec2& scale, float dt);
 

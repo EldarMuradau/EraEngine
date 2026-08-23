@@ -24,7 +24,7 @@ namespace era_engine
 	public:
 		TreeComponent() = default;
 		TreeComponent(ref<Entity::EcsData> _data, const tree_settings& _settings);
-		virtual ~TreeComponent();
+		~TreeComponent() override;
 
 		ERA_VIRTUAL_REFLECT(Component)
 

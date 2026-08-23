@@ -50,10 +50,17 @@ namespace era_engine::physics
     {
         PhysicsEngine::get_physics_core()->remove_shape_from_entity_data(this);
 
-        PhysicsEngine::execute_write([&]() {
-            PhysicsUtils::get_body_component(component_data)->detach_shape(shape);
+        BodyComponent* body_component = PhysicsUtils::get_body_component(component_data);
+        if (body_component != nullptr)
+        {
+            body_component->detach_shape(shape);
+        }
 
-            PX_RELEASE(shape)
+        PhysicsEngine::execute_write([&]() {
+            if (shape->isReleasable())
+            {
+                PX_RELEASE(shape)
+            }
         });
     }
 
@@ -179,16 +186,17 @@ namespace era_engine::physics
     physx::PxShape* TriangleMeshShapeComponent::create_shape()
     {
         using namespace physx;
-        PxTriangleMesh* mesh = ShapeUtils::build_triangle_mesh(asset, size);
+        PxTriangleMesh* mesh = ShapeUtils::build_triangle_mesh(asset);
         ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
             ? physics->get_default_material()->get_native_material()
             : material->get_native_material();
 
-        shape = physics->get_physics()->createShape(PxTriangleMeshGeometry(mesh, PxMeshScale(create_PxVec3(size))), 
+        shape = physics->get_physics()->createShape(PxTriangleMeshGeometry(mesh, PxMeshScale(create_PxVec3(size)), PxMeshGeometryFlag::eTIGHT_BOUNDS),
             *used_material, true);
         shape->userData = this;
+
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
             });
@@ -215,9 +223,10 @@ namespace era_engine::physics
             ? physics->get_default_material()->get_native_material()
             : material->get_native_material();
 
-        shape = physics->get_physics()->createShape(PxConvexMeshGeometry(mesh, PxMeshScale(create_PxVec3(size))), 
+        shape = physics->get_physics()->createShape(PxConvexMeshGeometry(mesh, PxMeshScale(), PxConvexMeshGeometryFlag::eTIGHT_BOUNDS),
             *used_material, true);
         shape->userData = this;
+
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
             });

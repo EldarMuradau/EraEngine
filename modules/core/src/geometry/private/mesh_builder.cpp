@@ -1249,7 +1249,7 @@ namespace era_engine
 		uint32 numVertices = (uint32)mesh.positions.size();
 		uint32 numFaces = (uint32)mesh.triangles.size();
 
-		if (indexType == mesh_index_uint16)
+		if (indexType == mesh_index_uint32)
 		{
 			ASSERT(numVertices - 1 <= UINT16_MAX);
 		}
@@ -1315,7 +1315,7 @@ namespace era_engine
 		const bool flipWindingOrder = false;
 		for (uint32 i = 0; i < numFaces; ++i)
 		{
-			const indexed_triangle16& tri = mesh.triangles[i];
+			const indexed_triangle32& tri = mesh.triangles[i];
 			pushTriangle(tri.a, tri.b, tri.c);
 		}
 	}
@@ -1380,7 +1380,7 @@ namespace era_engine
 		numVerticesInCurrentSubmesh += numVertices;
 		numTrianglesInCurrentSubmesh += numTriangles;
 
-		uint32 maxNumVertices = (indexType == mesh_index_uint16) ? UINT16_MAX : UINT32_MAX;
+		uint32 maxNumVertices = (indexType == mesh_index_uint32) ? UINT16_MAX : UINT32_MAX;
 		ASSERT(numVerticesInCurrentSubmesh - 1 <= maxNumVertices);
 
 		return { positionPtr, othersPtr, indexPtr, indexOffset };

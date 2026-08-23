@@ -23,7 +23,7 @@ namespace era_engine
 		std::vector<uint32> colors;
 		std::vector<animation::SkinningWeights> skin;
 
-		std::vector<indexed_triangle16> triangles;
+		std::vector<indexed_triangle32> triangles;
 
 		ERA_BINARY_SERIALIZE(material_index, positions, uvs, normals, tangents, colors, skin, triangles)
 	};

@@ -169,9 +169,9 @@ namespace era_engine::physics
 			scene_desc.cudaContextManager = cuda_context_manager;
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
-			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 16;
-			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 16;
-			scene_desc.gpuDynamicsConfig.heapCapacity *= 16;
+			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 8;
+			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 8;
+			scene_desc.gpuDynamicsConfig.heapCapacity *= 8;
 
 			scene_desc.sceneQueryUpdateMode = PxSceneQueryUpdateMode::eBUILD_ENABLED_COMMIT_DISABLED;
 		}
@@ -319,7 +319,9 @@ namespace era_engine::physics
 		PxCloseExtensions();
 
 		PX_RELEASE(default_material)
-		PX_RELEASE(cct_manager)
+
+		blast_core.reset();
+
 		PX_RELEASE(physics)
 		PX_RELEASE(dispatcher)
 
@@ -498,6 +500,8 @@ namespace era_engine::physics
 			colliders_map.clear();
 
 			nb_active_actors = 0;
+
+			PX_RELEASE(cct_manager)
 
 			PX_RELEASE(scene)
 		}

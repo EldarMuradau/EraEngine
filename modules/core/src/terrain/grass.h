@@ -12,7 +12,7 @@
 
 namespace era_engine
 {
-	struct ERA_CORE_API grass_settings
+	struct ERA_CORE_API GrassSettings
 	{
 		static inline bool depthPrepass = true;
 
@@ -31,16 +31,16 @@ namespace era_engine
 	{
 	public:
 		GrassComponent() = default;
-		GrassComponent(ref<Entity::EcsData> _data, const grass_settings& _settings = {});
-		virtual ~GrassComponent();
+		GrassComponent(ref<Entity::EcsData> _data, const GrassSettings& _settings = {});
+		~GrassComponent() override;
 
-		void generate(struct compute_pass* compute_pass, const render_camera& camera, const TerrainComponent& terrain, vec3 position_offset, float dt);
+		void generate(struct compute_pass* compute_pass, const render_camera& camera, const TerrainComponent& terrain, const vec3& position_offset, float dt);
 		void render(struct opaque_render_pass* render_pass);
 
 		ERA_VIRTUAL_REFLECT(Component)
 
 	public:
-		grass_settings settings;
+		GrassSettings settings;
 
 	private:
 		ref<dx_buffer> draw_buffer;
