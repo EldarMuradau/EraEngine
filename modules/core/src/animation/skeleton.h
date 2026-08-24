@@ -132,8 +132,8 @@ namespace era_engine::animation
 	public:
 		SkeletonImportUtils() = delete;
 
-		static std::vector<ref<Skeleton>> import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import,
-			const fs::path& file,
-			uint32 flags = 0);
+		static std::vector<ref<Skeleton>> import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import);
+
+		static void post_process_skeletons(std::vector<ref<Skeleton>>& skeletons, const fs::path& file, uint32 flags = 0);
 	};
 }

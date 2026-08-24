@@ -122,7 +122,8 @@ namespace era_engine
 		GameAssetsProvider provider;
 
 		{
-			if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"), mesh_creation_flags_animated | mesh_creation_flags_sm_to_m))
+			if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"), 
+				mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion))
 			{
 				//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Walking"), true, {}, mesh_creation_flags_animated);
 
@@ -158,9 +159,11 @@ namespace era_engine
 			}
 		}
 
-		// if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset))
+		
+		if (false)
 		{
-			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
+			ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset);
+			//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
 
 			tiran = world->create_entity("Tiran");
 

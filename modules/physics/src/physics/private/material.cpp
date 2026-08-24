@@ -15,7 +15,10 @@ namespace era_engine::physics
 
 	void PhysicsMaterial::release()
 	{
-		PX_RELEASE(material)
+		if(material != nullptr && material->isReleasable())
+		{
+			PX_RELEASE(material)
+		}
 	}
 
 	physx::PxMaterial* PhysicsMaterial::get_native_material() const

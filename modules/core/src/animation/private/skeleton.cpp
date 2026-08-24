@@ -355,21 +355,35 @@ namespace era_engine::animation
 		return true;
 	}
 
-	std::vector<ref<Skeleton>> SkeletonImportUtils::import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import, const fs::path& file, uint32 flags)
+	std::vector<ref<Skeleton>> SkeletonImportUtils::import_skeletons(std::vector<SkeletonAssetImportData>& skeletons_to_import)
 	{
 		std::vector<ref<Skeleton>> result;
 		result.reserve(skeletons_to_import.size());
 
+		uint32 skeleton_index = 0;
+		for (SkeletonAssetImportData& skeleton_asset : skeletons_to_import)
+		{
+			ref<Skeleton> imported_skeleton = make_ref<Skeleton>();
+			imported_skeleton->joints = std::move(skeleton_asset.joints);
+			imported_skeleton->name_to_joint_id = std::move(skeleton_asset.name_to_joint_id);
+
+			result.emplace_back(imported_skeleton);
+		}
+
+		return result;
+	}
+
+	void SkeletonImportUtils::post_process_skeletons(std::vector<ref<Skeleton>>& skeletons, const fs::path& file, uint32 flags)
+	{
 		std::vector<JobHandle> handles;
-		handles.reserve(skeletons_to_import.size());
+		handles.reserve(skeletons.size());
 
 		GameAssetsProvider provider;
 
-		// Load skeleton
-		if (!skeletons_to_import.empty() && (flags & mesh_creation_flags_with_skin))
+		if (!skeletons.empty() && (flags & mesh_creation_flags_with_skin))
 		{
 			uint32 skeleton_index = 0;
-			for (SkeletonAssetImportData& skeleton_asset : skeletons_to_import)
+			for (ref<Skeleton>& imported_skeleton : skeletons)
 			{
 				fs::path skeleton_path = file.parent_path();
 				skeleton_path.append("skeletons");
@@ -377,10 +391,38 @@ namespace era_engine::animation
 
 				if (!fs::exists(fs::path(skeleton_path.string() + AssetExtension<Skeleton>::get_asset_type())))
 				{
-					ref<Skeleton> imported_skeleton = make_ref<Skeleton>();
-					result.emplace_back(imported_skeleton);
+					if (flags & mesh_creation_flags_generate_root_motion)
+					{
+						static const std::string root_joint_name = "EE_GeneratedRoot";
 
-					imported_skeleton->joints = std::move(skeleton_asset.joints);
+						SkeletonJoint root_joint;
+						root_joint.name = root_joint_name;
+						root_joint.bind_transform = mat4::identity;
+						root_joint.inv_bind_transform = mat4::identity;
+						imported_skeleton->joints.insert(imported_skeleton->joints.begin(), root_joint);
+
+						for (size_t i = 1; i < imported_skeleton->joints.size(); ++i)
+						{
+							SkeletonJoint& joint = imported_skeleton->joints[i];
+
+							if (i == 1)
+							{
+								joint.parent_id = 0;
+								continue;
+							}
+
+							if (joint.parent_id != INVALID_JOINT)
+							{
+								++joint.parent_id;
+							}
+						}
+
+						for (auto& name_to_id : imported_skeleton->name_to_joint_id)
+						{
+							++name_to_id.second;
+						}
+						imported_skeleton->name_to_joint_id.emplace(root_joint_name, 0);
+					}
 
 					imported_skeleton->default_local_transforms.reserve(imported_skeleton->joints.size());
 					for (size_t i = 0; i < imported_skeleton->joints.size(); ++i)
@@ -388,11 +430,11 @@ namespace era_engine::animation
 						SkeletonJoint& joint = imported_skeleton->joints[i];
 						JointTransform joint_transform;
 
-						if (joint.parent_id > imported_skeleton->joints.size() || joint.parent_id == INVALID_JOINT)
+						if (joint.parent_id == INVALID_JOINT)
 						{
 							if (flags & mesh_creation_flags_yzx_to_xyz)
 							{
-								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, M_PI / 2.0f, 0.0f)), vec3(1.0f) });
+								joint_transform.set_transform(mat4_to_trs(joint.bind_transform) * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
 							}
 							else
 							{
@@ -408,7 +450,6 @@ namespace era_engine::animation
 						imported_skeleton->default_local_transforms.push_back(joint_transform);
 					}
 
-					imported_skeleton->name_to_joint_id = std::move(skeleton_asset.name_to_joint_id);
 					imported_skeleton->analyze_joints();
 
 					handles.emplace_back(provider.save_game_asset_to_file_async<Skeleton>(skeleton_path, imported_skeleton.get()));
@@ -421,7 +462,5 @@ namespace era_engine::animation
 		{
 			handle.wait_for_completion();
 		}
-
-		return result;
 	}
 }

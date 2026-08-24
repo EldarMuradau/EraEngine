@@ -106,7 +106,7 @@ namespace era_engine::animation
 		return clip;
 	}
 
-	ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(const AnimationClipAssetImportData& anim_import_data, const Skeleton* skeleton, uint32 flags/* = 0*/)
+	ref<AnimationAssetClip> AnimationAssetClipUtils::make_clip(AnimationClipAssetImportData& anim_import_data, const Skeleton* skeleton, uint32 flags/* = 0*/)
 	{
 		const float sample_rate = SAMPLE_RATE;
 
@@ -130,7 +130,7 @@ namespace era_engine::animation
 				if (flags & mesh_creation_flags_yzx_to_xyz &&
 					track_info.parent_index == acl::k_invalid_track_index)
 				{
-					track_info.joint_transforms.emplace_back(current_pose.get_joint_transform(i).get_transform() * trs { vec3::zero, euler_to_quat(vec3(0.0f, M_PI / 2.0f, 0.0f)), vec3(1.0f) });
+					track_info.joint_transforms.emplace_back(current_pose.get_joint_transform(i).get_transform() * trs { vec3::zero, euler_to_quat(vec3(0.0f, -M_PI / 2.0f, 0.0f)), vec3(1.0f) });
 				}
 				else
 				{
@@ -140,6 +140,56 @@ namespace era_engine::animation
 		}
 
 		return make_clip(clip_info);
+	}
+
+	static void generate_root_motion_in_place(
+		AnimationClipAssetImportData& anim_data,
+		uint32 hips_joint_id)
+	{
+		if (anim_data.poses.empty())
+		{
+			return;
+		}
+
+		size_t num_poses = anim_data.poses.size();
+		size_t old_joint_count = anim_data.poses[0].size();
+		size_t new_joint_count = old_joint_count + 1;
+
+		uint32 root_motion_joint_id = 0;
+		uint32 new_hips_joint_id = hips_joint_id + 1;
+
+		std::vector<SkeletonPose> new_poses;
+		new_poses.reserve(num_poses);
+
+		for (size_t i = 0; i < num_poses; ++i)
+		{
+			SkeletonPose new_pose((uint32)new_joint_count);
+
+			for (uint32 j = 1; j < old_joint_count; ++j)
+			{
+				const trs& joint_transform = anim_data.poses[i].get_joint_transform(j).get_transform();
+				new_pose.set_joint_transform(JointTransform(joint_transform), j + 1);
+			}
+
+			const trs& hips_transform = anim_data.poses[i].get_joint_transform(hips_joint_id).get_transform();
+
+			vec3 hips_euler = quat_to_euler(hips_transform.rotation);
+
+			trs root_motion;
+			root_motion.position = vec3(hips_transform.position.x, 0, hips_transform.position.z);
+			root_motion.rotation = euler_to_quat(vec3(0, hips_euler.y, 0));
+			root_motion.scale = vec3(1.0f);
+
+			trs root_inverse = invert(root_motion);
+			trs hips_local = root_inverse * hips_transform;
+
+			new_pose.set_joint_transform(JointTransform(root_motion), root_motion_joint_id);
+			new_pose.set_joint_transform(JointTransform(hips_local), new_hips_joint_id);
+
+			new_poses.push_back(std::move(new_pose));
+		}
+
+		anim_data.poses = std::move(new_poses);
 	}
 
 	std::vector<ref<AnimationAssetClip>> AnimationAssetClipUtils::import_animations(std::vector<AnimationClipAssetImportData>& animations_to_import,
@@ -165,6 +215,11 @@ namespace era_engine::animation
 
 			if (!fs::exists(fs::path(clip_path.string() + AssetExtension<AnimationAssetClip>::get_asset_type())))
 			{
+				if (flags & mesh_creation_flags_generate_root_motion)
+				{
+					generate_root_motion_in_place(anim, 0);
+				}
+
 				ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(anim, skeleton.get(), flags);
 
 				handles.emplace_back(provider.save_game_asset_to_file_async<AnimationAssetClip>(clip_path, animation_clip.get()));
