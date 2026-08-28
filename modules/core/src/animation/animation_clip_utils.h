@@ -57,7 +57,7 @@ namespace era_engine::animation
         static ref<AnimationAssetClip> make_clip(AnimationClipAssetImportData& anim_import_data, const Skeleton* skeleton, uint32 flags = 0);
 
         static std::vector<ref<AnimationAssetClip>> import_animations(std::vector<AnimationClipAssetImportData>& animations_to_import,
-            const ref<Skeleton>& skeleton, 
+            const Skeleton* skeleton,
             const fs::path& file,
             uint32 flags = 0);
     };

@@ -45,6 +45,8 @@ namespace era_engine::animation
 		bool update_skeleton = true;
 		bool loop = false;
 
+		bool enable_root_motion = true;
+
 		// Render data
 		dx_vertex_buffer_group_view current_vertex_buffer;
 		dx_vertex_buffer_group_view prev_frame_vertex_buffer;

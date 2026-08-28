@@ -9,6 +9,7 @@
 namespace era_engine
 {
 	class MotionMatchingFeatureSet;
+	class MotionMatchingDatabase;
 
 	class ERA_MOTION_MATCHING_API MotionMatchingComponent final : public Component
 	{
@@ -19,6 +20,7 @@ namespace era_engine
 		~MotionMatchingComponent() override;
 
 		SearchResult search_animation(const MotionMatchingFeatureSet& feature_set, const std::string& database_id) const;
+		SearchResult search_animation(const MotionMatchingFeatureSet& feature_set, const MotionMatchingDatabase* database) const;
 
 		ERA_VIRTUAL_REFLECT(Component)
 	};

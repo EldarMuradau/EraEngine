@@ -26,7 +26,16 @@ namespace era_engine
 
         database.substract_column_means(features_matrix);
 
-        array2d<float> final_features_matrix = transpose(database.transform_matrix * transpose(features_matrix));
+        array2d<float> final_features_matrix;
+        if (database.total_features_per_sample != database.search_dimension)
+        {
+            final_features_matrix = transpose(database.transform_matrix * transpose(features_matrix));
+        }
+        else
+        {
+            final_features_matrix = features_matrix;
+        }
+
         build_structure_from_matrix(database, final_features_matrix);
     }
 

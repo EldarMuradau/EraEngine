@@ -16,8 +16,6 @@ namespace era_engine
 
 		~MotionComponent() override;
 
-		ERA_VIRTUAL_REFLECT(Component)
-
 		const vec3& get_current_input() const;
 		const vec3& get_desired_input() const;
 		const vec3& get_last_input() const;
@@ -26,6 +24,8 @@ namespace era_engine
 		const vec3& get_last_velocity() const;
 
 		void apply_input(const vec3& input, bool force = false);
+
+		ERA_VIRTUAL_REFLECT(Component)
 
 	protected:
 		void apply_desired_input();

@@ -387,7 +387,7 @@ namespace era_engine::animation
 			{
 				fs::path skeleton_path = file.parent_path();
 				skeleton_path.append("skeletons");
-				skeleton_path.append("skeleton" + std::to_string(skeleton_index));
+				skeleton_path.append(file.stem().string() + "_skeleton" + std::to_string(skeleton_index));
 
 				if (!fs::exists(fs::path(skeleton_path.string() + AssetExtension<Skeleton>::get_asset_type())))
 				{

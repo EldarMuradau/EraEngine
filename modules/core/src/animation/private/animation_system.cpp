@@ -67,6 +67,11 @@ namespace era_engine::animation
 
 					AnimationPoseSampler sampler;
 					sampler.init(skeleton.get(), animation_component.current_animation);
+					
+					if(!animation_component.enable_root_motion)
+					{
+						sampler.set_joint_enabled(skeleton->joints[0].name, false);
+					}
 
 					SkeletonPose result_pose = SkeletonPose(skeleton->joints.size());
 					sampler.sample_pose(animation_component.current_anim_position, result_pose);
@@ -74,7 +79,7 @@ namespace era_engine::animation
 					{
 						if (animation_component.inertial_blend_inited)
 						{
-							animation_component.inertial_sampler->process_pose(animation_component.current_anim_position, &result_pose);
+							animation_component.inertial_sampler->process_pose(dt, &result_pose);
 						}
 
 						if (animation_component.update_skeleton)

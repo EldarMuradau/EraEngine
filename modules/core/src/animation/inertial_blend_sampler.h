@@ -71,6 +71,8 @@ namespace era_engine::animation
         std::vector<InertialJointTransition> joints_transitions;
         RingBuffer<InertialSkeletonPose> pose_buffer;
 
+        mutable std::mutex lock;
+
         float blend_time = 0.0f;
         float max_blend_time = 0.0f;
     };

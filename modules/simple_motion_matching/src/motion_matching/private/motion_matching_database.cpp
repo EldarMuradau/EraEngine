@@ -408,7 +408,7 @@ namespace era_engine
 
             if (abs(anim_position_diff) < narrow_phase_params.same_frame_time_threshold)
 			{
-				return SearchResult(params.current_animation, database_id, params.current_features, params.current_anim_position);
+				return SearchResult(params.current_animation, database_id, params.query, params.current_anim_position);
 			}
 		}
 
@@ -567,7 +567,15 @@ namespace era_engine
 
         transform_matrix = transpose(transform_matrix);
 
-        array2d<float> compressed_feature_matrix = transpose(transform_matrix * transpose(features_matrix));
+        array2d<float> compressed_feature_matrix;
+        if (total_features_per_sample != search_dimension)
+        {
+            compressed_feature_matrix = transpose(transform_matrix * transpose(features_matrix));
+        }
+        else
+        {
+            compressed_feature_matrix = features_matrix;
+        }
         knn_structure->build_structure_from_matrix(*this, compressed_feature_matrix);
     }
 
@@ -579,7 +587,17 @@ namespace era_engine
     SearchResult MotionMatchingDatabase::search(const SearchParams& params) const
     {
         std::vector<float> normalized_query_values = normalize_query(params.query);
-        const array2d<float> packed_matrix_query = pack_query(normalized_query_values);
+
+        array2d<float> packed_matrix_query;
+        if (total_features_per_sample != search_dimension)
+        {
+            packed_matrix_query = pack_query(normalized_query_values);
+        }
+        else
+        {
+            packed_matrix_query = array2d<float>(1, uint32(normalized_query_values.size()));
+            packed_matrix_query.fill(normalized_query_values.data());
+        }
 
         float* packed_normalized_query = packed_matrix_query.data;
         const uint32 query_size = packed_matrix_query.cols * packed_matrix_query.rows;
@@ -648,6 +666,7 @@ namespace era_engine
         {
             // Base
             {
+                IO::write_value(os, BinarySerializer::serialize(database_id));
                 IO::write_value(os, total_features_per_sample);
                 IO::write_value(os, search_dimension);
                 IO::write_value(os, sample_rate);
@@ -744,6 +763,11 @@ namespace era_engine
         {
             // Base
             {
+                BinaryDataArchive binary_name;
+                IO::read_value(is, binary_name);
+
+                BinarySerializer::deserialize(binary_name.raw_data(), binary_name.size(), database_id);
+
                 IO::read_value(is, total_features_per_sample);
                 IO::read_value(is, search_dimension);
                 IO::read_value(is, sample_rate);

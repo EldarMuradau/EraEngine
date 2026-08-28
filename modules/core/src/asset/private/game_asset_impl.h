@@ -9,7 +9,7 @@ namespace era_engine
 	inline ref<T> GameAssetsProvider::load_game_asset_from_file(const fs::path& path, bool load_from_cache/* = true*/, JobHandle parent_job /*= {}*/, uint32 flags /*= 0*/)
 	{
 		fs::path final_path = path.parent_path();
-		final_path.append(path.filename().string() + AssetExtension<T>::get_asset_type());
+		final_path.append(path.filename().string());
 		final_path = final_path.lexically_normal().make_preferred();
 
 		if(load_from_cache)
@@ -115,7 +115,7 @@ namespace era_engine
 					}
 				}
 
-				std::ofstream of(data->path, std::ios_base::binary);
+				std::ofstream of(data->path, std::ios_base::binary | std::ios_base::trunc);
 
 				if (!of.is_open())
 				{

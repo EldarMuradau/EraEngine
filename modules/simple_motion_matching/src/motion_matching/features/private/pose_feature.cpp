@@ -41,7 +41,7 @@ namespace era_engine
 	{
 		using namespace animation;
 
-		ref<AnimationAssetClip> animation = context.animation_component->current_animation;
+		const ref<AnimationAssetClip>& animation = context.animation_component->current_animation;
 
 		const float current_time = context.animation_component->current_anim_position;
 
@@ -61,22 +61,22 @@ namespace era_engine
 		{
 			if (ref<PoseFeatureDesc> pose_feature_desc = std::dynamic_pointer_cast<PoseFeatureDesc>(descriptor))
 			{
-				/*const trs current_joint_transform = SkeletonUtils::get_object_space_joint_transform(current_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
+				const trs current_joint_transform = SkeletonUtils::get_object_space_joint_transform(current_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
 
 				if (pose_feature_desc->type == FeatureDescType::LOCATION)
 				{
-					if (descriptor->basis == FeatureDescBasis::XYZ)
+					if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
 					{
 						values.emplace_back(current_joint_transform.position.x);
 						values.emplace_back(current_joint_transform.position.y);
 						values.emplace_back(current_joint_transform.position.z);
 					}
-					else if (descriptor->basis == FeatureDescBasis::XZ)
+					else if (pose_feature_desc->basis == FeatureDescBasis::XZ)
 					{
 						values.emplace_back(current_joint_transform.position.x);
 						values.emplace_back(current_joint_transform.position.z);
 					}
-					else if (descriptor->basis == FeatureDesc::Basis::Y)
+					else if (pose_feature_desc->basis == FeatureDescBasis::Y)
 					{
 						values.emplace_back(current_joint_transform.position.y);
 					}
@@ -85,18 +85,18 @@ namespace era_engine
 				{
 					const vec3 joint_direction = noz(current_joint_transform.position);
 
-					if (descriptor->basis == FeatureDescBasis::XYZ)
+					if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
 					{
 						values.emplace_back(joint_direction.x);
 						values.emplace_back(joint_direction.y);
 						values.emplace_back(joint_direction.z);
 					}
-					else if (descriptor->basis == FeatureDescBasis::XZ)
+					else if (pose_feature_desc->basis == FeatureDescBasis::XZ)
 					{
 						values.emplace_back(joint_direction.x);
 						values.emplace_back(joint_direction.z);
 					}
-					else if (descriptor->basis == FeatureDescBasis::Y)
+					else if (pose_feature_desc->basis == FeatureDescBasis::Y)
 					{
 						values.emplace_back(joint_direction.y);
 					}
@@ -107,24 +107,24 @@ namespace era_engine
 
 					const vec3 joint_velocity = (current_joint_transform.position - prev_joint_transform.position) / context.dt;
 
-					if (descriptor->basis == FeatureDescBasis::XYZ)
+					if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
 					{
 						values.emplace_back(joint_velocity.x);
 						values.emplace_back(joint_velocity.y);
 						values.emplace_back(joint_velocity.z);
 					}
-					else if (descriptor->basis == FeatureDescBasis::XZ)
+					else if (pose_feature_desc->basis == FeatureDescBasis::XZ)
 					{
 						values.emplace_back(joint_velocity.x);
 						values.emplace_back(joint_velocity.z);
 					}
-					else if (descriptor->basis == FeatureDescBasis::Y)
+					else if (pose_feature_desc->basis == FeatureDescBasis::Y)
 					{
 						values.emplace_back(joint_velocity.y);
 					}
-				}*/
+				}
 
-				if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
+				/*if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
 				{
 					float x_value = 0.0f;
 					std::string x_curve_name = pose_feature_desc->name + "_x";
@@ -162,7 +162,7 @@ namespace era_engine
 					animation->sample_curve(current_time, y_curve_name, y_value);
 
 					values.emplace_back(y_value);
-				}
+				}*/
 			}
 			else
 			{

@@ -25,9 +25,11 @@ namespace era_engine::physics
 		auto physics = PhysicsEngine::get_physics_core();
 
 		plane = PxCreatePlane(*physics->get_physics(), PxPlane(create_PxVec3(point), create_PxVec3(normal)), *physics->get_default_material()->get_native_material());
+		plane->userData = this;
 
 		PxShape* buffer[1];
 		plane->getShapes(buffer, 1);
+		buffer[0]->userData = this;
 		ShapeUtils::setup_filtering(get_world(), buffer[0], static_cast<uint32>(_collision_type), std::nullopt);
 
 		PhysicsEngine::execute_write([&]() {
@@ -65,6 +67,7 @@ namespace era_engine::physics
 		ASSERT(terrain_component != nullptr);
 
 		terrain = physics->get_physics()->createRigidStatic(PxTransform(create_PxVec3(_point)));
+		terrain->userData = this;
 
 		const uint32 ts = terrain_component->chunksPerDim;
 		const size_t verts_per_chunk = terrain_component->chunk(0).heights.size();
@@ -146,6 +149,7 @@ namespace era_engine::physics
 		materials[0] = used_material->get_native_material();
 
 		shape = PxRigidActorExt::createExclusiveShape(*terrain, hf_geom, materials, 1);
+		shape->userData = this;
 		shape->setLocalPose(local_pose);
 
 		ShapeUtils::enable_shape_visualization(shape, false);

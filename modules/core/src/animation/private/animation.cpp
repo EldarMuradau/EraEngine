@@ -1,5 +1,3 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #include "animation/animation.h"
 #include "animation/skinning.h"
 

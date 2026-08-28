@@ -44,8 +44,6 @@ namespace era_engine
 
 		update_types::register_default_order();
 
-		fixed_update_thread = std::thread(&WorldSystemScheduler::fixed_update_loop, this);
-
 		for (size_t i = 0; i < normal_threads; ++i)
 		{
 			normal_thread_pool.emplace_back(&WorldSystemScheduler::normal_worker, this);
@@ -171,6 +169,8 @@ namespace era_engine
 		{
 			system->init();
 		}
+
+		fixed_update_thread = std::thread(&WorldSystemScheduler::fixed_update_loop, this);
 	}
 
 	void WorldSystemScheduler::refresh_graph()

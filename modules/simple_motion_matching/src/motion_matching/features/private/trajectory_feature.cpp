@@ -54,16 +54,20 @@ namespace era_engine
 						continue;
 					}
 
+					const trs trajectory_position = trs(context.trajectory_component->trajectory_positions(i), context.trajectory_component->trajectory_rotations(i), vec3(1.0f));
+
+					const trs root_space_transform = invert(world_transform) * trajectory_position;
+
 					if (trajectory_feature_desc->type == FeatureDescType::LOCATION)
 					{
-						const vec3 position = context.trajectory_component->trajectory_positions(i) - world_transform.position;
+						const vec3 position = root_space_transform.position;
 
 						values.emplace_back(position.x);
 						values.emplace_back(position.z);
 					}
 					else if (trajectory_feature_desc->type == FeatureDescType::DIRECTION)
 					{
-						const quat rotation = conjugate(world_transform.rotation) * context.trajectory_component->trajectory_rotations(i);
+						const quat rotation = root_space_transform.rotation;
 						const vec3 direction = noz(rotation * vec3::forward);
 
 						values.emplace_back(direction.x);

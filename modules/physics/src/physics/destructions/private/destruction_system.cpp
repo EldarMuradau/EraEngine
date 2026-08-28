@@ -346,7 +346,7 @@ namespace era_engine::physics
 				}
 
 				Entity neighbour = overlap_buffer[hit_id].shape_component->get_entity();
-				if (neighbour == chunk)
+				if (neighbour == chunk || !neighbour.has_component<DestructibleFractureChunkComponent>())
 				{
 					continue;
 				}

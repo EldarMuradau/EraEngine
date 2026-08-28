@@ -29,6 +29,6 @@ namespace era_engine
 
 		ref<MotionMatchingDatabase> database;
 
-		Entity tiran;
+		Entity character;
 	};
 }

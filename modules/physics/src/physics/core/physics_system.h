@@ -23,7 +23,7 @@ namespace era_engine::physics
 		void clear_pending_collisions(float);
 
 		void sync_physics_to_component_changes(float dt);
-		void sync_component_to_physics();
+		void sync_component_to_physics(float dt);
 
 		void process_added_components(float);
 

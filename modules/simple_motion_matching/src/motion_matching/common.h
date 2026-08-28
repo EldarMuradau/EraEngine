@@ -15,7 +15,6 @@ namespace era_engine
 	struct ERA_MOTION_MATCHING_API SearchParams final
 	{
 		ref<animation::AnimationAssetClip> current_animation;
-		std::vector<float> current_features;
 		std::vector<float> query;
 
 		float current_anim_position = 0.0f;

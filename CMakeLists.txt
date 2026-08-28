@@ -26,7 +26,6 @@ add_subdirectory(modules/simple_motion_matching)
 
 add_subdirectory(apps/editor)
 add_subdirectory(apps/example_game)
-add_subdirectory(apps/assets_compiler)
 add_subdirectory(apps/unittests)
 
 era_add_deploy_target(editor)

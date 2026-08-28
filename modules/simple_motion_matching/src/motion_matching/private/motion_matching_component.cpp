@@ -32,9 +32,14 @@ namespace era_engine
 
 	SearchResult MotionMatchingComponent::search_animation(const MotionMatchingFeatureSet& feature_set, const std::string& database_id) const
 	{
+		ref<MotionMatchingDatabase> database = MotionDatabaseRegistry::get_by_id(database_id);
+		return search_animation(feature_set, database.get());
+	}
+
+	SearchResult MotionMatchingComponent::search_animation(const MotionMatchingFeatureSet& feature_set, const MotionMatchingDatabase* database) const
+	{
 		using namespace animation;
 
-		ref<MotionMatchingDatabase> database = MotionDatabaseRegistry::get_by_id(database_id);
 		if (database == nullptr)
 		{
 			return SearchResult();
@@ -46,7 +51,6 @@ namespace era_engine
 		search_params.current_anim_position = animation_component->current_anim_position;
 		search_params.current_animation = animation_component->current_animation;
 		search_params.query = feature_set.get_all_feature_values();
-		search_params.current_features = search_params.query;
 
 		return database->search(search_params);
 	}

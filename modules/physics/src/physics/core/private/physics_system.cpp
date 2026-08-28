@@ -75,7 +75,7 @@ namespace era_engine::physics
 		{
 			ZoneScopedN("PhysicsSystem::sync_component_to_physics");
 
-			sync_component_to_physics();
+			sync_component_to_physics(dt);
 		}
 	}
 
@@ -320,35 +320,9 @@ namespace era_engine::physics
 					static_cast<PxForceMode::Enum>(torque.mode));
 			}
 		}
-
-		static vec3 gravity = create_vec3(PX_GRAVITY);
-
-		for (auto [entity_handle, changed_flag, cct_component] : world->group(components_group<TransformComponent, CharacterControllerComponent>).each())
-		{
-			PxCapsuleController* controller = cct_component.controller;
-
-			if (controller == nullptr)
-			{
-				continue;
-			}
-
-			vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
-			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING)
-			{
-				offset += gravity * dt * dt / 2.0f;
-			}
-
-			if (!fuzzy_equals(offset, vec3::zero))
-			{
-				PhysicsUtils::move_cct(&cct_component, offset);
-			}
-
-			cct_component.last_offset = cct_component.offset;
-			cct_component.offset = vec3::zero;
-		}
 	}
 
-	void PhysicsSystem::sync_component_to_physics()
+	void PhysicsSystem::sync_component_to_physics(float dt)
 	{
 		using namespace physx;
 
@@ -373,6 +347,41 @@ namespace era_engine::physics
 				dynamic_body.linear_velocity.get_silent_for_write() = vec3::zero;
 				dynamic_body.angular_velocity.get_silent_for_write() = vec3::zero;
 			}
+		}
+
+		static vec3 gravity = create_vec3(PX_GRAVITY);
+
+		for (auto [entity_handle, changed_flag, cct_component] : world->group(components_group<TransformComponent, CharacterControllerComponent>).each())
+		{
+			PxCapsuleController* controller = cct_component.controller;
+
+			if (controller == nullptr)
+			{
+				continue;
+			}
+
+			vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
+			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING &&
+				!has_flag(cct_component.current_collision_flags, CharacterControllerCollisionFlags::DOWN))
+			{
+				offset += gravity * dt * dt / 2.0f;
+
+				cct_component.velocity.get_for_write().y = min(15.0f, cct_component.velocity.get().y + gravity.y * dt);
+			}
+
+			if (!fuzzy_equals(offset, vec3::zero))
+			{
+				PhysicsUtils::move_cct(&cct_component, offset);
+			}
+
+			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING &&
+				has_flag(cct_component.current_collision_flags, CharacterControllerCollisionFlags::DOWN))
+			{
+				cct_component.velocity.get_for_write().y = 0.5f * gravity.y;
+			}
+
+			cct_component.last_offset = cct_component.offset;
+			cct_component.offset = vec3::zero;
 		}
 	}
 
@@ -525,7 +534,7 @@ namespace era_engine::physics
 			ASSERT(cct_component->radius > 0.0f);
 			ASSERT(cct_component->height > 0.0f);
 
-			ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.5f, 1.0f, 0.1f);
+			ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.0f, 0.0f, 0.0f);
 			ASSERT(material != nullptr);
 
 			PxCapsuleControllerDesc desc;

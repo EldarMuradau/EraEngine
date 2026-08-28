@@ -368,12 +368,6 @@ namespace era_engine::physics
 
 		cct_component->current_collision_flags = component_collision_flags;
 
-		if (has_flag(component_collision_flags, CharacterControllerCollisionFlags::DOWN) && cct_component->move_mode == CharacterControllerMoveMode::WALKING)
-		{
-			const float gravity = PX_GRAVITY.y;
-			cct_component->velocity.get_for_write().y = 0.5f * gravity;
-		}
-
 		PxExtendedVec3 new_position = physx_cct->getFootPosition();
 
 		TransformComponent* transform_component = cct_component->get_entity().get_component<TransformComponent>();

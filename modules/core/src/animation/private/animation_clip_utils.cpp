@@ -173,11 +173,13 @@ namespace era_engine::animation
 
 			const trs& hips_transform = anim_data.poses[i].get_joint_transform(hips_joint_id).get_transform();
 
-			vec3 hips_euler = quat_to_euler(hips_transform.rotation);
+			quat hips_rotation = normalize(hips_transform.rotation);
+			float yaw = get_yaw_angle(hips_rotation);
+			quat yaw_rotation = quat(vec3::up, yaw);
 
 			trs root_motion;
-			root_motion.position = vec3(hips_transform.position.x, 0, hips_transform.position.z);
-			root_motion.rotation = euler_to_quat(vec3(0, hips_euler.y, 0));
+			root_motion.position = vec3(hips_transform.position.x, 0.0f, hips_transform.position.z);
+			root_motion.rotation = yaw_rotation;
 			root_motion.scale = vec3(1.0f);
 
 			trs root_inverse = invert(root_motion);
@@ -193,7 +195,7 @@ namespace era_engine::animation
 	}
 
 	std::vector<ref<AnimationAssetClip>> AnimationAssetClipUtils::import_animations(std::vector<AnimationClipAssetImportData>& animations_to_import,
-		const ref<Skeleton>& skeleton,
+		const Skeleton* skeleton,
 		const fs::path& file,
 		uint32 flags/* = 0*/)
 	{
@@ -211,7 +213,7 @@ namespace era_engine::animation
 		{
 			fs::path clip_path = file.parent_path();
 			clip_path.append("animations");
-			clip_path.append("animation_clip" + std::to_string(anim_index));
+			clip_path.append(file.stem().string() + "_" + anim.name + "_clip" + std::to_string(anim_index));
 
 			if (!fs::exists(fs::path(clip_path.string() + AssetExtension<AnimationAssetClip>::get_asset_type())))
 			{
@@ -220,7 +222,7 @@ namespace era_engine::animation
 					generate_root_motion_in_place(anim, 0);
 				}
 
-				ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(anim, skeleton.get(), flags);
+				ref<AnimationAssetClip> animation_clip = AnimationAssetClipUtils::make_clip(anim, skeleton, flags);
 
 				handles.emplace_back(provider.save_game_asset_to_file_async<AnimationAssetClip>(clip_path, animation_clip.get()));
 

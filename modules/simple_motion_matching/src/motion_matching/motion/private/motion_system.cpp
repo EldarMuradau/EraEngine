@@ -83,7 +83,9 @@ namespace era_engine
 
 			if (physics::CharacterControllerComponent* cct_component = world->get_entity(handle).get_component_if_exists<physics::CharacterControllerComponent>())
 			{
-				cct_component->velocity = motion_component.velocity;
+				vec3& raw_cct_velocity = cct_component->velocity.get_for_write();
+				raw_cct_velocity.x = motion_component.velocity.x;
+				raw_cct_velocity.z = motion_component.velocity.z;
 				transform_component.set_world_rotation(motion_component.simulation_rotation);
 			}
 			else

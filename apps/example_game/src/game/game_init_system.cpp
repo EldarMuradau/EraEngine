@@ -32,7 +32,7 @@
 #include <physics/pbd/pbd_cloth_component.h>
 #include <physics/vehicles/w4_vehicle_component.h>
 #include <physics/physical_animation/dismemberment/ragdoll_dismemberment_component.h>
-#include "physics/destructions/destructible_component.h"
+#include <physics/destructions/destructible_component.h>
 
 #include <motion_matching/trajectory/trajectory_component.h>
 #include <motion_matching/motion/motion_component.h>
@@ -40,6 +40,10 @@
 #include <motion_matching/features/trajectory_feature.h>
 #include <motion_matching/motion_matching_database.h>
 #include <motion_matching/features/motion_matching_feature_set.h>
+#include <motion_matching/motion_matching_component.h>
+#include <motion_matching/motion_data_component.h>
+
+#include "game/movement/character_locomotion_component.h"
 
 #include <audio/audio.h>
 
@@ -122,50 +126,554 @@ namespace era_engine
 		GameAssetsProvider provider;
 
 		{
-			if (ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"), 
-				mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion))
+			if (true)
 			{
-				//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Walking"), true, {}, mesh_creation_flags_animated);
+				if (false)
+				{
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Change DirectionR.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
 
-				Entity character = world->create_entity("Character");
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Run To Stop.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Change DirectionL.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Run Forward Arc Left.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Run Forward Arc Right.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running Turn 180R.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running Turn 180L.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Turn To RunningL.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Turn To RunningR.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running Left Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running Right Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Unarmed Idle.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Sequence 02L.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Sequence 02R.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Walk Start Turn 180 Left.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Walk Start Turn 180 Right.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Walk Forward Arc 90R.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Catwalk Walk Forward Arc 90L.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Stop Walking.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Walking Right Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Walking Left Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Jog Backward DiagonalR.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Jog Backward DiagonalL.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Walking Backwards.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Sprint.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Start Walking.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Standing Idle.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Walking.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+				}
+
+				//ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"),
+				//	mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+				ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Character.emesh"), true, {}, mesh_creation_flags_animated);
+
+				character = world->create_entity("Character");
 
 				character.add_component<MeshComponent>(mesh);
 
 				TransformComponent* transform_component = character.get_component<TransformComponent>();
-				transform_component->set_world_transform(trs{ vec3(0.0f, -4.7f, 2.0f), quat::identity, vec3(1.0f) });
+				transform_component->set_world_transform(trs{ vec3(0.0f, 0.0f, 2.0f), quat::identity, vec3(1.0f) });
 
 				mesh->load_job.wait_for_completion();
 
 				SkeletonComponent* skeleton_component = character.add_component<SkeletonComponent>();
 
-				{
-					ref<Skeleton> character_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/test_character/skeletons/skeleton0"));
-					character_skeleton->load_job.wait_for_completion();
-					skeleton_component->skeleton = character_skeleton;
-					skeleton_component->draw_sceleton = true;
-					skeleton_component->apply_pose(character_skeleton->get_default_pose());
-				}
+				ref<Skeleton> skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/test_character/skeletons/Character_skeleton0.eskeleton"));
+				skeleton->load_job.wait_for_completion();
+				skeleton_component->skeleton = skeleton;
+				skeleton_component->draw_sceleton = true;
+				skeleton_component->apply_pose(skeleton->get_default_pose());
 
 				AnimationComponent* animation_component = character.add_component<AnimationComponent>();
 				animation_component->play = true;
 				animation_component->loop = true;
 
 				{
-					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/animation_clip0"));
+					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm"));
 					anim_clip->load_job.wait_for_completion();
 					animation_component->current_animation = anim_clip;
 					animation_component->current_anim_position = 0.0f;
 				}
+
+				animation_component->activate_inertial_blend();
+
+				CharacterControllerComponent* cct_component = character.add_component<CharacterControllerComponent>();
+				cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
+				cct_component->height = 1.2f;
+				cct_component->radius = 0.3f;
+				cct_component->step_offset = 0.05f;
+				cct_component->handle_non_cct_contacts = false;
+
+				character.add_component<MotionComponent>();
+				TrajectoryComponent* trajectory_component = character.add_component<TrajectoryComponent>();
+				trajectory_component->time_offsets(0) = 0.0f;
+				trajectory_component->time_offsets(1) = 0.12f;
+				trajectory_component->time_offsets(2) = 0.18f;
+				trajectory_component->time_offsets(3) = 0.24f;
+				camera_entity.get_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
+
+				RagdollJointIds joint_init_ids;
+				joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("mixamorig:HeadTop_End");
+				joint_init_ids.head_idx = skeleton->name_to_joint_id.at("mixamorig:Head");
+				joint_init_ids.neck_idx = skeleton->name_to_joint_id.at("mixamorig:Neck");
+
+				joint_init_ids.spine_03_idx = skeleton->name_to_joint_id.at("mixamorig:Spine2");
+				joint_init_ids.spine_02_idx = skeleton->name_to_joint_id.at("mixamorig:Spine1");
+				joint_init_ids.spine_01_idx = skeleton->name_to_joint_id.at("mixamorig:Spine");
+				joint_init_ids.pelvis_idx = skeleton->name_to_joint_id.at("mixamorig:Hips");
+
+				joint_init_ids.clavicle_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftShoulder");
+				joint_init_ids.clavicle_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightShoulder");
+
+				joint_init_ids.root_idx = skeleton->name_to_joint_id.at("EE_GeneratedRoot");
+				joint_init_ids.attachment_idx = skeleton->name_to_joint_id.at("mixamorig:Hips");
+
+				joint_init_ids.thigh_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftUpLeg");
+				joint_init_ids.calf_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftLeg");
+				joint_init_ids.foot_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftFoot");
+				joint_init_ids.foot_end_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftToe_End");
+
+				joint_init_ids.thigh_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightUpLeg");
+				joint_init_ids.calf_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightLeg");
+				joint_init_ids.foot_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightFoot");
+				joint_init_ids.foot_end_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightToe_End");
+
+				joint_init_ids.upperarm_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftArm");
+				joint_init_ids.lowerarm_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftForeArm");
+				joint_init_ids.hand_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftHand");
+				joint_init_ids.hand_end_l_idx = skeleton->name_to_joint_id.at("mixamorig:LeftHandMiddle3");
+
+				joint_init_ids.upperarm_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightArm");
+				joint_init_ids.lowerarm_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightForeArm");
+				joint_init_ids.hand_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightHand");
+				joint_init_ids.hand_end_r_idx = skeleton->name_to_joint_id.at("mixamorig:RightHandMiddle3");
+
+				if (false)
+				{
+					database = provider.load_game_asset_from_file<MotionMatchingDatabase>(get_asset_path("/resources/assets/test_character/mmdb/locomotion.emmdb"));
+					database->load_job.wait_for_completion();
+				}
+
+				if (true)
+				{
+					database = make_ref<MotionMatchingDatabase>();
+
+					database->database_id = "LOCOMOTION";
+					database->knn_type = KnnStructureType::HNSW;
+
+					{
+						PoseFeature* pose_feature = new PoseFeature();
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.pelvis_idx;
+							desc->name = "pelvis_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.neck_idx;
+							desc->name = "neck_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::VELOCITY;
+							desc->joint_id = joint_init_ids.neck_idx;
+							desc->name = "neck_velocity";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						//{
+						//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+						//	desc->basis = FeatureDescBasis::Y;
+						//	desc->type = FeatureDescType::LOCATION;
+						//	desc->joint_id = joint_init_ids.neck_idx;
+						//	desc->name = "neck_location";
+						//	pose_feature->descriptors.push_back(desc);
+						//}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.foot_l_idx;
+							desc->name = "foot_l_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::VELOCITY;
+							desc->joint_id = joint_init_ids.foot_l_idx;
+							desc->name = "foot_l_velocity";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.foot_r_idx;
+							desc->name = "foot_r_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::VELOCITY;
+							desc->joint_id = joint_init_ids.foot_r_idx;
+							desc->name = "foot_r_velocity";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.hand_l_idx;
+							desc->name = "hand_l_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						//{
+						//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+						//	desc->basis = FeatureDescBasis::XYZ;
+						//	desc->type = FeatureDescType::VELOCITY;
+						//	desc->joint_id = joint_init_ids.hand_l_idx;
+						//	desc->name = "hand_l_velocity";
+						//	pose_feature->descriptors.push_back(desc);
+						//}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.hand_r_idx;
+							desc->name = "hand_r_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						//{
+						//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+						//	desc->basis = FeatureDescBasis::XYZ;
+						//	desc->type = FeatureDescType::LOCATION;
+						//	desc->joint_id = joint_init_ids.hand_r_idx;
+						//	desc->name = "hand_r_velocity";
+						//	pose_feature->descriptors.push_back(desc);
+						//}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.calf_l_idx;
+							desc->name = "calf_l_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::LOCATION;
+							desc->joint_id = joint_init_ids.calf_r_idx;
+							desc->name = "calf_r_location";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::VELOCITY;
+							desc->joint_id = joint_init_ids.calf_l_idx;
+							desc->name = "calf_l_velocity";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
+							desc->basis = FeatureDescBasis::XYZ;
+							desc->type = FeatureDescType::VELOCITY;
+							desc->joint_id = joint_init_ids.calf_r_idx;
+							desc->name = "calf_r_velocity";
+							pose_feature->descriptors.push_back(desc);
+						}
+
+						database->features.push_back(pose_feature);
+					}
+
+					{
+						TrajectoryFeature* trajectory_feature = new TrajectoryFeature();
+
+						// 1, 2
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::VELOCITY;
+							desc->time_offset = 0.0f;
+							desc->name = "curr_velocity";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						// 5, 6
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::LOCATION;
+							desc->time_offset = 0.12f;
+							desc->name = "next_1_location";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::DIRECTION;
+							desc->time_offset = 0.12f;
+							desc->name = "next_1_direction";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						// 9, 10
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::LOCATION;
+							desc->time_offset = 0.18f;
+							desc->name = "next_2_location";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::DIRECTION;
+							desc->time_offset = 0.18f;
+							desc->name = "next_2_direction";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						// 13, 14
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::LOCATION;
+							desc->time_offset = 0.24f;
+							desc->name = "next_3_location";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::DIRECTION;
+							desc->time_offset = 0.24f;
+							desc->name = "next_3_direction";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						database->features.push_back(trajectory_feature);
+					}
+
+					auto add_animation = [&](std::string_view path)
+						{
+							ref<AnimationAssetClip> animation = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path(path));
+							animation->load_job.wait_for_completion();
+							database->animations.push_back(animation);
+						};
+
+					database->sample_rate = 30.0f;
+					database->narrow_phase_params.flags = NarrowPhaseFlags::SAME_FRAME_CHECK;
+					database->narrow_phase_params.same_frame_time_threshold = 0.1f;
+
+					add_animation("/resources/assets/test_character/animations/Standing Idle_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Sequence 02L_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Sequence 02R_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90L_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90R_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Walk Start Turn 180 Left_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Walk Start Turn 180 Right_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Change DirectionL_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Change DirectionR_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Jog Backward DiagonalL_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Jog Backward DiagonalR_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Run Forward Arc Left_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Run Forward Arc Right_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Run To Stop_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Running Left Turn_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Running Right Turn_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Running Turn 180L_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Running Turn 180R_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Running_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Sprint_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Start Walking_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Stop Walking_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Turn To RunningL_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Turn To RunningR_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Walking Backwards_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Walking Left Turn_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Walking Right Turn_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Walking_mixamo.com_clip0.eanm");
+
+					database->generate_initial_data();
+
+					database->search_dimension = database->total_features_per_sample;
+					database->static_thresholds.resize(database->total_features_per_sample);
+					database->weights.resize(database->total_features_per_sample, 1.0f);
+
+					/*for (size_t i = 31; i < database->total_features_per_sample; ++i)
+					{
+						database->weights[i] = 10.0f;
+					}*/
+
+					const uint32 start_from = 38;
+
+					database->weights[0] = 4.0f;
+					database->weights[1] = 8.0f;
+					database->weights[2] = 4.0f;
+
+					database->weights[3] = 20.0f;
+					database->weights[4] = 8.0f;
+					database->weights[5] = 20.0f;
+
+					database->weights[6] = 7.0f;
+					database->weights[7] = 4.5f;
+					database->weights[8] = 7.0f;
+
+					database->weights[9] = 10.0f;
+					database->weights[10] = 6.0f;
+					database->weights[11] = 10.0f;
+					database->weights[12] = 13.0f;
+					database->weights[13] = 13.0f;
+					database->weights[14] = 13.0f;
+
+					database->weights[15] = 10.0f;
+					database->weights[16] = 6.0f;
+					database->weights[17] = 10.0f;
+					database->weights[18] = 13.0f;
+					database->weights[19] = 13.0f;
+					database->weights[20] = 13.0f;
+
+					database->weights[21] = 3.0f;
+					database->weights[22] = 3.0f;
+					database->weights[23] = 3.0f;
+					database->weights[24] = 3.0f;
+					database->weights[25] = 3.0f;
+					database->weights[26] = 3.0f;
+
+					database->weights[27] = 6.0f;
+					database->weights[28] = 4.0f;
+					database->weights[29] = 6.0f;
+					database->weights[30] = 7.0f;
+					database->weights[31] = 7.0f;
+					database->weights[32] = 12.0f;
+
+					database->weights[33] = 6.0f;
+					database->weights[34] = 4.0f;
+					database->weights[35] = 6.0f;
+					database->weights[36] = 7.0f;
+					database->weights[37] = 7.0f;
+					database->weights[38] = 12.0f;
+
+					database->weights[start_from + 1] = 6.0f;
+					database->weights[start_from + 2] = 6.0f;
+					database->weights[start_from + 3] = 8.0f;
+					database->weights[start_from + 4] = 8.0f;
+					database->weights[start_from + 5] = 4.0f;
+					database->weights[start_from + 6] = 4.0f;
+					database->weights[start_from + 7] = 85.0f;
+					database->weights[start_from + 8] = 85.0f;
+					database->weights[start_from + 9] = 30.0f;
+					database->weights[start_from + 10] = 30.0f;
+					database->weights[start_from + 11] = 140.0f;
+					database->weights[start_from + 12] = 140.0f;
+					database->weights[start_from + 13] = 80.0f;
+					database->weights[start_from + 14] = 80.0f;
+
+					database->mark(skeleton_component);
+
+					database->bake(skeleton_component->skeleton.get());
+
+					JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/test_character/mmdb/locomotion.emmdb"), database.get());
+					save_job.wait_for_completion();
+
+				}
+				MotionDatabaseRegistry::add_to_registry(database);
+
+				animation_component->enable_root_motion = false;
+
+				character.add_component<MotionDataComponent>();
+				character.add_component<CharacterLocomotionComponent>();
+
+				character.add_component<MotionMatchingComponent>();
 			}
 		}
 
 		
 		if (false)
 		{
-			ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset);
-			//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
+			//ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset);
+			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap.emesh"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
 
-			tiran = world->create_entity("Tiran");
+			Entity tiran = world->create_entity("Tiran");
 
 			tiran.add_component<MeshComponent>(mesh);
 
@@ -181,7 +689,7 @@ namespace era_engine
 			animation_component->loop = true;
 
 			{
-				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0"));
+				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0.eskeleton"));
 				tiran_skeleton->load_job.wait_for_completion();
 				skeleton_component->skeleton = tiran_skeleton;
 				//skeleton_component->draw_sceleton = true;
@@ -189,13 +697,11 @@ namespace era_engine
 			}
 
 			{
-				ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/springtrap/source/animations/animation_clip74"));
+				ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/springtrap/source/animations/animation_clip74.eanm"));
 				anim_clip->load_job.wait_for_completion();
 				animation_component->current_animation = anim_clip;
 				animation_component->current_anim_position = 0.0f;
 			}
-
-			//animation_component->activate_inertial_blend();
 
 			const ref<Skeleton> skeleton = skeleton_component->skeleton;
 
@@ -279,19 +785,19 @@ namespace era_engine
 			settings.scaler_settings.arm_height_modifier = 1.0f;
 			settings.scaler_settings.forearm_height_modifier = 1.3f;
 
-			CharacterControllerComponent* cct_component = tiran.add_component<CharacterControllerComponent>();
-			cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
-			cct_component->height = 1.2f;
-			cct_component->radius = 0.3f;
-			cct_component->step_offset = 0.05f;
+			//CharacterControllerComponent* cct_component = tiran.add_component<CharacterControllerComponent>();
+			//cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
+			//cct_component->height = 1.2f;
+			//cct_component->radius = 0.3f;
+			//cct_component->step_offset = 0.05f;
 
-			tiran.add_component<MotionComponent>();
-			TrajectoryComponent* trajectory_component = tiran.add_component<TrajectoryComponent>();
-			trajectory_component->time_offsets(0) = 0.0f;
-			trajectory_component->time_offsets(1) = 0.06f;
-			trajectory_component->time_offsets(2) = 0.12f;
-			trajectory_component->time_offsets(3) = 0.18f;
-			camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
+			//tiran.add_component<MotionComponent>();
+			//TrajectoryComponent* trajectory_component = tiran.add_component<TrajectoryComponent>();
+			//trajectory_component->time_offsets(0) = 0.0f;
+			//trajectory_component->time_offsets(1) = 0.06f;
+			//trajectory_component->time_offsets(2) = 0.12f;
+			//trajectory_component->time_offsets(3) = 0.18f;
+			//camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
 
 			//RagdollComponent* ragdoll_component = tiran.add_component<RagdollComponent>();
 			//ragdoll_component->simulated = true;
@@ -300,253 +806,6 @@ namespace era_engine
 			ragdoll_component->settings = settings;
 
 			//tiran.add_component<RagdollDismembermentComponent>();
-
-			{
-				//database = provider.load_game_asset_from_file<MotionMatchingDatabase>(get_asset_path("/resources/assets/springtrap/source/mmdb/locomotion"));
-				//database->load_job.wait_for_completion();
-			}
-
-			//{
-			//	database = make_ref<MotionMatchingDatabase>();
-
-			//	database->database_id = "LOCOMOTION";
-			//	database->knn_type = KnnStructureType::HNSW;
-
-			//	{
-			//		PoseFeature* pose_feature = new PoseFeature();
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.pelvis_idx;
-			//			desc->name = "pelvis_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.pelvis_idx;
-			//			desc->name = "pelvis_velocity";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::Y;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.neck_idx;
-			//			desc->name = "neck_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.foot_l_idx;
-			//			desc->name = "foot_l_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::VELOCITY;
-			//			desc->joint_id = joint_init_ids.foot_l_idx;
-			//			desc->name = "foot_l_velocity";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.foot_r_idx;
-			//			desc->name = "foot_r_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::VELOCITY;
-			//			desc->joint_id = joint_init_ids.foot_r_idx;
-			//			desc->name = "foot_r_velocity";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.hand_l_idx;
-			//			desc->name = "hand_l_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::VELOCITY;
-			//			desc->joint_id = joint_init_ids.hand_l_idx;
-			//			desc->name = "hand_l_velocity";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.hand_r_idx;
-			//			desc->name = "hand_r_location";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//			desc->basis = FeatureDescBasis::XYZ;
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->joint_id = joint_init_ids.hand_r_idx;
-			//			desc->name = "hand_r_velocity";
-			//			pose_feature->descriptors.push_back(desc);
-			//		}
-
-			//		//{
-			//		//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//		//	desc->basis = FeatureDescBasis::XYZ;
-			//		//	desc->type = FeatureDescType::LOCATION;
-			//		//	desc->joint_id = joint_init_ids.calf_l_idx;
-			//		//	desc->name = "calf_l_location";
-			//		//	pose_feature->descriptors.push_back(desc);
-			//		//}
-
-			//		//{
-			//		//	ref<PoseFeatureDesc> desc = make_ref<PoseFeatureDesc>();
-			//		//	desc->basis = FeatureDescBasis::XYZ;
-			//		//	desc->type = FeatureDescType::LOCATION;
-			//		//	desc->joint_id = joint_init_ids.calf_r_idx;
-			//		//	desc->name = "calf_r_location";
-			//		//	pose_feature->descriptors.push_back(desc);
-			//		//}
-
-			//		database->features.push_back(pose_feature);
-			//	}
-
-			//	{
-			//		TrajectoryFeature* trajectory_feature = new TrajectoryFeature();
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->time_offset = 0.0f;
-			//			desc->name = "curr_location";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::DIRECTION;
-			//			desc->time_offset = 0.0f;
-			//			desc->name = "curr_direction";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->time_offset = 0.06f;
-			//			desc->name = "next_1_location";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::DIRECTION;
-			//			desc->time_offset = 0.06f;
-			//			desc->name = "next_1_direction";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->time_offset = 0.12f;
-			//			desc->name = "next_2_location";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::DIRECTION;
-			//			desc->time_offset = 0.12f;
-			//			desc->name = "next_2_direction";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::LOCATION;
-			//			desc->time_offset = 0.18f;
-			//			desc->name = "next_3_location";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		{
-			//			ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
-			//			desc->type = FeatureDescType::DIRECTION;
-			//			desc->time_offset = 0.18f;
-			//			desc->name = "next_3_direction";
-			//			trajectory_feature->descriptors.push_back(desc);
-			//		}
-
-			//		database->features.push_back(trajectory_feature);
-			//	}
-
-			//	auto add_animation = [&](std::string_view path)
-			//		{
-			//			ref<AnimationAssetClip> animation = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path(path));
-			//			animation->load_job.wait_for_completion();
-			//			database->animations.push_back(animation);
-			//		};
-
-			//	database->sample_rate = 30.0f;
-			//	database->narrow_phase_params.flags = NarrowPhaseFlags::SAME_FRAME_CHECK | NarrowPhaseFlags::EUCLIDIAN_DISTANCE_CHECK;
-
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip50");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip71");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip72");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip73");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip74");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip75");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip77");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip78");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip79");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip80");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip87");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip88");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip89");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip90");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip91");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip92");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip93");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip94");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip95");
-			//	add_animation("/resources/assets/springtrap/source/animations/animation_clip96");
-
-			//	database->generate_initial_data();
-
-			//	database->search_dimension = database->total_features_per_sample;
-			//	database->static_thresholds.resize(database->total_features_per_sample);
-			//	database->weights.resize(database->total_features_per_sample, 1.0f);
-			//	database->mark(skeleton_component);
-
-			//	database->bake(skeleton.get());
-
-			//	JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/springtrap/source/mmdb/locomotion"), database.get());
-			//	save_job.wait_for_completion();
-			//}
 		}
 
 		//{
@@ -569,9 +828,9 @@ namespace era_engine
 			transform_component->set_world_position(vec3(5.0f, -3.75f, 35.0f));
 		}*/
 
-		if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
+		//if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
 		{
-			//ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box"), true, {}, mesh_creation_flags_default);
+			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box.emesh"), true, {}, mesh_creation_flags_default);
 			mesh->load_job.wait_for_completion();
 
 			Entity box = world->create_entity("Box");
@@ -682,34 +941,5 @@ namespace era_engine
 			force.force = (camera_holder_component->get_render_camera()->rotation * quat(vec3(0.0f, 1.0f, 0.0f), M_PI)) * vec3(0.0f, 0.0f, 1.0f) * sphere_speed;
 			force.mode = ForceMode::FORCE;
 		}
-
-		/*if (frame_input.keyboard['U'].press_event &&
-			tiran.is_valid())
-		{
-			using namespace animation;
-
-			FeatureComputationContext context;
-			context.fill_context(tiran, world->get_fixed_update_dt());
-
-			MotionMatchingFeatureSet feature_set;
-			for (const MotionMatchingFeature* feature : database->features)
-			{
-				std::vector<float> feature_vector = feature->compute_features(context);
-				feature_set.add_feature(feature->get_type(), std::move(feature_vector));
-			}
-
-			AnimationComponent* animation_component = tiran.get_component<AnimationComponent>();
-
-			SearchParams search_params;
-			search_params.current_anim_position = animation_component->current_anim_position;
-			search_params.current_animation = animation_component->current_animation;
-			search_params.query = feature_set.get_all_feature_values();
-			search_params.current_features = search_params.query;
-
-			SearchResult result = database->search(search_params);
-
-			animation_component->current_animation = result.animation;
-			animation_component->current_anim_position = result.anim_position;
-		}*/
 	}
 }

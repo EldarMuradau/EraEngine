@@ -53,10 +53,10 @@ namespace era_engine::physics
         float height = 1.2f;
         float radius = 0.3f;
 
-        float step_offset = 0.5f;
+        float step_offset = 0.1f;
         float contact_offset = 0.1f;
 
-        float volume_growth = 1.5f;
+        float volume_growth = 1.7f;
 
         float slope_limit = deg2rad(30.0f);
 
@@ -66,7 +66,7 @@ namespace era_engine::physics
 
         CharacterControllerCollisionFlags current_collision_flags = CharacterControllerCollisionFlags::NONE;
 
-        bool handle_non_cct_contacts = false;
+        bool handle_non_cct_contacts = true;
 
         ObservableMember<vec3> velocity = vec3::zero;
         ObservableMember<vec3> offset = vec3::zero;
@@ -80,5 +80,6 @@ namespace era_engine::physics
 
         friend class PhysicsSystem;
         friend class PhysicsUtils;
+        friend class Physics;
     };
 }

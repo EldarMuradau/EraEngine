@@ -17,9 +17,6 @@ namespace era_engine
 
 		GameAssetsProvider provider;
 
-		std::vector<JobHandle> handles;
-		handles.reserve(database.animations.size());
-
 		for (const ref<AnimationAssetClip>& animation : database.animations)
 		{
 			for (MotionMatchingFeature* feature : database.features)
@@ -29,12 +26,7 @@ namespace era_engine
 			}
 
 			JobHandle save_job = provider.save_game_asset_to_file_async<AnimationAssetClip>(get_path_from_asset_handle(animation->handle), animation.get(), {}, false);
-			handles.emplace_back(save_job);
-		}
-
-		for (JobHandle& handle : handles)
-		{
-			handle.wait_for_completion();
+			save_job.wait_for_completion();
 		}
 
 		return true;

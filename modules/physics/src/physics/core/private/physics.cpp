@@ -541,6 +541,8 @@ namespace era_engine::physics
 					continue;
 				}
 
+				TransformComponent* transform_component = data->get_entity().get_component<TransformComponent>();
+
 				if (data->get_type() == rttr::type::get<CharacterControllerComponent>())
 				{
 					continue;
@@ -561,15 +563,13 @@ namespace era_engine::physics
 					}
 				}
 
-				TransformComponent* transform = data->get_entity().get_component<TransformComponent>();
-
 				const auto& pxt = rb->getGlobalPose();
 				const auto& pos = pxt.p;
 				const auto& rot = pxt.q;
 
-				trs new_transform(create_vec3(pos), create_quat(rot), transform->get_local_transform().scale);
+				trs new_transform(create_vec3(pos), create_quat(rot), transform_component->get_local_transform().scale);
 
-				transform->set_world_transform(new_transform);
+				transform_component->set_world_transform(new_transform);
 			}
 		}
 
