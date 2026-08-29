@@ -103,7 +103,7 @@ namespace era_engine
 
 		camera_entity = world->create_entity("CameraEntity");
 		CameraHolderComponent* camera_holder_component = camera_entity.add_component<CameraHolderComponent>();
-		camera_holder_component->set_camera_type(CameraHolderComponent::FREE_CAMERA);
+		camera_holder_component->set_camera_type(CameraHolderComponent::FREE_CAMERA_ON_HOLD);
 		camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
 		camera_entity.add_component<InputSenderComponent>()->add_reciever(camera_entity.add_component<InputReceiverComponent>());
 
@@ -216,10 +216,28 @@ namespace era_engine
 
 					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Walking.fbx"),
 						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running To Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Jog Strafe Right.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Jog Strafe Left.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Backward Right Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Backward Left Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Running To Turn.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
 				}
 
 				//ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"),
-				//	mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+				//	mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion | mesh_creation_flags_override_textures_with_local_folder);
 
 				ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Character.emesh"), true, {}, mesh_creation_flags_animated);
 
@@ -237,7 +255,7 @@ namespace era_engine
 				ref<Skeleton> skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/test_character/skeletons/Character_skeleton0.eskeleton"));
 				skeleton->load_job.wait_for_completion();
 				skeleton_component->skeleton = skeleton;
-				skeleton_component->draw_sceleton = true;
+				//skeleton_component->draw_sceleton = true;
 				skeleton_component->apply_pose(skeleton->get_default_pose());
 
 				AnimationComponent* animation_component = character.add_component<AnimationComponent>();
@@ -264,8 +282,9 @@ namespace era_engine
 				TrajectoryComponent* trajectory_component = character.add_component<TrajectoryComponent>();
 				trajectory_component->time_offsets(0) = 0.0f;
 				trajectory_component->time_offsets(1) = 0.12f;
-				trajectory_component->time_offsets(2) = 0.18f;
-				trajectory_component->time_offsets(3) = 0.24f;
+				trajectory_component->time_offsets(2) = 0.32f;
+				trajectory_component->time_offsets(3) = 0.54f;
+				trajectory_component->time_offsets(4) = 0.76f;
 				camera_entity.get_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
 
 				RagdollJointIds joint_init_ids;
@@ -499,7 +518,7 @@ namespace era_engine
 						{
 							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
 							desc->type = FeatureDescType::LOCATION;
-							desc->time_offset = 0.18f;
+							desc->time_offset = 0.32f;
 							desc->name = "next_2_location";
 							trajectory_feature->descriptors.push_back(desc);
 						}
@@ -507,7 +526,7 @@ namespace era_engine
 						{
 							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
 							desc->type = FeatureDescType::DIRECTION;
-							desc->time_offset = 0.18f;
+							desc->time_offset = 0.32f;
 							desc->name = "next_2_direction";
 							trajectory_feature->descriptors.push_back(desc);
 						}
@@ -516,7 +535,7 @@ namespace era_engine
 						{
 							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
 							desc->type = FeatureDescType::LOCATION;
-							desc->time_offset = 0.24f;
+							desc->time_offset = 0.54f;
 							desc->name = "next_3_location";
 							trajectory_feature->descriptors.push_back(desc);
 						}
@@ -524,8 +543,33 @@ namespace era_engine
 						{
 							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
 							desc->type = FeatureDescType::DIRECTION;
-							desc->time_offset = 0.24f;
+							desc->time_offset = 0.54f;
 							desc->name = "next_3_direction";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::VELOCITY;
+							desc->time_offset = 0.54f;
+							desc->name = "next_3_velocity";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						// 15, 16
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::LOCATION;
+							desc->time_offset = 0.76f;
+							desc->name = "next_4_location";
+							trajectory_feature->descriptors.push_back(desc);
+						}
+
+						{
+							ref<TrajectoryFeatureDesc> desc = make_ref<TrajectoryFeatureDesc>();
+							desc->type = FeatureDescType::DIRECTION;
+							desc->time_offset = 0.76f;
+							desc->name = "next_4_direction";
 							trajectory_feature->descriptors.push_back(desc);
 						}
 
@@ -547,13 +591,13 @@ namespace era_engine
 					add_animation("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Catwalk Sequence 02L_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Catwalk Sequence 02R_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90L_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90R_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90L_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Catwalk Walk Forward Arc 90R_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Catwalk Walk Start Turn 180 Left_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Catwalk Walk Start Turn 180 Right_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Change DirectionL_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Change DirectionR_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Jog Backward DiagonalL_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Change DirectionL_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Change DirectionR_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Jog Backward DiagonalL_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Jog Backward DiagonalR_mixamo.com_clip0.eanm");
 					//add_animation("/resources/assets/test_character/animations/Run Forward Arc Left_mixamo.com_clip0.eanm");
 					//add_animation("/resources/assets/test_character/animations/Run Forward Arc Right_mixamo.com_clip0.eanm");
@@ -566,23 +610,23 @@ namespace era_engine
 					add_animation("/resources/assets/test_character/animations/Sprint_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Start Walking_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Stop Walking_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Turn To RunningL_mixamo.com_clip0.eanm");
-					//add_animation("/resources/assets/test_character/animations/Turn To RunningR_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Turn To RunningL_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Turn To RunningR_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Walking Backwards_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Walking Left Turn_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Walking Right Turn_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Walking_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Backward Right Turn_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Backward Left Turn_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Jog Strafe Left_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Jog Strafe Right_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Running To Turn_mixamo.com_clip0.eanm");
 
 					database->generate_initial_data();
 
 					database->search_dimension = database->total_features_per_sample;
 					database->static_thresholds.resize(database->total_features_per_sample);
 					database->weights.resize(database->total_features_per_sample, 1.0f);
-
-					/*for (size_t i = 31; i < database->total_features_per_sample; ++i)
-					{
-						database->weights[i] = 10.0f;
-					}*/
 
 					const uint32 start_from = 38;
 
@@ -635,16 +679,26 @@ namespace era_engine
 
 					database->weights[start_from + 1] = 6.0f;
 					database->weights[start_from + 2] = 6.0f;
+
 					database->weights[start_from + 3] = 8.0f;
 					database->weights[start_from + 4] = 8.0f;
 					database->weights[start_from + 5] = 4.0f;
 					database->weights[start_from + 6] = 4.0f;
-					database->weights[start_from + 7] = 85.0f;
-					database->weights[start_from + 8] = 85.0f;
+
+					database->weights[start_from + 7] = 65.0f;
+					database->weights[start_from + 8] = 65.0f;
+					database->weights[start_from + 9] = 25.0f;
+					database->weights[start_from + 10] = 25.0f;
+
+					database->weights[start_from + 11] = 80.0f;
+					database->weights[start_from + 12] = 80.0f;
+					database->weights[start_from + 13] = 60.0f;
+					database->weights[start_from + 14] = 60.0f;
 					database->weights[start_from + 9] = 30.0f;
 					database->weights[start_from + 10] = 30.0f;
-					database->weights[start_from + 11] = 140.0f;
-					database->weights[start_from + 12] = 140.0f;
+
+					database->weights[start_from + 11] = 150.0f;
+					database->weights[start_from + 12] = 150.0f;
 					database->weights[start_from + 13] = 80.0f;
 					database->weights[start_from + 14] = 80.0f;
 
@@ -652,7 +706,7 @@ namespace era_engine
 
 					database->bake(skeleton_component->skeleton.get());
 
-					JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/test_character/mmdb/locomotion.emmdb"), database.get());
+					JobHandle save_job = provider.save_game_asset_to_file_async<MotionMatchingDatabase>(get_asset_path("/resources/assets/test_character/mmdb/locomotion"), database.get());
 					save_job.wait_for_completion();
 
 				}

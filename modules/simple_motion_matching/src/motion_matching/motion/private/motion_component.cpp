@@ -1,13 +1,11 @@
 #include "motion_matching/motion/motion_component.h"
 
 #include <ecs/entity.h>
-#include <ecs/base_components/transform_component.h>
 
 #include <rttr/registration>
 
 namespace era_engine
 {
-
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
@@ -18,9 +16,6 @@ namespace era_engine
 	MotionComponent::MotionComponent(ref<Entity::EcsData> _data)
 		: Component(_data)
 	{
-		const trs& world_transform = get_entity().get_component<TransformComponent>()->get_world_transform();
-		simulation_rotation = world_transform.rotation;
-		simulation_position = world_transform.position;
 	}
 
 	MotionComponent::~MotionComponent()

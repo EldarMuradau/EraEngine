@@ -41,18 +41,23 @@ namespace std
 
 namespace era_engine
 {
-	inline std::string convert_material_path(std::string_view input_path, const std::filesystem::path& model_filepath)
+	inline std::string convert_material_path(std::string_view input_path, const fs::path& model_filepath, uint32 flags)
 	{
-		std::filesystem::path model_dir = model_filepath.parent_path();
+		fs::path model_dir = model_filepath.parent_path();
 
-		std::filesystem::path texture_path(input_path);
+		fs::path texture_path(input_path);
+
+		if (flags & mesh_creation_flags_override_textures_with_local_folder)
+		{
+			texture_path = fs::path("textures") / texture_path.filename();
+		}
 
 		if (texture_path.is_absolute())
 		{
 			return texture_path.string();
 		}
 
-		std::filesystem::path full_path = (model_dir / texture_path).lexically_normal();
+		fs::path full_path = (model_dir / texture_path).lexically_normal();
 
 		std::string converted_path = full_path.string();
 		replace_all(converted_path, "\\", "/");
@@ -78,19 +83,19 @@ namespace era_engine
 		{
 			if (!material_desc.albedo.empty() && *material_desc.albedo.c_str() != 'F')
 			{
-				material_desc.albedo = convert_material_path(material_desc.albedo, filename);
+				material_desc.albedo = convert_material_path(material_desc.albedo, filename, flags);
 			}
 			if (!material_desc.normal.empty() && *material_desc.normal.c_str() != 'F')
 			{
-				material_desc.normal = convert_material_path(material_desc.normal, filename);
+				material_desc.normal = convert_material_path(material_desc.normal, filename, flags);
 			}
 			if (!material_desc.roughness.empty() && *material_desc.roughness.c_str() != 'F')
 			{
-				material_desc.roughness = convert_material_path(material_desc.roughness, filename);
+				material_desc.roughness = convert_material_path(material_desc.roughness, filename, flags);
 			}
 			if (!material_desc.metallic.empty() && *material_desc.metallic.c_str() != 'F')
 			{
-				material_desc.metallic = convert_material_path(material_desc.metallic, filename);
+				material_desc.metallic = convert_material_path(material_desc.metallic, filename, flags);
 			}
 
 			material_desc.emission = vec4(0.0f, 0.0f, 0.0f, 1.0f);

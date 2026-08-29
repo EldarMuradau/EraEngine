@@ -30,8 +30,6 @@
 
 namespace era_engine
 {
-	static DebugVar<bool> draw_motion = DebugVar<bool>("motion_matching.debug_draw.draw_motion", false);
-
 	RTTR_REGISTRATION
 	{
 		using namespace rttr;
@@ -39,9 +37,8 @@ namespace era_engine
 		registration::class_<MotionSystem>("MotionSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
 			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS))
-			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::BEGIN_FIXED))
-			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END_FIXED))
-			.method("debug_draw_update", &MotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
+			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::GAMEPLAY_NORMAL_CONCURRENT))
+			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END_FIXED));
 	}
 
 	MotionSystem::MotionSystem(World* _world)
@@ -63,11 +60,55 @@ namespace era_engine
 	{
 		ZoneScopedN("MotionSystem::update");
 
-        for (auto&& [handle, transform_component, motion_component]
-			: world->group(components_group<TransformComponent, MotionComponent>).each())
+        for (auto&& [handle, transform_component, reciever_component, motion_component]
+			: world->group(components_group<TransformComponent, InputReceiverComponent, MotionComponent>).each())
         {
+			// Get gamepad stick states
+			const vec3 input = noz(motion_component.get_desired_input());
+
+			// Get if strafe is desired
+			bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
+
+			const float strafe_direction = 0.0f;
+
+			// Get the desired gait (walk / run)
+			MotionUtils::desired_gait_update(
+				motion_component.desired_gait,
+				motion_component.desired_gait_velocity,
+				dt);
+
+			// Get the desired simulation speeds based on the gait
+			float simulation_fwrd_speed = lerpf(motion_component.run_fwrd_speed, motion_component.walk_fwrd_speed, motion_component.desired_gait);
+			float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
+			float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
+
+			// Get the desired velocity
+			vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
+				input,
+				simulation_fwrd_speed,
+				simulation_side_speed,
+				simulation_back_speed);
+
+			trs desired_world_transform = transform_component.get_world_transform();
+
+			// Get the desired rotation/direction
+			quat desired_rotation_curr = MotionUtils::desired_rotation_update(
+				desired_world_transform.rotation,
+				input,
+				strafe_direction,
+				desired_strafe,
+				desired_velocity_curr);
+
+			motion_component.desired_velocity_change_prev = motion_component.desired_velocity_change_curr;
+			motion_component.desired_velocity_change_curr = (desired_velocity_curr - motion_component.desired_velocity) / dt;
+			motion_component.desired_velocity = desired_velocity_curr;
+
+			motion_component.desired_rotation_change_prev = motion_component.desired_rotation_change_curr;
+			motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) / dt;
+			motion_component.desired_rotation = desired_rotation_curr;
+
 			MotionUtils::simulation_positions_update(
-				motion_component.simulation_position,
+				desired_world_transform.position,
 				motion_component.velocity,
 				motion_component.acceleration,
 				motion_component.desired_velocity,
@@ -75,7 +116,7 @@ namespace era_engine
 				dt);
 
 			MotionUtils::simulation_rotations_update(
-				motion_component.simulation_rotation,
+				desired_world_transform.rotation,
 				motion_component.angular_velocity,
 				motion_component.desired_rotation,
 				motion_component.rotation_halflife,
@@ -86,11 +127,11 @@ namespace era_engine
 				vec3& raw_cct_velocity = cct_component->velocity.get_for_write();
 				raw_cct_velocity.x = motion_component.velocity.x;
 				raw_cct_velocity.z = motion_component.velocity.z;
-				transform_component.set_world_rotation(motion_component.simulation_rotation);
+				transform_component.set_world_rotation(desired_world_transform.rotation);
 			}
 			else
 			{
-				transform_component.set_world_transform(trs{ motion_component.simulation_position, motion_component.simulation_rotation, vec3(1.0f) });
+				transform_component.set_world_transform(desired_world_transform);
 			}
 			motion_component.last_velocity = motion_component.velocity;
 		}
@@ -118,23 +159,6 @@ namespace era_engine
 		for (auto&& [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
 		{
 			motion_component.apply_desired_input();
-		}
-	}
-
-	void MotionSystem::debug_draw_update(float dt)
-	{
-		ZoneScopedN("MotionSystem::debug_draw_update");
-
-		if (draw_motion)
-		{
-			for (auto&& [handle, transform_component, motion_component] : world->group(components_group<TransformComponent, MotionComponent>).each())
-			{
-				renderWireSphere(motion_component.simulation_position, 0.05f, vec4(0.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
-
-				vec3 sim_dir = (
-					motion_component.simulation_position + 0.6f * (motion_component.simulation_rotation * vec3(0.0f, 0.0f, 1.0f)));
-				renderLine(motion_component.simulation_position, sim_dir, vec4(0.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
-			}
 		}
 	}
 }

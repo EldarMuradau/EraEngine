@@ -33,7 +33,8 @@ namespace era_engine
 		mesh_creation_flags_m_to_sm = (1 << 7),
 		mesh_creation_flags_yzx_to_xyz = (1 << 8),
 		mesh_creation_flags_generate_root_motion = (1 << 9),
-		mesh_creation_flags_compact = (1 << 10),
+		mesh_creation_flags_override_textures_with_local_folder = (1 << 10),
+		mesh_creation_flags_compact = (1 << 11),
 
 		mesh_creation_flags_default = mesh_creation_flags_with_positions | mesh_creation_flags_with_uvs | mesh_creation_flags_with_normals | mesh_creation_flags_with_tangents,
 		mesh_creation_flags_animated = mesh_creation_flags_default | mesh_creation_flags_with_skin,

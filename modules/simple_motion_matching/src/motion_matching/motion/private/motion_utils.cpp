@@ -3,7 +3,7 @@
 
 namespace era_engine
 {
-	void MotionUtils::desired_gait_update(float& desired_gait, float& desired_gait_velocity, const float dt, const float gait_change_halflife)
+	void MotionUtils::desired_gait_update(float& desired_gait, float& desired_gait_velocity, float dt, float gait_change_halflife)
 	{
 		SpringMotionUtils::simple_spring_damper_exact(
 			desired_gait,
@@ -13,7 +13,7 @@ namespace era_engine
 			dt);
 	}
 
-	vec3 MotionUtils::desired_velocity_update(const vec3& input, const quat& simulation_rotation, const float fwrd_speed, const float side_speed, const float back_speed)
+	vec3 MotionUtils::desired_velocity_update(const vec3& input, float fwrd_speed, float side_speed, float back_speed)
 	{
         // Scale stick by forward, sideways and backwards speeds
         vec3 local_desired_velocity = input.z > 0.0 ?
@@ -23,7 +23,7 @@ namespace era_engine
         return local_desired_velocity;
     }
 
-	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, const vec3& input, const float strafe_direction, const bool desired_strafe, const vec3& desired_velocity)
+	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, const vec3& input, float strafe_direction, bool desired_strafe, const vec3& desired_velocity)
 	{
         quat desired_rotation_curr = desired_rotation;
 
@@ -32,9 +32,9 @@ namespace era_engine
         // forward facing
         if (desired_strafe)
         {
-            vec3 desired_direction = quat(vec3(0, 1, 0), strafe_direction) * vec3(0, 0, -1);
+            vec3 desired_direction = quat(vec3::up, strafe_direction) * vec3(0, 0, -1);
 
-            return quat(vec3(0, 1, 0), atan2f(desired_direction.x, desired_direction.z));
+            return quat(vec3::up, atan2f(desired_direction.x, desired_direction.z));
         }
 
         // If strafe is not active the desired direction comes from the left 
@@ -42,18 +42,17 @@ namespace era_engine
         else if (length(input) > 0.01f)
         {
             vec3 desired_direction = normalize(desired_velocity);
-            return quat(vec3(0, 1, 0), atan2f(desired_direction.x, desired_direction.z));
+            return quat(vec3::up, atan2f(desired_direction.x, desired_direction.z));
         }
-
-        // Otherwise desired direction remains the same
         else
         {
+            // Otherwise desired direction remains the same
             return desired_rotation_curr;
         }
     }
 
     // Taken from https://theorangeduck.com/page/spring-roll-call#controllers
-	void MotionUtils::simulation_positions_update(vec3& position, vec3& velocity, vec3& acceleration, const vec3& desired_velocity, const float halflife, const float dt)
+	void MotionUtils::simulation_positions_update(vec3& position, vec3& velocity, vec3& acceleration, const vec3& desired_velocity, float halflife, float dt)
 	{
         float y = halflife_to_damping(halflife) / 2.0f;
         vec3 j0 = velocity - desired_velocity;
@@ -68,7 +67,7 @@ namespace era_engine
         acceleration = eydt * (acceleration - j1 * y * dt);
 	}
 
-	void MotionUtils::simulation_rotations_update(quat& rotation, vec3& angular_velocity, const quat& desired_rotation, const float halflife, const float dt)
+	void MotionUtils::simulation_rotations_update(quat& rotation, vec3& angular_velocity, const quat& desired_rotation, float halflife, float dt)
 	{
         SpringMotionUtils::simple_spring_damper_exact(
             rotation,

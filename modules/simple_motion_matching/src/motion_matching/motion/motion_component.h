@@ -35,9 +35,6 @@ namespace era_engine
 		vec3 last_input = vec3::zero;
 		vec3 desired_input = vec3::zero;
 
-		vec3 simulation_position = vec3::zero;
-		quat simulation_rotation = quat::identity;
-
 		vec3 desired_velocity = vec3::zero;
 		vec3 desired_velocity_change_curr = vec3::zero;
 		vec3 desired_velocity_change_prev = vec3::zero;

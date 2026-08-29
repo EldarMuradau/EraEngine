@@ -22,8 +22,6 @@ namespace era_engine
 		void update_base(float dt);
 		void reset_input(float dt);
 
-		void debug_draw_update(float dt);
-
 		ERA_VIRTUAL_REFLECT(System)
 
 	private:

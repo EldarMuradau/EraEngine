@@ -28,7 +28,6 @@ namespace era_engine
         return sqrtf(stiffness) / (2.0f * PIf);
     }
 
-
 	class ERA_MOTION_MATCHING_API SpringMotionUtils
 	{
 	public:
@@ -49,41 +48,41 @@ namespace era_engine
         static void simple_spring_damper_exact(
             float& x,
             float& v,
-            const float x_goal,
-            const float halflife,
-            const float dt);
+            float x_goal,
+            float halflife,
+            float dt);
 
         static void simple_spring_damper_exact(
             vec3& x,
             vec3& v,
             const vec3& x_goal,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void simple_spring_damper_exact(
             quat& x,
             vec3& v,
             const quat& x_goal,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void decay_spring_damper_exact(
             float& x,
             float& v,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void decay_spring_damper_exact(
             vec3& x,
             vec3& v,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void decay_spring_damper_exact(
             quat& x,
             vec3& v,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void inertialize_transition(
             vec3& off_x,
@@ -100,8 +99,8 @@ namespace era_engine
             vec3& off_v,
             const vec3& in_x,
             const vec3& in_v,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 
         static void inertialize_transition(
             quat& off_x,
@@ -118,7 +117,7 @@ namespace era_engine
             vec3& off_v,
             const quat& in_x,
             const vec3& in_v,
-            const float halflife,
-            const float dt);
+            float halflife,
+            float dt);
 	};
 }

@@ -32,7 +32,7 @@ namespace era_engine
 
 		array1d<vec3> trajectory_angular_velocities;
 
-		size_t number_of_trajectories = 4;
+		size_t number_of_trajectories = 5;
 
 		array1d<float> time_offsets;
 	};

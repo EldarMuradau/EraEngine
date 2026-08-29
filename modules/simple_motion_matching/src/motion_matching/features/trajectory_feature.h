@@ -36,7 +36,7 @@ namespace era_engine
 		bool mark_animation(const animation::SkeletonComponent* skeleton_component, ref<animation::AnimationAssetClip> clip) const override;
 		bool sample_animation(const animation::Skeleton* skeleton, ref<animation::AnimationAssetClip> clip, float sample_rate, std::vector<ref<MotionMatchingDatabase::Sample>>& out_samples) const override;
 
-		const static inline uint32 NUM_OF_TRAJECTORIES = 4;
+		const static inline uint32 NUM_OF_TRAJECTORIES = 5;
 
 		ERA_VIRTUAL_REFLECT(MotionMatchingFeature)
 	};

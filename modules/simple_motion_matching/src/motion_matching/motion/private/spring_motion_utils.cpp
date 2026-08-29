@@ -54,7 +54,7 @@ namespace era_engine
 		v = eydt * (v - j1 * y * dt);
 	}
 
-	void SpringMotionUtils::simple_spring_damper_exact(quat& x, vec3& v, const quat& x_goal, const float halflife, const float dt)
+	void SpringMotionUtils::simple_spring_damper_exact(quat& x, vec3& v, const quat& x_goal, float halflife, float dt)
 	{
 		float y = halflife_to_damping(halflife) / 2.0f;
 
@@ -67,7 +67,7 @@ namespace era_engine
 		v = eydt * (v - j1 * y * dt);
 	}
 
-	void SpringMotionUtils::decay_spring_damper_exact(float& x, float& v, const float halflife, const float dt)
+	void SpringMotionUtils::decay_spring_damper_exact(float& x, float& v, float halflife, float dt)
 	{
 		float y = halflife_to_damping(halflife) / 2.0f;
 		float j1 = v + x * y;
@@ -77,7 +77,7 @@ namespace era_engine
 		v = eydt * (v - j1 * y * dt);
 	}
 
-	void SpringMotionUtils::decay_spring_damper_exact(vec3& x, vec3& v, const float halflife, const float dt)
+	void SpringMotionUtils::decay_spring_damper_exact(vec3& x, vec3& v, float halflife, float dt)
 	{
 		float y = halflife_to_damping(halflife) / 2.0f;
 		vec3 j1 = v + x * y;
@@ -87,7 +87,7 @@ namespace era_engine
 		v = eydt * (v - j1 * y * dt);
 	}
 
-	void SpringMotionUtils::decay_spring_damper_exact(quat& x, vec3& v, const float halflife, const float dt)
+	void SpringMotionUtils::decay_spring_damper_exact(quat& x, vec3& v, float halflife, float dt)
 	{
 		float y = halflife_to_damping(halflife) / 2.0f;
 
@@ -106,7 +106,7 @@ namespace era_engine
 		off_v = (src_v + off_v) - dst_v;
 	}
 
-	void SpringMotionUtils::inertialize_update(vec3& out_x, vec3& out_v, vec3& off_x, vec3& off_v, const vec3& in_x, const vec3& in_v, const float halflife, const float dt)
+	void SpringMotionUtils::inertialize_update(vec3& out_x, vec3& out_v, vec3& off_x, vec3& off_v, const vec3& in_x, const vec3& in_v, float halflife, float dt)
 	{
 		decay_spring_damper_exact(off_x, off_v, halflife, dt);
 		out_x = in_x + off_x;
@@ -119,7 +119,7 @@ namespace era_engine
 		off_v = (off_v + src_v) - dst_v;
 	}
 
-	void SpringMotionUtils::inertialize_update(quat& out_x, vec3& out_v, quat& off_x, vec3& off_v, const quat& in_x, const vec3& in_v, const float halflife, const float dt)
+	void SpringMotionUtils::inertialize_update(quat& out_x, vec3& out_v, quat& off_x, vec3& off_v, const quat& in_x, const vec3& in_v, float halflife, float dt)
 	{
 		decay_spring_damper_exact(off_x, off_v, halflife, dt);
 		out_x = off_x * in_x;

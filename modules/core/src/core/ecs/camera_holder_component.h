@@ -16,6 +16,7 @@ namespace era_engine
 		enum CameraType : uint8_t
 		{
 			FREE_CAMERA = 0,
+			FREE_CAMERA_ON_HOLD,
 			ATTACHED_TO_TRS
 		};
 

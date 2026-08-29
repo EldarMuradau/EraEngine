@@ -55,24 +55,23 @@ namespace era_engine
 
 			const trs& world_transform = transform.get_world_transform();
 
-			if (camera_holder.get_camera_type() == CameraHolderComponent::FREE_CAMERA)
+			if (camera_holder.get_camera_type() == CameraHolderComponent::FREE_CAMERA ||
+				(camera_holder.get_camera_type() == CameraHolderComponent::FREE_CAMERA_ON_HOLD && user_input.mouse.right.down))
 			{
-				if (user_input.mouse.right.down)
-				{
-					const float CAMERA_MOVEMENT_SPEED = 8.0f;
-					const float CAMERA_SENSITIVITY = 4.0f;
+				const float CAMERA_MOVEMENT_SPEED = 8.0f;
+				const float CAMERA_SENSITIVITY = 4.0f;
 
-					vec2 turn_angle(0.f, 0.f);
-					turn_angle = vec2(-user_input.mouse.reldx, -user_input.mouse.reldy) * CAMERA_SENSITIVITY;
+				vec2 turn_angle(0.f, 0.f);
+				turn_angle = vec2(-user_input.mouse.reldx, -user_input.mouse.reldy) * CAMERA_SENSITIVITY;
 
-					quat& camera_rotation = camera->rotation;
-					camera_rotation = quat(vec3(0.f, 1.f, 0.f), turn_angle.x) * camera_rotation;
-					camera_rotation = camera_rotation * quat(vec3(1.f, 0.f, 0.f), turn_angle.y);
+				quat& camera_rotation = camera->rotation;
+				camera_rotation = quat(vec3(0.f, 1.f, 0.f), turn_angle.x) * camera_rotation;
+				camera_rotation = camera_rotation * quat(vec3(1.f, 0.f, 0.f), turn_angle.y);
 
-					camera->position += camera_rotation * input * dt * CAMERA_MOVEMENT_SPEED;
+				camera->position += camera_rotation * input * dt * CAMERA_MOVEMENT_SPEED;
 
-					transform.set_world_transform(trs{ camera->position, camera->rotation, world_transform.scale});
-				}
+				transform.set_world_transform(trs{ camera->position, camera->rotation, world_transform.scale });
+
 			}
 			else
 			{

@@ -39,9 +39,9 @@ namespace era_engine
         const slice1d<quat>& trajectory_rotations,
         const vec3& desired_velocity,
         const vec3& input,
-        const float fwrd_speed,
-        const float side_speed,
-        const float back_speed)
+        float fwrd_speed,
+        float side_speed,
+        float back_speed)
     {
         desired_velocities(0) = desired_velocity;
 
@@ -49,7 +49,6 @@ namespace era_engine
         {
             desired_velocities(i) = MotionUtils::desired_velocity_update(
                 input,
-                trajectory_rotations(i),
                 fwrd_speed,
                 side_speed,
                 back_speed);
@@ -65,7 +64,7 @@ namespace era_engine
         const vec3& velocity,
         const vec3& acceleration,
         const slice1d<vec3>& desired_velocities,
-        const float halflife)
+        float halflife)
     {
         positions(0) = position;
         velocities(0) = velocity;
@@ -94,8 +93,8 @@ namespace era_engine
         const slice1d<vec3>& desired_velocities,
         const quat& desired_rotation,
         const vec3& input,
-        const bool desired_strafe,
-        const float strafe_direction = 0.0f)
+        bool desired_strafe,
+        float strafe_direction = 0.0f)
     {
         desired_rotations(0) = desired_rotation;
 
@@ -116,7 +115,7 @@ namespace era_engine
         const quat& rotation,
         const vec3& angular_velocity,
         const slice1d<quat>& desired_rotations,
-        const float halflife,
+        float halflife,
         const slice1d<float>& time_offsets)
     {
         rotations.set(rotation);
@@ -133,138 +132,111 @@ namespace era_engine
         }
     }
 
-	RTTR_REGISTRATION
-	{
-		using namespace rttr;
+    RTTR_REGISTRATION
+    {
+        using namespace rttr;
 
-		registration::class_<TrajectoryMotionSystem>("TrajectoryMotionSystem")
-			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
-			.method("update", &TrajectoryMotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
-                metadata("Before", std::vector<std::string>{"MotionSystem::update"}))
+        registration::class_<TrajectoryMotionSystem>("TrajectoryMotionSystem")
+            .constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
+            .method("update", &TrajectoryMotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
+                metadata("After", std::vector<std::string>{"MotionSystem::update"}))
             .method("debug_draw_update", &TrajectoryMotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
-	}
+    }
 
-	TrajectoryMotionSystem::TrajectoryMotionSystem(World* _world)
-		: System(_world)
-	{
-		renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
-		ASSERT(renderer_holder_rc != nullptr);
-	}
+    TrajectoryMotionSystem::TrajectoryMotionSystem(World* _world)
+        : System(_world)
+    {
+        renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
+        ASSERT(renderer_holder_rc != nullptr);
+    }
 
-	TrajectoryMotionSystem::~TrajectoryMotionSystem()
-	{
-	}
+    TrajectoryMotionSystem::~TrajectoryMotionSystem()
+    {
+    }
 
-	void TrajectoryMotionSystem::init()
-	{
-	}
+    void TrajectoryMotionSystem::init()
+    {
+    }
 
-	void TrajectoryMotionSystem::update(float dt)
-	{
-		using namespace animation;
+    void TrajectoryMotionSystem::update(float dt)
+    {
+        using namespace animation;
 
         for (auto [handle, transform_component, reciever_component, trajectory_component, motion_component] 
-			: world->group(components_group<TransformComponent, InputReceiverComponent, TrajectoryComponent, MotionComponent>).each())
+            : world->group(components_group<TransformComponent, InputReceiverComponent, TrajectoryComponent, MotionComponent>).each())
         {
             // Get gamepad stick states
-            const vec3& input = motion_component.get_desired_input();
+            const vec3 input = noz(motion_component.get_desired_input());
 
             // Get if strafe is desired
             bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
 
             const float strafe_direction = 0.0f;
 
-            // Get the desired gait (walk / run)
-            MotionUtils::desired_gait_update(
-                motion_component.desired_gait,
-                motion_component.desired_gait_velocity,
-                dt);
-
             // Get the desired simulation speeds based on the gait
             float simulation_fwrd_speed = lerpf(motion_component.run_fwrd_speed, motion_component.walk_fwrd_speed, motion_component.desired_gait);
             float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
             float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
 
-            // Get the desired velocity
-            vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
+            trajectory_desired_rotations_predict(
+                trajectory_component.trajectory_desired_rotations,
+                trajectory_component.trajectory_desired_velocities,
+                motion_component.desired_rotation,
                 input,
-                motion_component.simulation_rotation,
+                desired_strafe,
+                strafe_direction);
+
+            const trs& current_world_transform = transform_component.get_world_transform();
+
+            trajectory_rotations_predict(
+                trajectory_component.trajectory_rotations,
+                trajectory_component.trajectory_angular_velocities,
+                current_world_transform.rotation,
+                motion_component.angular_velocity,
+                trajectory_component.trajectory_desired_rotations,
+                motion_component.rotation_halflife,
+                trajectory_component.time_offsets);
+
+            trajectory_desired_velocities_predict(
+                trajectory_component.trajectory_desired_velocities,
+                trajectory_component.trajectory_rotations,
+                motion_component.desired_velocity,
+                input,
                 simulation_fwrd_speed,
                 simulation_side_speed,
                 simulation_back_speed);
 
-            // Get the desired rotation/direction
-            quat desired_rotation_curr = MotionUtils::desired_rotation_update(
-                motion_component.desired_rotation,
-                input,
-                strafe_direction,
-                desired_strafe,
-                desired_velocity_curr);
-
-            motion_component.desired_velocity_change_prev = motion_component.desired_velocity_change_curr;
-            motion_component.desired_velocity_change_curr = (desired_velocity_curr - motion_component.desired_velocity) / dt;
-            motion_component.desired_velocity = desired_velocity_curr;
-
-            motion_component.desired_rotation_change_prev = motion_component.desired_rotation_change_curr;
-            motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) / dt;
-			motion_component.desired_rotation = desired_rotation_curr;
-
-			trajectory_desired_rotations_predict(
-				trajectory_component.trajectory_desired_rotations,
-				trajectory_component.trajectory_desired_velocities,
-				motion_component.desired_rotation,
-				input,
-				desired_strafe);
-
-			trajectory_rotations_predict(
-				trajectory_component.trajectory_rotations,
-				trajectory_component.trajectory_angular_velocities,
-				motion_component.simulation_rotation,
-				motion_component.angular_velocity,
-				trajectory_component.trajectory_desired_rotations,
-				motion_component.rotation_halflife,
-                trajectory_component.time_offsets);
-
-			trajectory_desired_velocities_predict(
-				trajectory_component.trajectory_desired_velocities,
-				trajectory_component.trajectory_rotations,
-				motion_component.desired_velocity,
-				input,
-				simulation_fwrd_speed,
-				simulation_side_speed,
-				simulation_back_speed);
-
-			trajectory_positions_predict(
-				trajectory_component.trajectory_positions,
-				trajectory_component.trajectory_velocities,
-				trajectory_component.trajectory_accelerations,
+            trajectory_positions_predict(
+                trajectory_component.trajectory_positions,
+                trajectory_component.trajectory_velocities,
+                trajectory_component.trajectory_accelerations,
                 trajectory_component.time_offsets,
-				motion_component.simulation_position,
-				motion_component.velocity,
-				motion_component.acceleration,
-				trajectory_component.trajectory_desired_velocities,
-				motion_component.velocity_halflife);
-		}
-	}
+                current_world_transform.position,
+                motion_component.velocity,
+                motion_component.acceleration,
+                trajectory_component.trajectory_desired_velocities,
+                motion_component.velocity_halflife);
+        }
+    }
 
-	void TrajectoryMotionSystem::debug_draw_update(float dt)
-	{
-		if (draw_trajectories)
-		{
-			for (auto [handle, transform_component, trajectory_component]
-				: world->group(components_group<TransformComponent, TrajectoryComponent>).each())
-			{
-				draw_trajectory(
-					trajectory_component.trajectory_positions,
-					trajectory_component.trajectory_rotations,
-					vec4(1.0f, 0.0f, 0.0f, 1.0f));
-			}
-		}
-	}
+    void TrajectoryMotionSystem::debug_draw_update(float dt)
+    {
+        if (draw_trajectories)
+        {
+            for (auto [handle, transform_component, trajectory_component]
+                : world->group(components_group<TransformComponent, TrajectoryComponent>).each())
+            {
+                draw_trajectory(
+                    trajectory_component.trajectory_positions,
+                    trajectory_component.trajectory_rotations,
+                    vec4(1.0f, 0.0f, 0.0f, 1.0f));
+            }
+        }
+    }
 
     void TrajectoryMotionSystem::draw_trajectory(const slice1d<vec3>& trajectory_positions, 
-		const slice1d<quat>& trajectory_rotations, 
-		const vec4& color)
+        const slice1d<quat>& trajectory_rotations, 
+        const vec4& color)
     {
         for (int i = 1; i < trajectory_positions.size; i++)
         {

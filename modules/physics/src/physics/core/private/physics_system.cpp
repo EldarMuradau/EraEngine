@@ -360,13 +360,15 @@ namespace era_engine::physics
 				continue;
 			}
 
+			PxSceneWriteLock _scene_lock{ *PhysicsEngine::get_physics_core()->get_scene() };
+
 			vec3 offset = cct_component.velocity.get() * dt + cct_component.offset.get();
 			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING &&
 				!has_flag(cct_component.current_collision_flags, CharacterControllerCollisionFlags::DOWN))
 			{
 				offset += gravity * dt * dt / 2.0f;
 
-				cct_component.velocity.get_for_write().y = min(15.0f, cct_component.velocity.get().y + gravity.y * dt);
+				cct_component.velocity.get_for_write().y = cct_component.velocity.get().y + gravity.y * dt;
 			}
 
 			if (!fuzzy_equals(offset, vec3::zero))
@@ -377,7 +379,7 @@ namespace era_engine::physics
 			if (cct_component.move_mode == CharacterControllerMoveMode::WALKING &&
 				has_flag(cct_component.current_collision_flags, CharacterControllerCollisionFlags::DOWN))
 			{
-				cct_component.velocity.get_for_write().y = 0.5f * gravity.y;
+				cct_component.velocity.get_for_write().y = 0.1f * gravity.y;
 			}
 
 			cct_component.last_offset = cct_component.offset;
