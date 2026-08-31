@@ -61,6 +61,7 @@ namespace era_engine
 		last_input = current_input;
 		current_input = desired_input;
 		desired_input = vec3::zero;
+		applied_input_direction = vec3::zero;
 	}
 
 }

@@ -10,14 +10,10 @@
 
 #include "motion_matching/common.h"
 
-#include "rendering/ecs/renderer_holder_root_component.h"
-#include "rendering/debug_visualization.h"
-
 #include "core/cpu_profiling.h"
 #include "core/memory.h"
 #include "core/string.h"
 #include "core/ecs/input_receiver_component.h"
-#include "core/debug/debug_var.h"
 
 #include "engine/engine.h"
 
@@ -44,8 +40,6 @@ namespace era_engine
 	MotionSystem::MotionSystem(World* _world)
 		: System(_world)
 	{
-		renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
-		ASSERT(renderer_holder_rc != nullptr);
 	}
 
 	MotionSystem::~MotionSystem()
@@ -63,8 +57,21 @@ namespace era_engine
         for (auto&& [handle, transform_component, reciever_component, motion_component]
 			: world->group(components_group<TransformComponent, InputReceiverComponent, MotionComponent>).each())
         {
+			trs desired_world_transform = transform_component.get_world_transform();
+
 			// Get gamepad stick states
-			const vec3 input = noz(motion_component.get_desired_input());
+			const vec3 raw_input = noz(motion_component.get_desired_input());
+
+			vec3 desired_right = noz(desired_world_transform.rotation * vec3::right);
+			desired_right.y = 0.0f;
+
+			vec3 desired_forward = noz(desired_world_transform.rotation * vec3::forward);
+			desired_forward.y = 0.0f;
+
+			vec3 input = noz(desired_right * -raw_input.x +
+				desired_forward * -raw_input.z);
+
+			motion_component.applied_input_direction = input;
 
 			// Get if strafe is desired
 			bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
@@ -85,11 +92,10 @@ namespace era_engine
 			// Get the desired velocity
 			vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
 				input,
+				raw_input,
 				simulation_fwrd_speed,
 				simulation_side_speed,
 				simulation_back_speed);
-
-			trs desired_world_transform = transform_component.get_world_transform();
 
 			// Get the desired rotation/direction
 			quat desired_rotation_curr = MotionUtils::desired_rotation_update(

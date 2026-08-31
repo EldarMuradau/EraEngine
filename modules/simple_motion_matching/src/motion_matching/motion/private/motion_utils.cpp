@@ -13,10 +13,10 @@ namespace era_engine
 			dt);
 	}
 
-	vec3 MotionUtils::desired_velocity_update(const vec3& input, float fwrd_speed, float side_speed, float back_speed)
+	vec3 MotionUtils::desired_velocity_update(const vec3& input, const vec3& raw_input, float fwrd_speed, float side_speed, float back_speed)
 	{
         // Scale stick by forward, sideways and backwards speeds
-        vec3 local_desired_velocity = input.z > 0.0 ?
+        vec3 local_desired_velocity = raw_input.z > 0.0 ?
             vec3(side_speed, 0.0f, fwrd_speed) * input :
             vec3(side_speed, 0.0f, back_speed) * input;
 

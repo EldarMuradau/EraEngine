@@ -27,6 +27,7 @@
 
 namespace era_engine
 {
+    static DebugVar<bool> draw_rotation = DebugVar<bool>("motion_matching.debug_draw.draw_rotation", false);
     static DebugVar<bool> draw_trajectories = DebugVar<bool>("motion_matching.debug_draw.draw_trajectories", false);
 
     // Predict what the desired velocity will be in the 
@@ -36,9 +37,9 @@ namespace era_engine
     // the world space
     static void trajectory_desired_velocities_predict(
         slice1d<vec3> desired_velocities,
-        const slice1d<quat>& trajectory_rotations,
         const vec3& desired_velocity,
         const vec3& input,
+        const vec3& raw_input,
         float fwrd_speed,
         float side_speed,
         float back_speed)
@@ -49,6 +50,7 @@ namespace era_engine
         {
             desired_velocities(i) = MotionUtils::desired_velocity_update(
                 input,
+                raw_input,
                 fwrd_speed,
                 side_speed,
                 back_speed);
@@ -165,8 +167,11 @@ namespace era_engine
         for (auto [handle, transform_component, reciever_component, trajectory_component, motion_component] 
             : world->group(components_group<TransformComponent, InputReceiverComponent, TrajectoryComponent, MotionComponent>).each())
         {
+            const trs& current_world_transform = transform_component.get_world_transform();
+
             // Get gamepad stick states
-            const vec3 input = noz(motion_component.get_desired_input());
+            const vec3 raw_input = noz(motion_component.get_desired_input());
+            const vec3& input = motion_component.applied_input_direction;
 
             // Get if strafe is desired
             bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
@@ -178,6 +183,15 @@ namespace era_engine
             float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
             float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
 
+            trajectory_desired_velocities_predict(
+                trajectory_component.trajectory_desired_velocities,
+                motion_component.velocity,
+                input,
+                raw_input,
+                simulation_fwrd_speed,
+                simulation_side_speed,
+                simulation_back_speed);
+
             trajectory_desired_rotations_predict(
                 trajectory_component.trajectory_desired_rotations,
                 trajectory_component.trajectory_desired_velocities,
@@ -185,8 +199,6 @@ namespace era_engine
                 input,
                 desired_strafe,
                 strafe_direction);
-
-            const trs& current_world_transform = transform_component.get_world_transform();
 
             trajectory_rotations_predict(
                 trajectory_component.trajectory_rotations,
@@ -196,15 +208,6 @@ namespace era_engine
                 trajectory_component.trajectory_desired_rotations,
                 motion_component.rotation_halflife,
                 trajectory_component.time_offsets);
-
-            trajectory_desired_velocities_predict(
-                trajectory_component.trajectory_desired_velocities,
-                trajectory_component.trajectory_rotations,
-                motion_component.desired_velocity,
-                input,
-                simulation_fwrd_speed,
-                simulation_side_speed,
-                simulation_back_speed);
 
             trajectory_positions_predict(
                 trajectory_component.trajectory_positions,
@@ -221,15 +224,25 @@ namespace era_engine
 
     void TrajectoryMotionSystem::debug_draw_update(float dt)
     {
-        if (draw_trajectories)
+        if (draw_trajectories || draw_rotation)
         {
             for (auto [handle, transform_component, trajectory_component]
                 : world->group(components_group<TransformComponent, TrajectoryComponent>).each())
             {
-                draw_trajectory(
-                    trajectory_component.trajectory_positions,
-                    trajectory_component.trajectory_rotations,
-                    vec4(1.0f, 0.0f, 0.0f, 1.0f));
+                if (draw_trajectories)
+                {
+                    draw_trajectory(
+                        trajectory_component.trajectory_positions,
+                        trajectory_component.trajectory_rotations,
+                        vec4(1.0f, 0.0f, 0.0f, 1.0f));
+                }
+
+                if (draw_rotation)
+                {
+                    const trs& world_transform = transform_component.get_world_transform();
+                    vec3 dir = world_transform.rotation * vec3::forward;
+                    renderLine(world_transform.position, world_transform.position + 0.6f * dir, vec4(1.0f, 1.0f, 0.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
+                }
             }
         }
     }

@@ -16,6 +16,7 @@
 
 #include "editor/file_browser.h"
 #include "editor/asset_editor_panel.h"
+#include "editor/transformation_gizmo.h"
 
 #include "ecs/world_system_scheduler.h"
 
@@ -33,11 +34,9 @@
 #include <imgui/imgui_internal.h>
 
 #include <fstream>
-#include "editor/transformation_gizmo.h"
 
 namespace era_engine
 {
-
 	bool handleWindowsMessages();
 
 	static uint64 fenceValues[NUM_BUFFERED_FRAMES];
@@ -233,10 +232,14 @@ namespace era_engine
 		{
 			ZoneScopedN("Engine::update");
 
+			window->begin_frame(dt);
+
 			{
 				ZoneScopedN("Engine::start_frame");
 				status = newFrame(dt, *window);
 			}
+
+			window->update_input(dt);
 
 			uint64 gameplay_fixed_frame_id = 0;
 

@@ -21,6 +21,7 @@ namespace era_engine
 
         static vec3 desired_velocity_update(
             const vec3& input,
+            const vec3& raw_input,
             float fwrd_speed,
             float side_speed,
             float back_speed);

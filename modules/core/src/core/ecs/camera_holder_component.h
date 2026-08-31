@@ -17,7 +17,8 @@ namespace era_engine
 		{
 			FREE_CAMERA = 0,
 			FREE_CAMERA_ON_HOLD,
-			ATTACHED_TO_TRS
+			ATTACHED_TO_TRS,
+			USER_DEFINED
 		};
 
 		CameraHolderComponent() = default;

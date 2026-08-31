@@ -73,7 +73,7 @@ namespace era_engine
 				transform.set_world_transform(trs{ camera->position, camera->rotation, world_transform.scale });
 
 			}
-			else
+			else if(camera_holder.get_camera_type() == CameraHolderComponent::ATTACHED_TO_TRS)
 			{
 				camera->position = world_transform.position;
 				camera->rotation = world_transform.rotation;

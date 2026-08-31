@@ -20,7 +20,7 @@
   Path: E:\Era Engine\resources\assets\Sponza\textures\vase_round.70.cache.dds
 - Handle: 6800310450791564871
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_column_c_ddn.png
-- Handle: 12784261164619427233
+- Handle: 15551151396509773335
   Path: E:\Era Engine\resources\assets\test_character\animations\Turn To RunningL_mixamo.com_clip0.eanm
 - Handle: 1919302953557403697
   Path: E:\Era Engine\resources\assets\box.fbx
@@ -30,9 +30,9 @@
   Path: E:\Era Engine\resources\assets\particles\fire_explosion.tif
 - Handle: 9598111934430805766
   Path: E:\Era Engine\resources\assets\particles\smoke1.tif
-- Handle: 7428761584855914177
+- Handle: 6793190467288563317
   Path: E:\Era Engine\resources\assets\test_character\animations\Walking Backwards_mixamo.com_clip0.eanm
-- Handle: 17938674155742108697
+- Handle: 3607317070256123205
   Path: E:\Era Engine\resources\assets\test_character\animations\Start Walking_mixamo.com_clip0.eanm
 - Handle: 14242932336506848105
   Path: E:\Era Engine\resources\assets\sphere.fbx
@@ -170,7 +170,7 @@
   Path: E:\Era Engine\resources\assets\Sponza\textures\lion2_bump.png
 - Handle: 4651918906096188007
   Path: E:\Era Engine\resources\assets\Sponza\textures\lion_bump.png
-- Handle: 10901206607758488073
+- Handle: 1914309263135657314
   Path: E:\Era Engine\resources\assets\test_character\skeletons\Character_skeleton0.eskeleton
 - Handle: 18170244414700425555
   Path: E:\Era Engine\resources\assets\Sponza\textures\lion_ddn.png
@@ -180,7 +180,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Head01_R.png
 - Handle: 4293852562826903872
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_ddn.png
-- Handle: 12691466667835431351
+- Handle: 12341381008990725894
   Path: E:\Era Engine\resources\assets\test_character\animations\Backward Left Turn_mixamo.com_clip0.eanm
 - Handle: 18264720290007545026
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_arch_diff.70.cache.dds
@@ -212,7 +212,7 @@
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff.70.cache.dds
 - Handle: 16241365265737820248
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff.png
-- Handle: 15491960150941184234
+- Handle: 4246553370715601949
   Path: E:\Era Engine\resources\assets\test_character\animations\Stop Walking_mixamo.com_clip0.eanm
 - Handle: 14171990447494129928
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_curtain_blue_diff_spec.png
@@ -250,6 +250,8 @@
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_details_spec.png
 - Handle: 11080591271638263884
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_blue_diff.70.cache.dds
+- Handle: 1914195228543792324
+  Path: E:\Era Engine\resources\assets\test_character\mmdb\locomotion.emmdb
 - Handle: 16253588261538098844
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_blue_diff.png
 - Handle: 660942570137392705
@@ -272,7 +274,7 @@
   Path: E:\Era Engine\resources\assets\test_character\textures\Ch15_1001_Specular.png
 - Handle: 12683822993225387508
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_fabric_spec.png
-- Handle: 16305927362397040294
+- Handle: 566098285670073741
   Path: E:\Era Engine\resources\assets\test_character\animations\Change DirectionL_mixamo.com_clip0.eanm
 - Handle: 16448194824791667695
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_flagpole_diff.70.cache.dds
@@ -288,7 +290,7 @@
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff.70.cache.dds
 - Handle: 8909943154018700263
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff.png
-- Handle: 1353623832252102150
+- Handle: 9099106893444006753
   Path: E:\Era Engine\resources\assets\test_character\animations\Standing Idle_mixamo.com_clip0.eanm
 - Handle: 1007321896436054192
   Path: E:\Era Engine\resources\assets\Sponza\textures\sponza_floor_a_diff_spec.png
@@ -424,7 +426,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip37.eanm
 - Handle: 11461035144043690016
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip38.eanm
-- Handle: 12100993609979102097
+- Handle: 5036365982874288559
   Path: E:\Era Engine\resources\assets\test_character\animations\Run Forward Arc Right_mixamo.com_clip0.eanm
 - Handle: 16000559906411096912
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip40.eanm
@@ -440,7 +442,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip44.eanm
 - Handle: 5422551345105933084
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip45.eanm
-- Handle: 8411861396226603114
+- Handle: 6785239942857919397
   Path: E:\Era Engine\resources\assets\test_character\animations\Walking Right Turn_mixamo.com_clip0.eanm
 - Handle: 18124939154144027194
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip46.eanm
@@ -514,7 +516,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip76.eanm
 - Handle: 3502965314427135201
   Path: E:\Era Engine\resources\assets\test_character\Running Right Turn.fbx
-- Handle: 3560129633102083534
+- Handle: 9010845800547664781
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Walk Forward Arc 90R_mixamo.com_clip0.eanm
 - Handle: 5516236960142143705
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip77.eanm
@@ -522,7 +524,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip78.eanm
 - Handle: 1500215142981090857
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip79.eanm
-- Handle: 3923229138989295981
+- Handle: 17897958003970321655
   Path: E:\Era Engine\resources\assets\test_character\animations\Backward Right Turn_mixamo.com_clip0.eanm
 - Handle: 5310666969013554453
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip8.eanm
@@ -572,7 +574,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_M.71.cache.dds
 - Handle: 18291929594167731789
   Path: E:\Era Engine\resources\assets\springtrap\source\Springtrap.fbx
-- Handle: 16797489801859033372
+- Handle: 14964641649295185168
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Walk Forward Arc 90L_mixamo.com_clip0.eanm
 - Handle: 6238278539433767827
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_M.png
@@ -606,7 +608,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_BC.70.cache.dds
 - Handle: 5671794541249653195
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_BC.png
-- Handle: 5181184874279619338
+- Handle: 12161113382656333908
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Sequence 02R_mixamo.com_clip0.eanm
 - Handle: 4588793618060289496
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_M.71.cache.dds
@@ -614,7 +616,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_N.png
 - Handle: 18395964816537075746
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_R.71.cache.dds
-- Handle: 10617692170118028006
+- Handle: 7339026259017247845
   Path: E:\Era Engine\resources\assets\test_character\animations\Running_mixamo.com_clip0.eanm
 - Handle: 16271288689039639842
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Corpse01_R.png
@@ -650,7 +652,7 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_N.71.cache.dds
 - Handle: 9543147117147045894
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_R.71.cache.dds
-- Handle: 7602111031979559112
+- Handle: 2463338801554276408
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Backward DiagonalL_mixamo.com_clip0.eanm
 - Handle: 14673223638298308102
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_R.png
@@ -672,47 +674,47 @@
   Path: E:\Era Engine\resources\assets\terrain\grass_normal.bmp
 - Handle: 9695527258230799510
   Path: E:\Era Engine\resources\assets\terrain\rock.70.cache.dds
-- Handle: 12356897695087855303
+- Handle: 4364320666005369985
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Sequence 02L_mixamo.com_clip0.eanm
-- Handle: 6170289767741410853
+- Handle: 5378539245243704469
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Walk Start Turn 180 Left_mixamo.com_clip0.eanm
 - Handle: 8490303494844724852
   Path: E:\Era Engine\resources\assets\vehicledata\EngineDrive.json
-- Handle: 17607531222617179464
+- Handle: 7988497136962958635
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Right Turn_mixamo.com_clip0.eanm
-- Handle: 1697218165284507641
+- Handle: 7785437630161685793
   Path: E:\Era Engine\resources\assets\test_character\animations\Catwalk Walk Start Turn 180 Right_mixamo.com_clip0.eanm
-- Handle: 11086385123599841787
+- Handle: 13177144070799440473
   Path: E:\Era Engine\resources\assets\test_character\animations\Change DirectionR_mixamo.com_clip0.eanm
-- Handle: 11736891454334241369
+- Handle: 11748970416432387900
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Backward DiagonalR_mixamo.com_clip0.eanm
-- Handle: 2392022136558929056
+- Handle: 15204201334850228153
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Strafe Left_mixamo.com_clip0.eanm
-- Handle: 1119479117187401057
+- Handle: 3017964886787934483
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Strafe Right_mixamo.com_clip0.eanm
-- Handle: 16198886875493630373
+- Handle: 4061747199753316909
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Turn 180R_mixamo.com_clip0.eanm
-- Handle: 572585947269918221
+- Handle: 4057452502098619265
   Path: E:\Era Engine\resources\assets\test_character\animations\Run Forward Arc Left_mixamo.com_clip0.eanm
-- Handle: 5123126792043716822
+- Handle: 6429235645903736993
   Path: E:\Era Engine\resources\assets\test_character\animations\Run To Stop_mixamo.com_clip0.eanm
-- Handle: 8366530870230093719
+- Handle: 3935631872595920757
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Left Turn_mixamo.com_clip0.eanm
-- Handle: 13035877998021680762
+- Handle: 15894539209243173498
   Path: E:\Era Engine\resources\assets\test_character\animations\Running To Turn_mixamo.com_clip0.eanm
-- Handle: 506963380811166658
+- Handle: 9575241066980988820
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Turn 180L_mixamo.com_clip0.eanm
 - Handle: 3353839130496892286
   Path: E:\Era Engine\resources\assets\test_character\Catwalk Sequence 02L.fbx
-- Handle: 2065312267149511379
+- Handle: 16568861616353332792
   Path: E:\Era Engine\resources\assets\test_character\animations\Sprint_mixamo.com_clip0.eanm
-- Handle: 10446343880207170571
+- Handle: 6054911159769588479
   Path: E:\Era Engine\resources\assets\test_character\animations\Turn To RunningR_mixamo.com_clip0.eanm
-- Handle: 13575751633251351347
+- Handle: 13674513843379087077
   Path: E:\Era Engine\resources\assets\test_character\animations\Unarmed Idle_mixamo.com_clip0.eanm
-- Handle: 15738725251467925381
+- Handle: 10102915554646027693
   Path: E:\Era Engine\resources\assets\test_character\animations\Walking Left Turn_mixamo.com_clip0.eanm
-- Handle: 12062428501805167130
+- Handle: 2980975707124261686
   Path: E:\Era Engine\resources\assets\test_character\animations\Walking_mixamo.com_clip0.eanm
 - Handle: 10151547106365861774
   Path: E:\Era Engine\resources\assets\test_character\textures\Ch15_1001_Diffuse.70.cache.dds
@@ -722,7 +724,7 @@
   Path: E:\Era Engine\resources\assets\test_character\Catwalk Sequence 02R.fbx
 - Handle: 11346603018058317787
   Path: E:\Era Engine\resources\assets\test_character\Change DirectionR.fbx
-- Handle: 9795880271970849380
+- Handle: 1914311289142702531
   Path: E:\Era Engine\resources\assets\test_character\Character.emesh
 - Handle: 4011942937755542464
   Path: E:\Era Engine\resources\assets\test_character\Jog Backward DiagonalL.fbx

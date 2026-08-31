@@ -30,6 +30,9 @@ namespace era_engine
 		bool preventRoundedTopCorners = true;
 	};
 
+	class Win32InputHandler;
+	struct UserInput;
+
 	struct ERA_CORE_API win32_window
 	{
 		win32_window() = default;
@@ -64,8 +67,17 @@ namespace era_engine
 		void setIcon(const fs::path& filepath);
 		void changeTitle(const TCHAR* format, ...);
 
+		void init_input();
+
+		void begin_frame(float dt);
+		void update_input(float dt);
+
+		const UserInput& get_current_frame_input();
+
 		uint32 clientWidth, clientHeight;
 		HWND windowHandle = 0;
+
+		Win32InputHandler* input_handler = nullptr;
 
 	protected:
 		// Internal callbacks.

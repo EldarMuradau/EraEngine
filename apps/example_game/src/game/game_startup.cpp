@@ -42,6 +42,7 @@ namespace era_engine
 		window->setIcon(get_asset_path("/resources/icons/Logo.ico"));
 		window->setCustomWindowStyle();
 		window->maximize();
+		window->init_input();
 
 		World* game_world = new World(World::GAMEPLAY_WORLD_NAME);
 		game_world->get_system_scheduler()->set_fixed_update_rate(30.0f);

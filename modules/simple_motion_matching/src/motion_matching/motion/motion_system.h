@@ -8,8 +8,6 @@
 
 namespace era_engine
 {
-	class RendererHolderRootComponent;
-
 	class MotionSystem final : public System
 	{
 	public:
@@ -23,8 +21,5 @@ namespace era_engine
 		void reset_input(float dt);
 
 		ERA_VIRTUAL_REFLECT(System)
-
-	private:
-		RendererHolderRootComponent* renderer_holder_rc = nullptr;
 	};
 }

@@ -44,6 +44,7 @@
 #include <motion_matching/motion_data_component.h>
 
 #include "game/movement/character_locomotion_component.h"
+#include "game/camera/gameplay_tpp_camera_component.h"
 
 #include <audio/audio.h>
 
@@ -101,11 +102,11 @@ namespace era_engine
 		CollisionsHolderRootComponent* collisions_holder_rc = world->add_root_component<CollisionsHolderRootComponent>();
 		ASSERT(collisions_holder_rc != nullptr);
 
-		camera_entity = world->create_entity("CameraEntity");
+		/*camera_entity = world->create_entity("CameraEntity");
 		CameraHolderComponent* camera_holder_component = camera_entity.add_component<CameraHolderComponent>();
 		camera_holder_component->set_camera_type(CameraHolderComponent::FREE_CAMERA_ON_HOLD);
 		camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
-		camera_entity.add_component<InputSenderComponent>()->add_reciever(camera_entity.add_component<InputReceiverComponent>());
+		camera_entity.add_component<InputSenderComponent>()->add_reciever(camera_entity.add_component<InputReceiverComponent>());*/
 
 		PbrMaterialDesc default_plane_mat_desc;
 		default_plane_mat_desc.albedo = get_asset_path("/resources/assets/uv.jpg");
@@ -242,8 +243,14 @@ namespace era_engine
 				ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Character.emesh"), true, {}, mesh_creation_flags_animated);
 
 				character = world->create_entity("Character");
+				camera_entity = character;
 
 				character.add_component<MeshComponent>(mesh);
+				character.add_component<GameplayTppCameraComponent>();
+				CameraHolderComponent* camera_holder_component = character.add_component<CameraHolderComponent>();
+				camera_holder_component->set_camera_type(CameraHolderComponent::USER_DEFINED);
+				camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
+				character.add_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
 
 				TransformComponent* transform_component = character.get_component<TransformComponent>();
 				transform_component->set_world_transform(trs{ vec3(0.0f, 0.0f, 2.0f), quat::identity, vec3(1.0f) });
@@ -285,7 +292,6 @@ namespace era_engine
 				trajectory_component->time_offsets(2) = 0.32f;
 				trajectory_component->time_offsets(3) = 0.54f;
 				trajectory_component->time_offsets(4) = 0.76f;
-				camera_entity.get_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
 
 				RagdollJointIds joint_init_ids;
 				joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("mixamorig:HeadTop_End");
