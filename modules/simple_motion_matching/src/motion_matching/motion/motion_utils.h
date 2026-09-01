@@ -21,14 +21,14 @@ namespace era_engine
 
         static vec3 desired_velocity_update(
             const vec3& input,
-            const vec3& raw_input,
+            const quat& rotation,
             float fwrd_speed,
             float side_speed,
             float back_speed);
 
         static quat desired_rotation_update(
             const quat& desired_rotation,
-            const vec3& input,
+            bool has_input,
             float strafe_direction,
             bool desired_strafe,
             const vec3& desired_velocity);

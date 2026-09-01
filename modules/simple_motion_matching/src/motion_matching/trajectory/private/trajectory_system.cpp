@@ -39,7 +39,7 @@ namespace era_engine
         slice1d<vec3> desired_velocities,
         const vec3& desired_velocity,
         const vec3& input,
-        const vec3& raw_input,
+        const quat& rotation,
         float fwrd_speed,
         float side_speed,
         float back_speed)
@@ -50,7 +50,7 @@ namespace era_engine
         {
             desired_velocities(i) = MotionUtils::desired_velocity_update(
                 input,
-                raw_input,
+                rotation,
                 fwrd_speed,
                 side_speed,
                 back_speed);
@@ -94,7 +94,7 @@ namespace era_engine
         slice1d<quat> desired_rotations,
         const slice1d<vec3>& desired_velocities,
         const quat& desired_rotation,
-        const vec3& input,
+        bool has_input,
         bool desired_strafe,
         float strafe_direction = 0.0f)
     {
@@ -104,7 +104,7 @@ namespace era_engine
         {
             desired_rotations(i) = MotionUtils::desired_rotation_update(
                 desired_rotations(i - 1),
-                input,
+                has_input,
                 strafe_direction,
                 desired_strafe,
                 desired_velocities(i));
@@ -170,8 +170,7 @@ namespace era_engine
             const trs& current_world_transform = transform_component.get_world_transform();
 
             // Get gamepad stick states
-            const vec3 raw_input = noz(motion_component.get_desired_input());
-            const vec3& input = motion_component.applied_input_direction;
+            const vec3 input = noz(motion_component.get_desired_input());
 
             // Get if strafe is desired
             bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
@@ -187,7 +186,7 @@ namespace era_engine
                 trajectory_component.trajectory_desired_velocities,
                 motion_component.velocity,
                 input,
-                raw_input,
+                motion_component.input_movement_rotation,
                 simulation_fwrd_speed,
                 simulation_side_speed,
                 simulation_back_speed);
@@ -196,7 +195,7 @@ namespace era_engine
                 trajectory_component.trajectory_desired_rotations,
                 trajectory_component.trajectory_desired_velocities,
                 motion_component.desired_rotation,
-                input,
+                length(input) > 0.01f,
                 desired_strafe,
                 strafe_direction);
 
@@ -234,6 +233,7 @@ namespace era_engine
                     draw_trajectory(
                         trajectory_component.trajectory_positions,
                         trajectory_component.trajectory_rotations,
+                        trajectory_component.trajectory_velocities,
                         vec4(1.0f, 0.0f, 0.0f, 1.0f));
                 }
 
@@ -249,6 +249,7 @@ namespace era_engine
 
     void TrajectoryMotionSystem::draw_trajectory(const slice1d<vec3>& trajectory_positions, 
         const slice1d<quat>& trajectory_rotations, 
+        const slice1d<vec3>& trajectory_velocities,
         const vec4& color)
     {
         for (int i = 1; i < trajectory_positions.size; i++)
@@ -258,6 +259,7 @@ namespace era_engine
 
             vec3 dir = trajectory_rotations(i) * vec3(0.0f, 0.0f, 1.0f);
             renderLine(point, point + 0.6f * dir, color, renderer_holder_rc->ldrRenderPass);
+            renderLine(point, point + 0.3f * trajectory_velocities(i), vec4(1.0f, 1.0f, 1.0f, 1.0f), renderer_holder_rc->ldrRenderPass);
             renderLine(trajectory_positions(i - 1), point, color, renderer_holder_rc->ldrRenderPass);
         }
     }

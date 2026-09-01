@@ -25,6 +25,9 @@ namespace era_engine
 
 		void apply_input(const vec3& input, bool force = false);
 
+		const quat& get_input_movement_rotation() const;
+		void set_input_movement_rotation(const quat& new_input_rotation);
+
 		ERA_VIRTUAL_REFLECT(Component)
 
 	protected:
@@ -35,7 +38,7 @@ namespace era_engine
 		vec3 last_input = vec3::zero;
 		vec3 desired_input = vec3::zero;
 
-		vec3 applied_input_direction = vec3::zero;
+		quat input_movement_rotation = quat::identity;
 
 		vec3 desired_velocity = vec3::zero;
 		vec3 desired_velocity_change_curr = vec3::zero;

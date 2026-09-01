@@ -53,11 +53,11 @@ namespace era_engine
 
 			camera->setViewport(renderer_holder_rc->width, renderer_holder_rc->height);
 
-			const trs& world_transform = transform.get_world_transform();
-
 			if (camera_holder.get_camera_type() == CameraHolderComponent::FREE_CAMERA ||
 				(camera_holder.get_camera_type() == CameraHolderComponent::FREE_CAMERA_ON_HOLD && user_input.mouse.right.down))
 			{
+				const trs& world_transform = transform.get_world_transform();
+
 				const float CAMERA_MOVEMENT_SPEED = 8.0f;
 				const float CAMERA_SENSITIVITY = 4.0f;
 
@@ -72,14 +72,18 @@ namespace era_engine
 
 				transform.set_world_transform(trs{ camera->position, camera->rotation, world_transform.scale });
 
+				camera->updateMatrices();
+
 			}
 			else if(camera_holder.get_camera_type() == CameraHolderComponent::ATTACHED_TO_TRS)
 			{
+				const trs& world_transform = transform.get_world_transform();
+
 				camera->position = world_transform.position;
 				camera->rotation = world_transform.rotation;
-			}
 
-			camera->updateMatrices();
+				camera->updateMatrices();
+			}
 		}
 
 		for (auto [handle, camera_holder, transform] : world->group(components_group<CameraHolderComponent, TransformComponent>, components_group<InputReceiverComponent>).each())

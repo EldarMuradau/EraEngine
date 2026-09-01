@@ -56,12 +56,21 @@ namespace era_engine
 		}
 	}
 
+	const quat& MotionComponent::get_input_movement_rotation() const
+	{
+		return input_movement_rotation;
+	}
+
+	void MotionComponent::set_input_movement_rotation(const quat& new_input_rotation)
+	{
+		input_movement_rotation = new_input_rotation;
+	}
+
 	void MotionComponent::apply_desired_input()
 	{
 		last_input = current_input;
 		current_input = desired_input;
 		desired_input = vec3::zero;
-		applied_input_direction = vec3::zero;
 	}
 
 }

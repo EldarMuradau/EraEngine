@@ -27,6 +27,7 @@ namespace era_engine
 		void draw_trajectory(
 			const slice1d<vec3>& trajectory_positions,
 			const slice1d<quat>& trajectory_rotations,
+			const slice1d<vec3>& trajectory_velocities,
 			const vec4& color);
 
 	private:

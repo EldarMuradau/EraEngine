@@ -60,18 +60,7 @@ namespace era_engine
 			trs desired_world_transform = transform_component.get_world_transform();
 
 			// Get gamepad stick states
-			const vec3 raw_input = noz(motion_component.get_desired_input());
-
-			vec3 desired_right = noz(desired_world_transform.rotation * vec3::right);
-			desired_right.y = 0.0f;
-
-			vec3 desired_forward = noz(desired_world_transform.rotation * vec3::forward);
-			desired_forward.y = 0.0f;
-
-			vec3 input = noz(desired_right * -raw_input.x +
-				desired_forward * -raw_input.z);
-
-			motion_component.applied_input_direction = input;
+			const vec3 input = noz(motion_component.get_desired_input());
 
 			// Get if strafe is desired
 			bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
@@ -92,7 +81,7 @@ namespace era_engine
 			// Get the desired velocity
 			vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
 				input,
-				raw_input,
+				motion_component.input_movement_rotation,
 				simulation_fwrd_speed,
 				simulation_side_speed,
 				simulation_back_speed);
@@ -100,7 +89,7 @@ namespace era_engine
 			// Get the desired rotation/direction
 			quat desired_rotation_curr = MotionUtils::desired_rotation_update(
 				desired_world_transform.rotation,
-				input,
+				length(input) > 0.01f,
 				strafe_direction,
 				desired_strafe,
 				desired_velocity_curr);

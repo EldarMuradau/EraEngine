@@ -13,17 +13,17 @@ namespace era_engine
 			dt);
 	}
 
-	vec3 MotionUtils::desired_velocity_update(const vec3& input, const vec3& raw_input, float fwrd_speed, float side_speed, float back_speed)
+	vec3 MotionUtils::desired_velocity_update(const vec3& input, const quat& rotation, float fwrd_speed, float side_speed, float back_speed)
 	{
         // Scale stick by forward, sideways and backwards speeds
-        vec3 local_desired_velocity = raw_input.z > 0.0 ?
+        vec3 local_desired_velocity = input.z < 0.0 ?
             vec3(side_speed, 0.0f, fwrd_speed) * input :
             vec3(side_speed, 0.0f, back_speed) * input;
 
-        return local_desired_velocity;
+        return rotation * local_desired_velocity;
     }
 
-	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, const vec3& input, float strafe_direction, bool desired_strafe, const vec3& desired_velocity)
+	quat MotionUtils::desired_rotation_update(const quat& desired_rotation, bool has_input, float strafe_direction, bool desired_strafe, const vec3& desired_velocity)
 	{
         quat desired_rotation_curr = desired_rotation;
 
@@ -39,7 +39,7 @@ namespace era_engine
 
         // If strafe is not active the desired direction comes from the left 
         // stick as long as that stick is being used
-        else if (length(input) > 0.01f)
+        else if (has_input)
         {
             vec3 desired_direction = normalize(desired_velocity);
             return quat(vec3::up, atan2f(desired_direction.x, desired_direction.z));

@@ -18,8 +18,6 @@ namespace era_engine
 			float pitch = 20.0f; // -Vertical rotation
 			float distance = 5.0f;
 			float height = 2.0f;
-			vec3 smoothed_position;
-			bool initialized = false;
 		};
 
 		float camera_sensitivity = 0.07f;

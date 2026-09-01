@@ -184,6 +184,10 @@ namespace era_engine
 
 				current_input.mouse.captured = true;
 			}
+			else
+			{
+				release_mouse();
+			}
 		}
 
 		void release_mouse()
