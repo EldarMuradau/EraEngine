@@ -8,19 +8,15 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2022
 
     strategy:
       fail-fast: false
 
-      matrix:
-        os: [windows-latest]
-        build_type: [Release]
-        c_compiler: [cl]
-        include:
-          - os: windows-latest
-            c_compiler: cl
-            cpp_compiler: cl
+    env:
+      BUILD_TYPE: Release
+      CC: cl
+      CXX: cl
 
     steps:
     - uses: actions/checkout@v4
@@ -38,4 +34,4 @@ jobs:
     - name: Build
       run: |
         cd _build
-        cmake --build . --target unittests --config ${{ matrix.build_type }}
+        cmake --build . --target unittests --config ${{ env.BUILD_TYPE }}
