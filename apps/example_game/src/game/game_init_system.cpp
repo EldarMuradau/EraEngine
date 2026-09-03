@@ -253,7 +253,7 @@ namespace era_engine
 				character.add_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
 
 				TransformComponent* transform_component = character.get_component<TransformComponent>();
-				transform_component->set_world_transform(trs{ vec3(0.0f, 0.0f, 2.0f), quat::identity, vec3(1.0f) });
+				transform_component->set_world_transform(trs{ vec3(0.0f, 1.0f, 2.0f), quat::identity, vec3(1.0f) });
 
 				mesh->load_job.wait_for_completion();
 
@@ -270,7 +270,7 @@ namespace era_engine
 				animation_component->loop = true;
 
 				{
-					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm"));
+					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Walking_mixamo.com_clip0.eanm"));
 					anim_clip->load_job.wait_for_completion();
 					animation_component->current_animation = anim_clip;
 					animation_component->current_anim_position = 0.0f;
@@ -720,152 +720,65 @@ namespace era_engine
 
 				animation_component->enable_root_motion = false;
 
-				character.add_component<MotionDataComponent>();
-				character.add_component<CharacterLocomotionComponent>();
+				//character.add_component<MotionDataComponent>();
+				//character.add_component<CharacterLocomotionComponent>();
 
-				character.add_component<MotionMatchingComponent>();
+				//character.add_component<MotionMatchingComponent>();
+
+				RagdollSettings settings;
+				settings.shapes_settings.head_radius = 0.1f;
+				settings.shapes_settings.neck_radius = 0.05f;
+				settings.shapes_settings.clavicle_radius = 0.035f;
+				settings.shapes_settings.arm_radius = 0.058f;
+				settings.shapes_settings.forearm_radius = 0.058f;
+				settings.shapes_settings.foot_radius = 0.035f;
+				settings.shapes_settings.hand_radius = 0.035f;
+
+				//settings.local_shape_settings.head_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
+				//settings.local_shape_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
+				//settings.local_shape_settings.thorax_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
+				settings.local_shape_settings.abdomen_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
+				settings.local_shape_settings.pelvis_joint_adjastment = vec3(0.0f, -0.03f, 0.0f);
+				//settings.local_shape_settings.left_clavicle_joint_adjastment = vec3(0.0f, 0.00f, 0.0f);
+				//settings.local_shape_settings.left_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
+				//settings.local_shape_settings.left_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(-10.0f));
+				//settings.local_shape_settings.left_forearm_joint_adjastment = vec3(0.05f, 0.0f, 0.0f);
+				//settings.local_shape_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.00f, 0.0f);
+				//settings.local_shape_settings.right_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
+				//settings.local_shape_settings.right_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(10.0f));
+				//settings.local_shape_settings.right_forearm_joint_adjastment = vec3(-0.05f, 0.0f, 0.0f);
+
+				settings.object_space_settings.head_end_joint_adjastment = vec3(0.0f, 0.15f, 0.0f);
+				settings.object_space_settings.head_joint_adjastment = vec3(0.0f, 0.12f, 0.0f);
+				settings.object_space_settings.neck_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
+				//settings.object_space_settings.thorax_joint_adjastment = vec3(0.0f, 0.25f, 0.0f);
+				settings.object_space_settings.abdomen_joint_adjastment = vec3(0.0f, 0.07f, 0.0f);
+				settings.object_space_settings.pelvis_joint_adjastment = vec3(0.0f, -0.03f, 0.0f);
+				//settings.object_space_settings.left_clavicle_joint_adjastment = vec3(-0.0f, 0.0f, 0.0f);
+				settings.object_space_settings.left_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
+				//settings.object_space_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
+				settings.object_space_settings.right_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
+				settings.object_space_settings.left_foot_end_joint_adjastment = vec3(0.0f, 0.0f, -0.04f);
+				settings.object_space_settings.right_foot_end_joint_adjastment = vec3(0.0f, 0.0f, -0.04f);
+
+				settings.scaler_settings.upper_body_height_modifier = 0.55f;
+				settings.scaler_settings.upper_body_radius_modifier = 0.5f;
+				settings.scaler_settings.middle_body_height_modifier = 0.75f;
+				settings.scaler_settings.middle_body_radius_modifier = 0.75f;
+				//settings.scaler_settings.lower_body_height_modifier = 1.0f;
+				settings.scaler_settings.lower_body_radius_modifier = 1.0f;
+				settings.scaler_settings.clavicle_height_modifier = 1.0f;
+				settings.scaler_settings.arm_height_modifier = 1.6f;
+				settings.scaler_settings.forearm_height_modifier = 1.3f;
+
+				//RagdollComponent* ragdoll_component = character.add_component<RagdollComponent>();
+				//ragdoll_component->simulated = true;
+				PhysicalAnimationComponent* ragdoll_component = character.add_component<PhysicalAnimationComponent>();
+				ragdoll_component->joint_init_ids = joint_init_ids;
+				ragdoll_component->settings = settings;
+
+				//character.add_component<RagdollDismembermentComponent>();
 			}
-		}
-
-		
-		if (false)
-		{
-			//ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/springtrap/source/Springtrap.fbx"), mesh_creation_flags_unreal_animated_asset);
-			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/springtrap/source/Springtrap.emesh"), true, {}, mesh_creation_flags_animated | mesh_creation_flags_compact);
-
-			Entity tiran = world->create_entity("Tiran");
-
-			tiran.add_component<MeshComponent>(mesh);
-
-			TransformComponent* transform_component = tiran.get_component<TransformComponent>();
-			transform_component->set_world_transform(trs{vec3(-5.0f, -4.7f, 5.0f), quat::identity, vec3(1.0f)});
-
-			mesh->load_job.wait_for_completion();
-
-			SkeletonComponent* skeleton_component = tiran.add_component<SkeletonComponent>();
-
-			AnimationComponent* animation_component = tiran.add_component<AnimationComponent>();
-			animation_component->play = true;
-			animation_component->loop = true;
-
-			{
-				ref<Skeleton> tiran_skeleton = provider.load_game_asset_from_file<Skeleton>(get_asset_path("/resources/assets/springtrap/source/skeletons/skeleton0.eskeleton"));
-				tiran_skeleton->load_job.wait_for_completion();
-				skeleton_component->skeleton = tiran_skeleton;
-				//skeleton_component->draw_sceleton = true;
-				skeleton_component->apply_pose(tiran_skeleton->get_default_pose());
-			}
-
-			{
-				ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/springtrap/source/animations/animation_clip74.eanm"));
-				anim_clip->load_job.wait_for_completion();
-				animation_component->current_animation = anim_clip;
-				animation_component->current_anim_position = 0.0f;
-			}
-
-			const ref<Skeleton> skeleton = skeleton_component->skeleton;
-
-			RagdollJointIds joint_init_ids;
-			joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("joint_Head_01");
-			joint_init_ids.head_idx = skeleton->name_to_joint_id.at("joint_Head_01");
-			joint_init_ids.neck_idx = skeleton->name_to_joint_id.at("joint_NeckA_01");
-
-			joint_init_ids.spine_03_idx = skeleton->name_to_joint_id.at("joint_TorsoC_01");
-			joint_init_ids.spine_02_idx = skeleton->name_to_joint_id.at("joint_TorsoB_01");
-			joint_init_ids.spine_01_idx = skeleton->name_to_joint_id.at("joint_TorsoA_01");
-			joint_init_ids.pelvis_idx = skeleton->name_to_joint_id.at("joint_Pelvis_01");
-
-			joint_init_ids.clavicle_l_idx = skeleton->name_to_joint_id.at("joint_ClavicleLT_01");
-			joint_init_ids.clavicle_r_idx = skeleton->name_to_joint_id.at("joint_ClavicleRT_01");
-
-			joint_init_ids.root_idx = skeleton->name_to_joint_id.at("joint_Char");
-			joint_init_ids.attachment_idx = skeleton->name_to_joint_id.at("joint_Pelvis_01");
-
-			joint_init_ids.thigh_l_idx = skeleton->name_to_joint_id.at("joint_HipLT_01");
-			joint_init_ids.calf_l_idx = skeleton->name_to_joint_id.at("joint_KneeLT_01");
-			joint_init_ids.foot_l_idx = skeleton->name_to_joint_id.at("joint_FootLT_01");
-			joint_init_ids.foot_end_l_idx = skeleton->name_to_joint_id.at("joint_ToeLT_01");
-
-			joint_init_ids.thigh_r_idx = skeleton->name_to_joint_id.at("joint_HipRT_01");
-			joint_init_ids.calf_r_idx = skeleton->name_to_joint_id.at("joint_KneeRT_01");
-			joint_init_ids.foot_r_idx = skeleton->name_to_joint_id.at("joint_FootRT_01");
-			joint_init_ids.foot_end_r_idx = skeleton->name_to_joint_id.at("joint_ToeRT_01");
-
-			joint_init_ids.upperarm_l_idx = skeleton->name_to_joint_id.at("joint_ShoulderLT_01");
-			joint_init_ids.lowerarm_l_idx = skeleton->name_to_joint_id.at("joint_ElbowLT_01");
-			joint_init_ids.hand_l_idx = skeleton->name_to_joint_id.at("joint_HandLT_01");
-			joint_init_ids.hand_end_l_idx = skeleton->name_to_joint_id.at("joint_FingerBLT_01");
-
-			joint_init_ids.upperarm_r_idx = skeleton->name_to_joint_id.at("joint_ShoulderRT_01");
-			joint_init_ids.lowerarm_r_idx = skeleton->name_to_joint_id.at("joint_ElbowRT_01");
-			joint_init_ids.hand_r_idx = skeleton->name_to_joint_id.at("joint_HandRT_01");
-			joint_init_ids.hand_end_r_idx = skeleton->name_to_joint_id.at("joint_FingerBRT_01");
-
-			RagdollSettings settings;
-			settings.shapes_settings.head_radius = 0.13f;
-			settings.shapes_settings.clavicle_radius = 0.071f;
-			settings.shapes_settings.arm_radius = 0.065f;
-			settings.shapes_settings.foot_radius = 0.05f;
-			settings.shapes_settings.hand_radius = 0.05f;
-
-			settings.local_shape_settings.head_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
-			//settings.local_shape_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
-			settings.local_shape_settings.thorax_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
-			//settings.local_shape_settings.abdomen_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
-			settings.local_shape_settings.pelvis_joint_adjastment = vec3(0.0f, -0.05f, 0.0f);
-			settings.local_shape_settings.left_clavicle_joint_adjastment = vec3(0.0f, 0.06f, 0.0f);
-			settings.local_shape_settings.left_arm_joint_adjastment = vec3(0.05f, 0.06f, 0.0f);
-			settings.local_shape_settings.left_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(-10.0f));
-			settings.local_shape_settings.left_forearm_joint_adjastment = vec3(0.05f, 0.0f, 0.0f);
-			settings.local_shape_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.06f, 0.0f);
-			settings.local_shape_settings.right_arm_joint_adjastment = vec3(-0.05f, 0.06f, 0.0f);
-			settings.local_shape_settings.right_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(10.0f));
-			settings.local_shape_settings.right_forearm_joint_adjastment = vec3(-0.05f, 0.0f, 0.0f);
-
-			settings.object_space_settings.head_end_joint_adjastment = vec3(0.0f, 0.35f, 0.0f);
-			settings.object_space_settings.head_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
-			settings.object_space_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
-			settings.object_space_settings.thorax_joint_adjastment = vec3(0.0f, 0.25f, 0.0f);
-			settings.object_space_settings.abdomen_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
-			settings.object_space_settings.pelvis_joint_adjastment = vec3(0.0f, -0.1f, 0.0f);
-			settings.object_space_settings.left_clavicle_joint_adjastment = vec3(-0.075f, 0.1f, 0.0f);
-			settings.object_space_settings.left_arm_joint_adjastment = vec3(0.0f, 0.075f, 0.0f);
-			settings.object_space_settings.right_clavicle_joint_adjastment = vec3(0.075f, 0.1f, 0.0f);
-			settings.object_space_settings.right_arm_joint_adjastment = vec3(0.0f, 0.075f, 0.0f);
-			settings.object_space_settings.left_foot_end_joint_adjastment = vec3(0.0f, 0.0f, 0.04f);
-			settings.object_space_settings.right_foot_end_joint_adjastment = vec3(0.0f, 0.0f, 0.04f);
-
-			settings.scaler_settings.upper_body_height_modifier = 0.32f;
-			settings.scaler_settings.upper_body_radius_modifier = 0.8f;
-			settings.scaler_settings.middle_body_height_modifier = 0.45f;
-			settings.scaler_settings.middle_body_radius_modifier = 0.45f;
-			settings.scaler_settings.lower_body_height_modifier = 1.0f;
-			settings.scaler_settings.lower_body_radius_modifier = 1.1f;
-			settings.scaler_settings.clavicle_height_modifier = 1.2f;
-			settings.scaler_settings.arm_height_modifier = 1.0f;
-			settings.scaler_settings.forearm_height_modifier = 1.3f;
-
-			//CharacterControllerComponent* cct_component = tiran.add_component<CharacterControllerComponent>();
-			//cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
-			//cct_component->height = 1.2f;
-			//cct_component->radius = 0.3f;
-			//cct_component->step_offset = 0.05f;
-
-			//tiran.add_component<MotionComponent>();
-			//TrajectoryComponent* trajectory_component = tiran.add_component<TrajectoryComponent>();
-			//trajectory_component->time_offsets(0) = 0.0f;
-			//trajectory_component->time_offsets(1) = 0.06f;
-			//trajectory_component->time_offsets(2) = 0.12f;
-			//trajectory_component->time_offsets(3) = 0.18f;
-			//camera_entity.get_component<InputSenderComponent>()->add_reciever(tiran.add_component<InputReceiverComponent>());
-
-			//RagdollComponent* ragdoll_component = tiran.add_component<RagdollComponent>();
-			//ragdoll_component->simulated = true;
-			PhysicalAnimationComponent* ragdoll_component = tiran.add_component<PhysicalAnimationComponent>();
-			ragdoll_component->joint_init_ids = joint_init_ids;
-			ragdoll_component->settings = settings;
-
-			//tiran.add_component<RagdollDismembermentComponent>();
 		}
 
 		//{
@@ -890,7 +803,7 @@ namespace era_engine
 
 		//if (auto mesh = import_mesh_from_file_async(get_asset_path("/resources/assets/box.fbx"), mesh_creation_flags_default))
 		{
-			ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box.emesh"), true, {}, mesh_creation_flags_default);
+			/*ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/box.emesh"), true, {}, mesh_creation_flags_default);
 			mesh->load_job.wait_for_completion();
 
 			Entity box = world->create_entity("Box");
@@ -903,7 +816,7 @@ namespace era_engine
 			descructible_component->fracture_desc.chunks_count = 10;
 			descructible_component->fracture_desc.density = 100.0f;
 			descructible_component->fracture_desc.break_force = 200.0f;
-			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.7f);
+			descructible_component->material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.8f, 0.7f);*/
 		}
 
 		//{

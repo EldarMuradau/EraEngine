@@ -396,6 +396,8 @@ namespace era_engine
 			{
 				ZoneScopedN("WorldSystemScheduler::fixed_update_loop");
 
+				//float fixed_dt = std::chrono::duration<float>(elapsed).count();
+				//update_fixed(fixed_dt);
 				update_fixed(world->fixed_update_dt);
 
 				{

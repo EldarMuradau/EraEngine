@@ -360,17 +360,16 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
+		PxSceneWriteLock write_lock(*scene);
+
 		{
 			ZoneScopedN("Physics::simulate");
-			PxSceneWriteLock write_lock(*scene);
 			bool status = scene->simulate(dt, nullptr, scratch_mem_block, scratch_mem_block_size);
 			ASSERT(status);
 		}
 
 		{
 			ZoneScopedN("Physics::fetchResults");
-
-			PxSceneWriteLock write_lock(*scene);
 			scene->fetchResults(true);
 		}
 	}

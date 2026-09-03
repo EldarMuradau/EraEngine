@@ -36,8 +36,8 @@ namespace era_engine::physics
 
 		void update_ragdolls(float dt);
 
+		void update_profile_data(float);
 	private:
-
 		void filter_states_by_collisions(float dt) const;
 
 		void update_chains_states(const PhysicalAnimationComponent* physical_animation_component, float dt) const;

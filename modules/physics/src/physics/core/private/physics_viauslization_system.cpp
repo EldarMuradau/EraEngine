@@ -50,7 +50,7 @@ namespace era_engine::physics
 
 		size_t nb_lines = 0;
 
-		PhysicsEngine::execute_read([&]() {
+		PhysicsEngine::execute_write([&]() {
 			const PxRenderBuffer* rb = &scene->getRenderBuffer();
 
 			lines = rb->getLines();

@@ -5,6 +5,7 @@
 #include "core/log.h"
 #include "core/string.h"
 #include "core/cpu_profiling.h"
+#include "core/ecs/private/input_system.h"
 #include "core/ecs/input_receiver_component.h"
 
 #include "rendering/mesh_shader.h"
@@ -206,7 +207,7 @@ namespace era_engine
 
 		endFrameCommon();
 
-		UserInput input{};
+		const UserInput& input = get_current_frame_input();
 		renderer->endFrame(&input);
 	}
 

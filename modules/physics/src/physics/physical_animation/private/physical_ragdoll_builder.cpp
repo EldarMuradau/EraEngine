@@ -69,28 +69,29 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 400.0f,
-		const float max_angular_velocity = 400.0f)
+		const float max_contact_impulse = 2000.0f,
+		const float max_angular_velocity = 800.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
-		dynamic_body_component->ccd.get_for_write() = true;
-		dynamic_body_component->max_depenetration_velocity = 200.0f;
+		dynamic_body_component->max_depenetration_velocity = 400.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
-		dynamic_body_component->linear_damping.get_for_write() = 0.15f;
-		dynamic_body_component->angular_damping.get_for_write() = 0.25f;
+		dynamic_body_component->linear_damping.get_for_write() = 0.1f;
+		dynamic_body_component->angular_damping.get_for_write() = 0.2f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
-		dynamic_body_component->solver_position_iterations_count.get_for_write() = 64;
+		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
 
 		if(PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver)
 		{
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 8;
+			dynamic_body_component->ccd.get_for_write() = false;
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
 		}
 		else
 		{
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 32;
+			dynamic_body_component->ccd.get_for_write() = true;
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 16;
 		}
 
 		return dynamic_body_component;
@@ -271,8 +272,8 @@ namespace era_engine::physics
 		joint_component->perform_slerp_drive = motor_drive.enable_slerp_drive;
 
 		joint_component->enable_collision.get_for_write() = false;
-		joint_component->improved_slerp.get_for_write() = true;
 		joint_component->drive_limits_are_forces.get_for_write() = true;
+		joint_component->disable_preprocessing.get_for_write() = true;
 
 		joint_component->linear_x_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		joint_component->linear_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
@@ -284,28 +285,28 @@ namespace era_engine::physics
 
 		joint_component->linear_drive_stiffness = motor_drive.linear_drive_stiffness;
 		joint_component->linear_drive_damping = motor_drive.linear_damping_range.x;
-		joint_component->linear_drive_force_limit = motor_drive.max_force;
+		joint_component->linear_drive_force_limit = motor_drive.max_linear_force;
 		joint_component->linear_drive_accelerated = motor_drive.accelerated;
 
 		e1_limb_component->drive_joint_component = ComponentPtr{ joint_component };
 
 		if (motor_drive.enable_slerp_drive)
 		{
-			joint_component->slerp_drive_force_limit.get_for_write() = motor_drive.max_force;
+			joint_component->slerp_drive_force_limit.get_for_write() = motor_drive.max_angular_force;
 			joint_component->slerp_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
 			joint_component->slerp_drive_damping.get_for_write() = motor_drive.angular_damping_range.x;
 			joint_component->slerp_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
 		else
 		{
-			joint_component->swing_drive_force_limit.get_for_write() = motor_drive.max_force;
+			joint_component->swing_drive_force_limit.get_for_write() = motor_drive.max_angular_force;
 			joint_component->swing_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
 			joint_component->swing_drive_damping.get_for_write() = motor_drive.angular_damping_range.x;
 			joint_component->swing_drive_accelerated.get_for_write() = motor_drive.accelerated;
 
 			joint_component->twist_drive_stiffness.get_for_write() = motor_drive.angular_drive_stiffness;
 			joint_component->twist_drive_damping.get_for_write() = motor_drive.angular_damping_range.x;
-			joint_component->twist_drive_force_limit.get_for_write() = motor_drive.max_force;
+			joint_component->twist_drive_force_limit.get_for_write() = motor_drive.max_angular_force;
 			joint_component->twist_drive_accelerated.get_for_write() = motor_drive.accelerated;
 		}
 	}
@@ -582,7 +583,7 @@ namespace era_engine::physics
 			aggregate_component->max_actors = 48;
 		}
 
-		ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.3f, 0.5f, 0.7f);
+		ref<PhysicsMaterial> material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.5f, 0.5f);
 		ASSERT(material != nullptr);
 
 		const RagdollSettings& settings = ctx.ragdoll_component->settings;
@@ -995,7 +996,7 @@ namespace era_engine::physics
 			structure.left_hand_joint,
 			structure.left_hand_end_joint,
 			settings.shapes_settings.hand_radius,
-			1.0f,
+			0.6f,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1071,7 +1072,7 @@ namespace era_engine::physics
 			structure.right_hand_joint,
 			structure.right_hand_end_joint,
 			settings.shapes_settings.hand_radius,
-			1.0f,
+			0.6f,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_arm_chain.get() : nullptr,
 			CollisionType::RAGDOLL,
@@ -1131,7 +1132,7 @@ namespace era_engine::physics
 			1.0f,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->left_leg_chain.get() : nullptr,
-			CollisionType::RAGDOLL,
+			ctx.enable_physical_animation ? CollisionType::NONE : CollisionType::RAGDOLL,
 			settings.object_space_settings.left_foot_joint_adjastment,
 			settings.object_space_settings.left_foot_end_joint_adjastment,
 			settings.local_shape_settings.left_foot_joint_adjastment,
@@ -1188,7 +1189,7 @@ namespace era_engine::physics
 			1.0f,
 			true,
 			ctx.enable_physical_animation ? physical_animation_component->right_leg_chain.get() : nullptr,
-			CollisionType::RAGDOLL,
+			ctx.enable_physical_animation ? CollisionType::NONE : CollisionType::RAGDOLL,
 			settings.object_space_settings.right_foot_joint_adjastment,
 			settings.object_space_settings.right_foot_end_joint_adjastment,
 			settings.local_shape_settings.right_foot_joint_adjastment,
@@ -1266,15 +1267,17 @@ namespace era_engine::physics
 
 		const trs& left_clavicle_joint_transform = structure.left_clavicle_joint.joint_object_space_transform;
 		const trs& left_clavicle_capsule_bottom_transform = structure.left_clavicle_joint.constraint_object_space_transform.value();
-		const trs& left_arm_capsule_bottom_transform = structure.left_arm_joint.constraint_object_space_transform.value();
-		const trs& left_forearm_capsule_bottom_transform = structure.left_forearm_joint.constraint_object_space_transform.value();
+		const trs& left_arm_joint_transform = structure.left_arm_joint.joint_object_space_transform;
+		const trs& left_forearm_joint_transform = structure.left_forearm_joint.joint_object_space_transform;
 		const trs& left_hand_capsule_bottom_transform = structure.left_hand_joint.constraint_object_space_transform.value();
+		const trs& left_hand_joint_transform = structure.left_hand_joint.joint_object_space_transform;
 
 		const trs& right_clavicle_joint_transform = structure.right_clavicle_joint.joint_object_space_transform;
 		const trs& right_clavicle_capsule_bottom_transform = structure.right_clavicle_joint.constraint_object_space_transform.value();
-		const trs& right_arm_capsule_bottom_transform = structure.right_arm_joint.constraint_object_space_transform.value();
-		const trs& right_forearm_capsule_bottom_transform = structure.right_forearm_joint.constraint_object_space_transform.value();
+		const trs& right_arm_joint_transform = structure.right_arm_joint.joint_object_space_transform;
+		const trs& right_forearm_joint_transform = structure.right_forearm_joint.joint_object_space_transform;
 		const trs& right_hand_capsule_bottom_transform = structure.right_hand_joint.constraint_object_space_transform.value();
+		const trs& right_hand_joint_transform = structure.right_hand_joint.joint_object_space_transform;
 
 		const trs& left_up_leg_capsule_bottom_transform = structure.left_leg_joint.constraint_object_space_transform.value();
 		const trs& left_leg_capsule_bottom_transform = structure.left_calf_joint.constraint_object_space_transform.value();
@@ -1365,25 +1368,25 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.left_clavicle_joint,
 			structure.left_arm_joint,
-			left_arm_capsule_bottom_transform,
-			left_arm_capsule_bottom_transform,
+			left_arm_joint_transform,
+			left_arm_joint_transform,
 			deg2rad(-55.0f), deg2rad(55.0f),
 			arm_d6_swing_y_deg, deg2rad(60.0f));
 
 		// Left arm -> left forearm
 		constexpr float forearm_d6_swing_y_deg = deg2rad(70.0f);
-		const vec3 left_forearm_capsule_y_axis = left_forearm_capsule_bottom_transform.rotation * vec3::up;
+		const vec3 left_forearm_capsule_y_axis = left_forearm_joint_transform.rotation * vec3::up;
 		const trs left_forearm_d6_transform = trs(
-			left_forearm_capsule_bottom_transform.position,
-			quat(left_forearm_capsule_y_axis, deg2rad(35.0f)) * left_forearm_capsule_bottom_transform.rotation,
-			left_forearm_capsule_bottom_transform.scale);
+			left_forearm_joint_transform.position,
+			quat(left_forearm_capsule_y_axis, deg2rad(35.0f)) * left_forearm_joint_transform.rotation,
+			left_forearm_joint_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
 			structure.left_arm_joint,
 			structure.left_forearm_joint,
 			left_forearm_d6_transform,
-			left_forearm_capsule_bottom_transform,
+			left_forearm_joint_transform,
 			deg2rad(-5.0f), deg2rad(5.0f),
 			forearm_d6_swing_y_deg, deg2rad(6.0f));
 
@@ -1393,8 +1396,8 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.left_forearm_joint,
 			structure.left_hand_joint,
-			left_hand_capsule_bottom_transform,
-			left_hand_capsule_bottom_transform,
+			left_hand_joint_transform,
+			left_hand_joint_transform,
 			deg2rad(-25.0f), deg2rad(25.0f),
 			deg2rad(40.0f), deg2rad(30.0f));
 
@@ -1415,24 +1418,24 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.right_clavicle_joint,
 			structure.right_arm_joint,
-			right_arm_capsule_bottom_transform,
-			right_arm_capsule_bottom_transform,
+			right_arm_joint_transform,
+			right_arm_joint_transform,
 			deg2rad(-55.0f), deg2rad(55.0f),
 			arm_d6_swing_y_deg, deg2rad(60.0f));
 
 		// Right arm -> right forearm
-		const vec3 right_forearm_capsule_y_axis = right_forearm_capsule_bottom_transform.rotation * vec3::up;
+		const vec3 right_forearm_capsule_y_axis = right_forearm_joint_transform.rotation * vec3::up;
 		const trs right_forearm_d6_transform = trs(
-			right_forearm_capsule_bottom_transform.position,
-			quat(right_forearm_capsule_y_axis, deg2rad(35.0f)) * right_forearm_capsule_bottom_transform.rotation,
-			right_forearm_capsule_bottom_transform.scale);
+			right_forearm_joint_transform.position,
+			quat(right_forearm_capsule_y_axis, deg2rad(35.0f)) * right_forearm_joint_transform.rotation,
+			right_forearm_joint_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
 			structure.right_arm_joint,
 			structure.right_forearm_joint,
 			right_forearm_d6_transform,
-			right_forearm_capsule_bottom_transform,
+			right_forearm_joint_transform,
 			deg2rad(-5.0f), deg2rad(5.0f),
 			forearm_d6_swing_y_deg, deg2rad(6.0f));
 
@@ -1442,8 +1445,8 @@ namespace era_engine::physics
 			ctx.ragdoll,
 			structure.right_forearm_joint,
 			structure.right_hand_joint,
-			right_hand_capsule_bottom_transform,
-			right_hand_capsule_bottom_transform,
+			right_hand_joint_transform,
+			right_hand_joint_transform,
 			deg2rad(-25.0f), deg2rad(25.0f),
 			deg2rad(40.0f), deg2rad(30.0f));
 

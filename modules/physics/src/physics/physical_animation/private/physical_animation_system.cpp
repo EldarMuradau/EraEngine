@@ -26,6 +26,8 @@
 #include <rttr/policy.h>
 #include <rttr/registration>
 
+#include <imgui/imgui.h>
+
 namespace era_engine::physics
 {
 	RTTR_REGISTRATION
@@ -34,6 +36,10 @@ namespace era_engine::physics
 
 		registration::class_<PhysicalAnimationSystem>("PhysicalAnimationSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("physics")))
+
+			.method("update_profile_data", &PhysicalAnimationSystem::update_profile_data)
+				(metadata("update_group", update_types::BEFORE_RENDER),
+				metadata("After", std::vector<std::string>{"RenderSystem::before_render"}))
 
 			.method("update_before_physics", &PhysicalAnimationSystem::update_before_physics)
 			(metadata("update_group", update_types::PHYSICS),
@@ -56,6 +62,8 @@ namespace era_engine::physics
 	static DebugVar<float> running_speed = DebugVar<float>("physics.physical_animation.debug_demo.running_speed", 10.0f);
 	static DebugVar<float> sprint_speed = DebugVar<float>("physics.physical_animation.debug_demo.sprint_speed", 70.0f);
 
+	static DebugVar<bool> force_sync_profile = DebugVar<bool>("physics.physical_animation.force_sync_profile", false);
+
 	PhysicalAnimationSystem::PhysicalAnimationSystem(World* _world)
 		: System(_world)
 	{
@@ -72,8 +80,8 @@ namespace era_engine::physics
 		collisions_holder_rc = world->add_root_component<CollisionsHolderRootComponent>();
 		renderer_holder_rc = world->add_root_component<RendererHolderRootComponent>();
 
-		const float stiffness_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 8.0f : 2.0f;
-		const float damping_gpu_modifier_coeff = PhysicsEngine::get_physics_core()->is_gpu() ? 2.0f : 1.0f;
+		const float stiffness_gpu_modifier_coeff = (PhysicsEngine::get_physics_core()->is_gpu() ? 1.0f : 1.0f);
+		const float damping_gpu_modifier_coeff = (PhysicsEngine::get_physics_core()->is_gpu() ? 1.0f : 1.0f);
 
 		{
 			idle_profile = make_ref<RagdollProfile>();
@@ -81,84 +89,84 @@ namespace era_engine::physics
 			idle_profile->type = RagdollProfileType::IDLE;
 			idle_profile->head_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->head_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->head_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->head_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->head_limb_details.motor_drive->linear_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->head_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->head_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->neck_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->neck_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->neck_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->neck_limb_details.motor_drive->linear_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->neck_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->neck_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->body_upper_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_upper_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->body_upper_limb_details.motor_drive->angular_drive_stiffness = 4000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_upper_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_upper_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->body_upper_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->body_middle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_middle_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->body_middle_limb_details.motor_drive->angular_drive_stiffness = 4000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_middle_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_middle_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->body_middle_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->body_lower_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->body_lower_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->body_lower_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->body_lower_limb_details.motor_drive->angular_drive_stiffness = 4000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_lower_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->body_lower_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->body_lower_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->clavicle_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->clavicle_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->clavicle_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->clavicle_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->clavicle_limb_details.motor_drive->linear_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->clavicle_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->clavicle_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->arm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->arm_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->arm_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->arm_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->arm_limb_details.motor_drive->linear_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->arm_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->arm_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->forearm_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->forearm_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->forearm_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->forearm_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->forearm_limb_details.motor_drive->linear_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->forearm_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->forearm_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->hand_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->hand_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->hand_limb_details.motor_drive->angular_drive_stiffness = 200.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->hand_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->hand_limb_details.motor_drive->linear_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->hand_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->hand_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->leg_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->leg_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->leg_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->leg_limb_details.motor_drive->angular_drive_stiffness = 4000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->leg_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->leg_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->leg_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->calf_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->calf_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->calf_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->calf_limb_details.motor_drive->angular_drive_stiffness = 4000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->calf_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->calf_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->calf_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
 
 			idle_profile->foot_limb_details.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE;
 			idle_profile->foot_limb_details.motor_drive = MotorDriveDetails();
-			idle_profile->foot_limb_details.motor_drive->angular_drive_stiffness = 400.0f * stiffness_gpu_modifier_coeff;
+			idle_profile->foot_limb_details.motor_drive->angular_drive_stiffness = 2000.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->foot_limb_details.motor_drive->linear_drive_stiffness = 300.0f * stiffness_gpu_modifier_coeff;
 			idle_profile->foot_limb_details.motor_drive->linear_damping_range *= damping_gpu_modifier_coeff;
 			idle_profile->foot_limb_details.motor_drive->angular_damping_range *= damping_gpu_modifier_coeff;
@@ -543,6 +551,107 @@ namespace era_engine::physics
 		}
 	}
 
+	void PhysicalAnimationSystem::update_profile_data(float)
+	{
+		if (ImGui::Begin("Ragdoll Profile"))
+		{
+			ImGui::AlignTextToFramePadding();
+
+			bool changed = false;
+
+			auto edit_limb_data = [&](PhysicalLimbDetails& limb_details, const char* limb_name) {
+				if (!limb_details.motor_drive.has_value())
+				{
+					return;
+				}
+
+				const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+				bool open = ImGui::TreeNodeEx(limb_name, treeNodeFlags, limb_name);
+				ImGui::PopStyleVar();
+				if (open)
+				{
+					float linear_stiffness = limb_details.motor_drive->linear_drive_stiffness;
+					if (ImGui::InputFloat("Linear stiffness", &linear_stiffness))
+					{
+						limb_details.motor_drive->linear_drive_stiffness = linear_stiffness;
+						changed = true;
+					}
+
+					float linear_damping_min = limb_details.motor_drive->linear_damping_range.x;
+					if (ImGui::InputFloat("Linear damping min", &linear_damping_min))
+					{
+						limb_details.motor_drive->linear_damping_range.x = linear_damping_min;
+						changed = true;
+					}
+
+					float linear_damping_max = limb_details.motor_drive->linear_damping_range.y;
+					if (ImGui::InputFloat("Linear damping max", &linear_damping_max))
+					{
+						limb_details.motor_drive->linear_damping_range.y = linear_damping_max;
+						changed = true;
+					}
+
+					float max_linear_force = limb_details.motor_drive->max_linear_force;
+					if (ImGui::InputFloat("Linear max force", &max_linear_force))
+					{
+						limb_details.motor_drive->max_linear_force = max_linear_force;
+						changed = true;
+					}
+
+					float angular_stiffness = limb_details.motor_drive->angular_drive_stiffness;
+					if (ImGui::InputFloat("Angular stiffness", &angular_stiffness))
+					{
+						limb_details.motor_drive->angular_drive_stiffness = angular_stiffness;
+						changed = true;
+					}
+
+					float angular_damping_min = limb_details.motor_drive->angular_damping_range.x;
+					if (ImGui::InputFloat("Angular damping min", &angular_damping_min))
+					{
+						limb_details.motor_drive->angular_damping_range.x = angular_damping_min;
+						changed = true;
+					}
+
+					float angular_damping_max = limb_details.motor_drive->angular_damping_range.y;
+					if (ImGui::InputFloat("Angular damping max", &angular_damping_max))
+					{
+						limb_details.motor_drive->angular_damping_range.y = angular_damping_max;
+						changed = true;
+					}
+
+					float max_angular_force = limb_details.motor_drive->max_angular_force;
+					if (ImGui::InputFloat("Angular max force", &max_angular_force))
+					{
+						limb_details.motor_drive->max_angular_force = max_angular_force;
+						changed = true;
+					}
+				}
+				ImGui::TreePop();
+				};
+
+			edit_limb_data(idle_profile->head_limb_details, "Head");
+			edit_limb_data(idle_profile->neck_limb_details, "Neck");
+			edit_limb_data(idle_profile->body_upper_limb_details, "Body Upper");
+			edit_limb_data(idle_profile->body_middle_limb_details, "Body Middle");
+			edit_limb_data(idle_profile->body_lower_limb_details, "Body Lower");
+			edit_limb_data(idle_profile->clavicle_limb_details, "Clavicle");
+			edit_limb_data(idle_profile->arm_limb_details, "Arm");
+			edit_limb_data(idle_profile->forearm_limb_details, "Forearm");
+			edit_limb_data(idle_profile->hand_limb_details, "Hand");
+			edit_limb_data(idle_profile->leg_limb_details, "Leg");
+			edit_limb_data(idle_profile->calf_limb_details, "Calf");
+			edit_limb_data(idle_profile->foot_limb_details, "Foot");
+
+			if (changed)
+			{
+				force_sync_profile = true;
+			}
+		}
+		ImGui::End();
+	}
+
 	void PhysicalAnimationSystem::filter_states_by_collisions(float dt) const
 	{
 		ref<SimulationEventCallback> event_callback = PhysicsEngine::get_physics_core()->simulation_event_callback;
@@ -753,9 +862,17 @@ namespace era_engine::physics
 			desired_profile = sprint_profile;
 		}
 
+		bool force_sync = false;
+
+		if (force_sync_profile.get())
+		{
+			force_sync_profile = false;
+			force_sync = true;
+		}
+
 		if (desired_profile != nullptr)
 		{
-			physical_animation_component->try_to_apply_ragdoll_profile(desired_profile, RagdollProfileStrengthType::DEFAULT, force_reload);
+			physical_animation_component->try_to_apply_ragdoll_profile(desired_profile, RagdollProfileStrengthType::DEFAULT, force_reload || force_sync);
 		}
 		else
 		{
