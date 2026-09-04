@@ -58,6 +58,7 @@ namespace era_engine::physics
 		simulated.set_component(this_component);
 		kinematic.set_component(this_component);
 		ccd.set_component(this_component);
+		speculative_ccd.set_component(this_component);
 		use_gravity.set_component(this_component);
 		constraints.set_component(this_component);
 		linear_damping.set_component(this_component);
@@ -76,6 +77,7 @@ namespace era_engine::physics
 		solver_position_iterations_count.set_component(this_component);
 		mass_space_inertia_tensor.set_component(this_component);
 		kinematic_motion_type.set_component(this_component);
+		enable_gyroscopic_forces.set_component(this_component);
 	}
 
 	DynamicBodyComponent::~DynamicBodyComponent()

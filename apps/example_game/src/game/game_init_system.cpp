@@ -270,7 +270,7 @@ namespace era_engine
 				animation_component->loop = true;
 
 				{
-					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Walking_mixamo.com_clip0.eanm"));
+					ref<AnimationAssetClip> anim_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm"));
 					anim_clip->load_job.wait_for_completion();
 					animation_component->current_animation = anim_clip;
 					animation_component->current_anim_position = 0.0f;
@@ -720,10 +720,10 @@ namespace era_engine
 
 				animation_component->enable_root_motion = false;
 
-				//character.add_component<MotionDataComponent>();
-				//character.add_component<CharacterLocomotionComponent>();
+				character.add_component<MotionDataComponent>();
+				character.add_component<CharacterLocomotionComponent>();
 
-				//character.add_component<MotionMatchingComponent>();
+				character.add_component<MotionMatchingComponent>();
 
 				RagdollSettings settings;
 				settings.shapes_settings.head_radius = 0.1f;
@@ -734,29 +734,15 @@ namespace era_engine
 				settings.shapes_settings.foot_radius = 0.035f;
 				settings.shapes_settings.hand_radius = 0.035f;
 
-				//settings.local_shape_settings.head_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
-				//settings.local_shape_settings.neck_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
-				//settings.local_shape_settings.thorax_joint_adjastment = vec3(0.0f, 0.1f, 0.0f);
 				settings.local_shape_settings.abdomen_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
 				settings.local_shape_settings.pelvis_joint_adjastment = vec3(0.0f, -0.03f, 0.0f);
-				//settings.local_shape_settings.left_clavicle_joint_adjastment = vec3(0.0f, 0.00f, 0.0f);
-				//settings.local_shape_settings.left_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
-				//settings.local_shape_settings.left_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(-10.0f));
-				//settings.local_shape_settings.left_forearm_joint_adjastment = vec3(0.05f, 0.0f, 0.0f);
-				//settings.local_shape_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.00f, 0.0f);
-				//settings.local_shape_settings.right_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
-				//settings.local_shape_settings.right_arm_joint_spin = quat(vec3(0.0f, 1.0f, 0.0f), deg2rad(10.0f));
-				//settings.local_shape_settings.right_forearm_joint_adjastment = vec3(-0.05f, 0.0f, 0.0f);
 
 				settings.object_space_settings.head_end_joint_adjastment = vec3(0.0f, 0.15f, 0.0f);
 				settings.object_space_settings.head_joint_adjastment = vec3(0.0f, 0.12f, 0.0f);
 				settings.object_space_settings.neck_joint_adjastment = vec3(0.0f, 0.05f, 0.0f);
-				//settings.object_space_settings.thorax_joint_adjastment = vec3(0.0f, 0.25f, 0.0f);
 				settings.object_space_settings.abdomen_joint_adjastment = vec3(0.0f, 0.07f, 0.0f);
 				settings.object_space_settings.pelvis_joint_adjastment = vec3(0.0f, -0.03f, 0.0f);
-				//settings.object_space_settings.left_clavicle_joint_adjastment = vec3(-0.0f, 0.0f, 0.0f);
 				settings.object_space_settings.left_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
-				//settings.object_space_settings.right_clavicle_joint_adjastment = vec3(0.0f, 0.0f, 0.0f);
 				settings.object_space_settings.right_arm_joint_adjastment = vec3(0.0f, 0.035f, 0.0f);
 				settings.object_space_settings.left_foot_end_joint_adjastment = vec3(0.0f, 0.0f, -0.04f);
 				settings.object_space_settings.right_foot_end_joint_adjastment = vec3(0.0f, 0.0f, -0.04f);

@@ -69,30 +69,38 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 2000.0f,
-		const float max_angular_velocity = 800.0f)
+		const float max_contact_impulse = 400.0f,
+		const float max_angular_velocity = 35.0f,
+		const float max_linear_velocity = 50.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
-		dynamic_body_component->max_depenetration_velocity = 400.0f;
+		dynamic_body_component->max_depenetration_velocity = 20.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
-		dynamic_body_component->linear_damping.get_for_write() = 0.1f;
-		dynamic_body_component->angular_damping.get_for_write() = 0.2f;
+		dynamic_body_component->linear_damping.get_for_write() = 0.05f;
+		dynamic_body_component->angular_damping.get_for_write() = 0.05f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
-		dynamic_body_component->solver_position_iterations_count.get_for_write() = 32;
+		dynamic_body_component->max_linear_velocity.get_for_write() = max_linear_velocity;
+		dynamic_body_component->stabilization_threshold.get_for_write() = 0.01f;
+		dynamic_body_component->sleep_threshold.get_for_write() = 0.02f;
 
-		if(PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver)
+		const bool is_tgs = PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver;
+		const bool is_gpu = PhysicsEngine::get_physics_core()->is_gpu();
+
+		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_tgs ? 1 : 4;
+
+		if (is_tgs)
 		{
-			dynamic_body_component->ccd.get_for_write() = false;
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 1;
+			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 8 : 6;
+
 		}
 		else
 		{
-			dynamic_body_component->ccd.get_for_write() = true;
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = 16;
+			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 10 : 8;
 		}
+		
 
 		return dynamic_body_component;
 	}
@@ -922,8 +930,8 @@ namespace era_engine::physics
 				joint_component->enable_collision.get_for_write() = false;
 				joint_component->spring_enabled.get_for_write() = true;
 				joint_component->stiffness.get_for_write() = 800.0f;
-				joint_component->damping.get_for_write() = 80.0f;
-				joint_component->max_distance.get_for_write() = 0.1f;
+				joint_component->damping.get_for_write() = 60.0f;
+				joint_component->max_distance.get_for_write() = 0.05f;
 				joint_component->min_distance.get_for_write() = 0.0f;
 			}
 

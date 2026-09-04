@@ -9,16 +9,17 @@
 
 #include <rttr/type>
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
 #include <chrono>
-#include <functional>
+#include <condition_variable>
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <vector>
 
 namespace era_engine
 {
@@ -27,107 +28,181 @@ namespace era_engine
 	struct ERA_CORE_API Task
 	{
 		Task(System* _system,
-			 const rttr::method& _method,
-			 const std::string& _group,
-			 const std::string& _tag,
-			 const std::vector<std::string>& _dependencies,
-			 const std::vector<std::string>& _dependents);
-		Task(Task&& _other) noexcept = default;
-		Task(const Task& _other) noexcept = default;
+			const rttr::method& _method,
+			const std::string& _group,
+			const std::string& _tag,
+			const std::vector<std::string>& _dependencies,
+			const std::vector<std::string>& _dependents);
 
-		Task& operator=(const Task& _other) noexcept;
-		Task& operator=(Task&& _other) noexcept;
+		Task(const Task& _other) = default;
+		Task(Task&& _other) noexcept = default;
+
+		void invoke(float dt) const;
 
 		System* system = nullptr;
 		rttr::method method;
+
+		// SystemType::method_name.
+		std::string name;
 		std::string group;
 		std::string tag;
 		std::vector<std::string> dependencies;
 		std::vector<std::string> dependents;
 	};
 
-    class ERA_CORE_API WorldSystemScheduler
-    {
-    public:
-        WorldSystemScheduler(World* _world, size_t normal_threads = 2, size_t fixed_threads = 2);
+	// One update group, fully resolved at graph build time. waves[i] may run in parallel, waves[i + 1] starts only after waves[i] finished.
+	struct GroupSchedule
+	{
+		std::string name;
+		bool serial = false; // Run in order on the calling thread.
+		std::vector<std::vector<ref<Task>>> waves;
+	};
 
-        ~WorldSystemScheduler();
+	// Immutable snapshot of a whole update pass.
+	struct UpdateSchedule
+	{
+		std::vector<GroupSchedule> groups;
+		size_t task_count = 0;
+	};
 
-        void stop();
+	using UpdateScheduleRef = ref<const UpdateSchedule>;
 
-        void set_fixed_update_rate(double rate);
+	enum class FixedStepMode
+	{
+		// Fixed steps are driven by a dedicated timer thread.
+		// Fixed and normal systems run concurrently.
+		THREADED,
 
-        void initialize_systems(const rttr::array_range<rttr::type>& types);
+		// Fixed steps are pumped from update_normal(). Deterministic, no normal/fixed data races
+		// and no cross-thread contention at all.
+		MAIN_THREAD_PUMP
+	};
 
-        void initialize_all_systems();
+	class ERA_CORE_API WorldSystemScheduler
+	{
+	public:
+		WorldSystemScheduler(World* _world, size_t normal_threads = 0, size_t fixed_threads = 0);
 
-        void refresh_graph();
+		~WorldSystemScheduler();
 
-        void update_normal(float dt);
+		WorldSystemScheduler(const WorldSystemScheduler& _other) = delete;
+		WorldSystemScheduler& operator=(const WorldSystemScheduler& _other) = delete;
 
-        void update_fixed(float dt);
+		void stop();
+		bool is_running() const;
 
-    protected:
-        struct TaskItem 
-        {
-            ref<Task> task;
-            float dt = 0.0f;
-        };
+		void set_fixed_update_rate(double rate_hz);
+		double get_fixed_update_rate() const;
 
-        void normal_worker();
+		void set_fixed_step_mode(FixedStepMode mode);
+		FixedStepMode get_fixed_step_mode() const;
 
-        void fixed_worker();
-     
-        void fixed_update_loop();
+		void set_max_fixed_steps_per_wakeup(uint32 steps);
 
-        std::unordered_map<std::string, std::vector<ref<Task>>> build_task_order(UpdateType type);
+		void initialize_systems(const rttr::array_range<rttr::type>& types);
 
-        void add_task(ref<Task> task, UpdateType type);
+		void initialize_all_systems();
 
-        const std::vector<ref<Task>>& get_fixed_group_tasks(const std::string& name) const;
-        const std::vector<ref<Task>>& get_group_tasks(const std::string& name) const;
+		void refresh_graph();
 
-    protected:
-        std::vector<std::thread> normal_thread_pool;
-        std::queue<TaskItem> normal_task_queue;
-        std::atomic<int> active_normal_tasks = 0;
-        std::condition_variable tasks_done_cv;
+		void update_normal(float dt);
 
-        std::atomic<int> active_fixed_tasks = 0;
-        std::condition_variable fixed_tasks_done_cv;
+		void update_fixed(float dt);
 
-        std::vector<std::thread> fixed_thread_pool;
-        std::queue<TaskItem> fixed_task_queue;
+		struct Stats
+		{
+			double last_fixed_step_ms = 0.0;
+			double max_fixed_step_ms = 0.0;
+			uint64 fixed_steps = 0;
+			uint64 fixed_overruns = 0;
+			uint64 dropped_fixed_steps = 0;
+		};
 
-        std::mutex queue_mutex;
-        std::mutex fixed_queue_mutex;
-        std::condition_variable normal_condition;
-        std::condition_variable fixed_condition;
-        std::atomic<bool> running = false;
+		Stats get_stats() const;
+		void reset_stats();
 
-        std::thread fixed_update_thread;
-        double fixed_update_rate = 1.0 / 30.0;
-        std::chrono::duration<double> fixed_update_interval;
-        std::chrono::time_point<std::chrono::steady_clock> last_fixed_update;
+	protected:
+		enum QueueKind : size_t
+		{
+			QUEUE_NORMAL = 0,
+			QUEUE_FIXED = 1,
+			QUEUE_COUNT = 2
+		};
 
-        std::vector<System*> systems;
-        std::set<rttr::type> system_types;
+		struct TaskItem
+		{
+			ref<Task> task;
+			float dt = 0.0f;
+		};
 
-        mutable SpinLock fixed_group_cycle_sync;
-        mutable SpinLock group_cycle_sync;
+		void worker_loop();
 
-        std::unordered_map<std::string, ref<Task>> tasks;
-        std::unordered_map<std::string, std::vector<std::string>> adj_list;
-        std::unordered_map<std::string, int32> in_degree;
+		void fixed_timer_loop();
 
-        std::unordered_map<std::string, ref<Task>> fixed_tasks;
-        std::unordered_map<std::string, std::vector<std::string>> fixed_adj_list;
-        std::unordered_map<std::string, int32> fixed_in_degree;
+		void run_schedule(const UpdateScheduleRef& schedule, float dt, size_t kind);
 
-        std::unordered_map<std::string, std::vector<ref<Task>>> grouped_ordered_tasks;
-        std::unordered_map<std::string, std::vector<ref<Task>>> fixed_grouped_ordered_tasks;
+		void run_wave(const std::vector<ref<Task>>& wave, float dt, size_t kind);
 
-        World* world = nullptr;
-        bool inited = false;
-    };
+		bool has_pending_locked() const;
+		bool pop_any_locked(TaskItem& out_item, size_t& out_kind);
+		bool pop_from_locked(size_t kind, TaskItem& out_item);
+		void on_task_finished(size_t kind);
+
+		void add_task(ref<Task> task, UpdateType type);
+
+		UpdateScheduleRef build_schedule(UpdateType type) const;
+		UpdateScheduleRef get_schedule(UpdateType type) const;
+
+		uint32 pump_fixed_steps();
+
+		std::chrono::steady_clock::duration fixed_interval() const;
+
+	protected:
+		World* world = nullptr;
+
+		// Single shared pool with one queue per update type. Workers alternate between the two
+		// queues, so neither the normal frame nor the fixed step can starve the other.
+		std::vector<std::thread> workers;
+		std::deque<TaskItem> queues[QUEUE_COUNT];
+		int32 in_flight[QUEUE_COUNT] = { 0, 0 };
+		bool prefer_fixed = false;
+
+		mutable std::mutex work_mutex;
+		std::condition_variable work_available;
+		std::condition_variable queue_idle;
+		std::atomic<bool> running = false;
+
+		std::thread fixed_timer_thread;
+		std::mutex fixed_step_mutex;
+		std::atomic<double> fixed_update_rate = 30.0;
+		std::atomic<uint32> max_fixed_steps_per_wakeup = 4;
+		std::atomic<FixedStepMode> fixed_step_mode = FixedStepMode::THREADED;
+
+		// Owned by the timer thread.
+		std::chrono::steady_clock::time_point next_fixed_update{};
+		std::chrono::steady_clock::duration fixed_spin_margin = std::chrono::microseconds(300);
+
+		// Owned by the thread calling update_normal().
+		std::chrono::steady_clock::time_point next_pumped_fixed_update{};
+		bool pump_clock_valid = false;
+
+		std::atomic<double> stat_last_fixed_step_ms = 0.0;
+		std::atomic<double> stat_max_fixed_step_ms = 0.0;
+		std::atomic<uint64> stat_fixed_steps = 0;
+		std::atomic<uint64> stat_fixed_overruns = 0;
+		std::atomic<uint64> stat_dropped_fixed_steps = 0;
+
+		std::vector<System*> systems;
+		std::set<rttr::type> system_types;
+
+		mutable std::mutex schedule_mutex;
+		UpdateScheduleRef normal_schedule;
+		UpdateScheduleRef fixed_schedule;
+
+		std::unordered_map<std::string, ref<Task>> tasks;
+		std::unordered_map<std::string, ref<Task>> fixed_tasks;
+
+		bool inited = false;
+		bool systems_initialized = false;
+	};
 }

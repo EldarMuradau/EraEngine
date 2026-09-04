@@ -107,6 +107,7 @@ namespace era_engine::physics
 
 		ObservableMember<bool> use_gravity = true;
 		ObservableMember<bool> ccd = false;
+		ObservableMember<bool> speculative_ccd = false;
 		ObservableMember<bool> kinematic = false;
 
 		ObservableMember<KinematicMotionType> kinematic_motion_type = KinematicMotionType::TELEPORT;
@@ -137,6 +138,8 @@ namespace era_engine::physics
 		ObservableMember<vec3> center_of_mass = vec3::zero;
 
 		ObservableMember<vec3> mass_space_inertia_tensor = vec3::zero;
+
+		ObservableMember<bool> enable_gyroscopic_forces = false;
 
 		std::vector<Force> forces;
 		std::vector<Torque> torques;

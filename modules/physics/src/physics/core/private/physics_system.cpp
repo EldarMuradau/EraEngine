@@ -229,6 +229,18 @@ namespace era_engine::physics
 				dynamic_body.kinematic.sync_changes();
 			}
 
+			if (dynamic_body.enable_gyroscopic_forces.is_changed())
+			{
+				body->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, dynamic_body.enable_gyroscopic_forces);
+				dynamic_body.enable_gyroscopic_forces.sync_changes();
+			}
+
+			if (dynamic_body.speculative_ccd.is_changed())
+			{
+				body->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, dynamic_body.speculative_ccd);
+				dynamic_body.speculative_ccd.sync_changes();
+			}
+
 			if (only_started_simulation && !dynamic_body.kinematic)
 			{
 				body->setLinearVelocity(create_PxVec3(dynamic_body.linear_velocity), true);

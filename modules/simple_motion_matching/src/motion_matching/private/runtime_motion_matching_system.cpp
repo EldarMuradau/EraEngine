@@ -4,18 +4,19 @@
 #include "motion_matching/common.h"
 #include "motion_matching/motion_data_component.h"
 #include "motion_matching/motion_matching_component.h"
+#include "motion_matching/features/motion_matching_feature.h"
 
 #include "animation/animation.h"
 
 #include "core/string.h"
 #include "core/debug/debug_var.h"
+#include "core/cpu_profiling.h"
 
 #include "ecs/update_groups.h"
 #include "ecs/base_components/transform_component.h"
 
 #include <rttr/policy.h>
 #include <rttr/registration>
-#include <motion_matching/features/motion_matching_feature.h>
 
 namespace era_engine
 {
@@ -44,6 +45,8 @@ namespace era_engine
 	void RuntimeMotionMatchingSystem::update(float dt)
 	{
 		using namespace animation;
+
+		ZoneScopedN("RuntimeMotionMatchingSystem::update");
 
         for (auto&& [handle, transform_component, mm_controller, motion_data_component, animation_component] : world->group(components_group<TransformComponent, 
 			MotionMatchingComponent, 

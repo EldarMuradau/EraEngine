@@ -33,7 +33,7 @@ namespace era_engine
 		motion_data_component->on_search_succeeded_func = std::bind(&CharacterLocomotionComponent::on_search_succeeded, this, std::placeholders::_1);
 		motion_data_component->need_force_start_search_func = std::bind(&CharacterLocomotionComponent::need_force_start_search, this);
 
-		motion_data_component->search_time = 0.25f;
+		motion_data_component->search_time = 0.28f;
 	}
 
 	CharacterLocomotionComponent::~CharacterLocomotionComponent()
@@ -81,7 +81,7 @@ namespace era_engine
 		SkeletonPose result_pose = SkeletonPose(skeleton->joints.size());
 		sampler.sample_pose(result.anim_position, result_pose);
 
-		animation_component->trigger_reset_inertial_blend(result_pose, 0.2f);
+		animation_component->trigger_reset_inertial_blend(result_pose, 0.18f);
 	}
 
 }

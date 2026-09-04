@@ -55,18 +55,18 @@ namespace era_engine::physics
     public:
         struct MassSettings
         {
-            float head_mass_percentage = 0.0826f;
-            float neck_mass_percentage = 0.0826f;
-            float body_upper_mass_percentage = 0.204f;
-            float body_middle_mass_percentage = 0.204f;
-            float body_lower_mass_percentage = 0.204f;
-            float clavicle_mass_percentage = 0.07f;
-            float arm_mass_percentage = 0.07f;
-            float forearm_mass_percentage = 0.0467f;
-            float hand_mass_percentage = 0.015f;
-            float leg_mass_percentage = 0.085f;
-            float calf_mass_percentage = 0.0475f;
-            float foot_mass_percentage = 0.024f;
+            float head_mass_percentage = 0.056f;
+            float neck_mass_percentage = 0.0125f;
+            float body_upper_mass_percentage = 0.07f;
+            float body_middle_mass_percentage = 0.16f;
+            float body_lower_mass_percentage = 0.07f;
+            float clavicle_mass_percentage = 0.0125f;
+            float arm_mass_percentage = 0.016f;
+            float forearm_mass_percentage = 0.0135f;
+            float hand_mass_percentage = 0.003f;
+            float leg_mass_percentage = 0.05f;
+            float calf_mass_percentage = 0.023f;
+            float foot_mass_percentage = 0.007f;
         };
 
         struct ContactImpulseSettings

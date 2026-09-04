@@ -45,23 +45,23 @@ namespace era_engine
 
 		const float current_time = context.animation_component->current_anim_position;
 
-		AnimationPoseSampler sampler;
-		sampler.init(context.skeleton_component->skeleton.get(), animation);
-		sampler.set_joint_enabled(context.skeleton_component->skeleton->joints[0].name, false);
+		//AnimationPoseSampler sampler;
+		//sampler.init(context.skeleton_component->skeleton.get(), animation);
+		//sampler.set_joint_enabled(context.skeleton_component->skeleton->joints[0].name, false);
 
 		std::vector<float> values;
 
-		SkeletonPose prev_pose = context.skeleton_component->skeleton->get_default_pose();
-		sampler.sample_pose(current_time - context.dt >= 0.0f ? current_time - context.dt : current_time, prev_pose);
+		//SkeletonPose prev_pose = context.skeleton_component->skeleton->get_default_pose();
+		//sampler.sample_pose(current_time - context.dt >= 0.0f ? current_time - context.dt : current_time, prev_pose);
 
-		SkeletonPose current_pose = context.skeleton_component->skeleton->get_default_pose();
-		sampler.sample_pose(current_time, current_pose);
+		//SkeletonPose current_pose = context.skeleton_component->skeleton->get_default_pose();
+		//sampler.sample_pose(current_time, current_pose);
 
 		for (ref<FeatureDesc> descriptor : descriptors)
 		{
 			if (ref<PoseFeatureDesc> pose_feature_desc = std::dynamic_pointer_cast<PoseFeatureDesc>(descriptor))
 			{
-				const trs current_joint_transform = SkeletonUtils::get_object_space_joint_transform(current_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
+				/*const trs current_joint_transform = SkeletonUtils::get_object_space_joint_transform(current_pose, context.skeleton_component->skeleton.get(), pose_feature_desc->joint_id);
 
 				if (pose_feature_desc->type == FeatureDescType::LOCATION)
 				{
@@ -122,9 +122,9 @@ namespace era_engine
 					{
 						values.emplace_back(joint_velocity.y);
 					}
-				}
+				}*/
 
-				/*if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
+				if (pose_feature_desc->basis == FeatureDescBasis::XYZ)
 				{
 					float x_value = 0.0f;
 					std::string x_curve_name = pose_feature_desc->name + "_x";
@@ -162,7 +162,7 @@ namespace era_engine
 					animation->sample_curve(current_time, y_curve_name, y_value);
 
 					values.emplace_back(y_value);
-				}*/
+				}
 			}
 			else
 			{

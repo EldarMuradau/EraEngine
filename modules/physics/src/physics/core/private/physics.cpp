@@ -160,6 +160,9 @@ namespace era_engine::physics
 		scene_desc.flags |= PxSceneFlag::eENABLE_PCM;
 		scene_desc.flags |= PxSceneFlag::eREQUIRE_RW_LOCK;
 
+		scene_desc.frictionType = PxFrictionType::ePATCH;
+		scene_desc.bounceThresholdVelocity = 2.0f;
+
 		if (descriptor.broad_phase == PxBroadPhaseType::eGPU)
 		{
 			PxCudaContextManagerDesc cuda_context_manager_desc;
@@ -172,8 +175,6 @@ namespace era_engine::physics
 			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 8;
 			scene_desc.gpuDynamicsConfig.tempBufferCapacity *= 8;
 			scene_desc.gpuDynamicsConfig.heapCapacity *= 8;
-
-			scene_desc.sceneQueryUpdateMode = PxSceneQueryUpdateMode::eBUILD_ENABLED_COMMIT_DISABLED;
 		}
 
 		scene_desc.broadPhaseType = descriptor.broad_phase;
