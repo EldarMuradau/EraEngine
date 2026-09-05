@@ -61,8 +61,6 @@ namespace era_engine
 		engine->run(initial_task);
 
 		delete game_world;
-
-		engine->terminate();
 	}
 
 }

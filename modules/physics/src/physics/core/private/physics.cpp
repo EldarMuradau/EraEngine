@@ -115,6 +115,11 @@ namespace era_engine::physics
 		blast_core = make_ref<BlastCore>(*this);
 		materials.reserve(64);
 
+		PxCudaContextManagerDesc cuda_context_manager_desc;
+		cuda_context_manager_desc.graphicsDevice = get_dx_context()->device.Get();
+
+		cuda_context_manager = PxCreateCudaContextManager(*foundation, cuda_context_manager_desc, &profiler_callback);
+
 #if PX_VEHICLE
 		if (!PxInitVehicleSDK(*physics))
 		{
@@ -165,10 +170,6 @@ namespace era_engine::physics
 
 		if (descriptor.broad_phase == PxBroadPhaseType::eGPU)
 		{
-			PxCudaContextManagerDesc cuda_context_manager_desc;
-			cuda_context_manager_desc.graphicsDevice = get_dx_context()->device.Get();
-
-			cuda_context_manager = PxCreateCudaContextManager(*foundation, cuda_context_manager_desc, &profiler_callback);
 			scene_desc.cudaContextManager = cuda_context_manager;
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
@@ -186,6 +187,17 @@ namespace era_engine::physics
 		scene_desc.simulationEventCallback = simulation_event_callback.get();
 
 		scene = physics->createScene(scene_desc);
+
+		static constexpr uint64 align = 16U;
+		scratch_mem_block = allocator.allocate(scratch_mem_block_size, align, true);
+
+		cct_manager = PxCreateControllerManager(*scene);
+
+		if (is_gpu())
+		{
+			ASSERT(cuda_context_manager->contextIsValid());
+			LOG_MESSAGE(cuda_context_manager->getUsingConcurrentStreams() ? "ConcurrentCudaStreams" : "NonConcurrentCudaStreams");
+		}
 
 #if defined(VISUALIZE_PHYSICS)
 
@@ -241,17 +253,6 @@ namespace era_engine::physics
 			omniWriter->setWriteStream(static_cast<OmniPvdWriteStream&>(*fStream));
 		}
 #endif
-
-		static constexpr uint64 align = 16U;
-		scratch_mem_block = allocator.allocate(scratch_mem_block_size, align, true);
-
-		cct_manager = PxCreateControllerManager(*scene);
-
-		if (is_gpu())
-		{
-			ASSERT(cuda_context_manager->contextIsValid());
-			LOG_MESSAGE(cuda_context_manager->getUsingConcurrentStreams() ? "ConcurrentCudaStreams" : "NonConcurrentCudaStreams");
-		}
 	}
 
 	physx::PxScene* Physics::get_scene() const
