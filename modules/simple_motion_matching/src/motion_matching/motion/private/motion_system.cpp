@@ -102,20 +102,56 @@ namespace era_engine
 			motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) / dt;
 			motion_component.desired_rotation = desired_rotation_curr;
 
-			MotionUtils::simulation_positions_update(
-				desired_world_transform.position,
-				motion_component.velocity,
-				motion_component.acceleration,
-				motion_component.desired_velocity,
-				motion_component.velocity_halflife,
-				dt);
+			if (motion_component.has_root_motion())
+			{
+				RootMotion& root_motion = motion_component.root_motion.value();
+				root_motion.update_motion(dt);
 
-			MotionUtils::simulation_rotations_update(
-				desired_world_transform.rotation,
-				motion_component.angular_velocity,
-				motion_component.desired_rotation,
-				motion_component.rotation_halflife,
-				dt);
+				const float current_position = root_motion.get_position_by_time(root_motion.get_current_time());
+
+				motion_component.velocity = root_motion.get_world_linear_velocity(current_position);
+				motion_component.acceleration = root_motion.get_world_linear_acceleration(current_position);
+
+				MotionUtils::simulation_rotations_update(
+					desired_world_transform.rotation,
+					motion_component.angular_velocity,
+					motion_component.desired_rotation,
+					motion_component.rotation_halflife,
+					dt);
+
+				const trs world_root_transform = root_motion.get_world_transform(current_position);
+
+				RootMotionType motion_type = root_motion.get_motion_type();
+				if (motion_type == RootMotionType::LOCATION)
+				{
+					desired_world_transform.position = world_root_transform.position;
+				}
+				else if (motion_type == RootMotionType::ROTATION)
+				{
+					desired_world_transform.rotation = world_root_transform.rotation;
+				}
+				else
+				{
+					desired_world_transform = world_root_transform;
+				}
+			}
+			else
+			{
+				MotionUtils::simulation_positions_update(
+					desired_world_transform.position,
+					motion_component.velocity,
+					motion_component.acceleration,
+					motion_component.desired_velocity,
+					motion_component.velocity_halflife,
+					dt);
+
+				MotionUtils::simulation_rotations_update(
+					desired_world_transform.rotation,
+					motion_component.angular_velocity,
+					motion_component.desired_rotation,
+					motion_component.rotation_halflife,
+					dt);
+			}
 
 			if (physics::CharacterControllerComponent* cct_component = world->get_entity(handle).get_component_if_exists<physics::CharacterControllerComponent>())
 			{

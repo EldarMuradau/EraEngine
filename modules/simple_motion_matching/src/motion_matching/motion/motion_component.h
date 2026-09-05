@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motion_matching_api.h"
+#include "motion_matching/motion/root_motion.h"
 
 #include <core/math.h>
 
@@ -15,6 +16,16 @@ namespace era_engine
 		MotionComponent(ref<Entity::EcsData> _data);
 
 		~MotionComponent() override;
+
+		bool has_root_motion() const;
+
+		void init_root_motion(const animation::Skeleton* skeleton, 
+			const ref<animation::AnimationAssetClip>& animation, 
+			float start_position, 
+			float duration,
+			RootMotionType type);
+
+		void reset_root_motion();
 
 		const vec3& get_current_input() const;
 		const vec3& get_desired_input() const;
@@ -68,6 +79,8 @@ namespace era_engine
 		float walk_fwrd_speed = 2.25f;
 		float walk_side_speed = 2.0f;
 		float walk_back_speed = 1.75f;
+
+		std::optional<RootMotion> root_motion;
 
 		friend class MotionSystem;
 		friend class TrajectoryMotionSystem;

@@ -21,9 +21,9 @@ namespace era_engine
 		static float get_angular_velocity(const animation::AnimationRootSampler& sampler, float position);
 		static float get_angular_acceleration(const animation::AnimationRootSampler& sampler, float position);
 
-		static float get_linear_velocity(const animation::AnimationRootSampler& sampler, float position);
-		static float get_linear_acceleration(const animation::AnimationRootSampler& sampler, float position);
+		static vec3 get_linear_velocity(const animation::AnimationRootSampler& sampler, float position);
+		static vec3 get_linear_acceleration(const animation::AnimationRootSampler& sampler, float position);
 
-		static trs get_trs_from_origin(const animation::AnimationRootSampler& sampler, float anim_position, float origin_anim_position);
+		static trs get_trs_from_origin(const animation::AnimationRootSampler& sampler, float origin_anim_position, float anim_position);
 	};
 }

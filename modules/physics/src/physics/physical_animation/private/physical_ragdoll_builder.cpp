@@ -89,16 +89,16 @@ namespace era_engine::physics
 		const bool is_tgs = PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver;
 		const bool is_gpu = PhysicsEngine::get_physics_core()->is_gpu();
 
-		dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_tgs ? 1 : 4;
-
 		if (is_tgs)
 		{
-			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 8 : 6;
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 1 : 1;
+			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 16 : 6;
 
 		}
 		else
 		{
-			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 10 : 8;
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 6 : 4;
+			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 12 : 8;
 		}
 		
 

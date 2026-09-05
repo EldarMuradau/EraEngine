@@ -26,7 +26,8 @@ namespace era_engine
 
 		registration::class_<RuntimeMotionMatchingSystem>("RuntimeMotionMatchingSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
-			.method("update", &RuntimeMotionMatchingSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS));
+			.method("update", &RuntimeMotionMatchingSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
+				metadata("Before", std::vector<std::string>{"MotionSystem::update"}));
 	}
 
 	RuntimeMotionMatchingSystem::RuntimeMotionMatchingSystem(World* _world)

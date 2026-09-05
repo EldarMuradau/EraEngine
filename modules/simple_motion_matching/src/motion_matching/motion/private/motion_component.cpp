@@ -1,5 +1,7 @@
 #include "motion_matching/motion/motion_component.h"
 
+#include <ecs/base_components/transform_component.h>
+
 #include <ecs/entity.h>
 
 #include <rttr/registration>
@@ -20,6 +22,33 @@ namespace era_engine
 
 	MotionComponent::~MotionComponent()
 	{
+	}
+
+	bool MotionComponent::has_root_motion() const
+	{
+		return root_motion.has_value();
+	}
+
+	void MotionComponent::init_root_motion(const animation::Skeleton* skeleton, 
+		const ref<animation::AnimationAssetClip>& animation, 
+		float start_position, 
+		float duration,
+		RootMotionType type)
+	{
+		if (!root_motion.has_value())
+		{
+			root_motion = RootMotion(skeleton);
+		}
+
+		root_motion->attach_to_animation(animation, start_position, duration, type);
+
+		const TransformComponent* transform_component = get_entity().get_component<TransformComponent>();
+		root_motion->set_initial_world_transform(transform_component->get_world_transform());
+	}
+
+	void MotionComponent::reset_root_motion()
+	{
+		root_motion.reset();
 	}
 
 	const vec3& MotionComponent::get_current_input() const
