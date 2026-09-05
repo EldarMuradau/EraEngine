@@ -45,7 +45,7 @@ namespace era_engine
 		window->init_input();
 
 		World* game_world = new World(World::GAMEPLAY_WORLD_NAME);
-		game_world->get_system_scheduler()->set_fixed_update_rate(30.0f);
+		game_world->get_system_scheduler()->set_fixed_update_rate(60.0f);
 		game_world->init();
 
 		game_world->add_tag("physics");

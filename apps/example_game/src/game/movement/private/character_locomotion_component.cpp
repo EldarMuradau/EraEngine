@@ -83,12 +83,12 @@ namespace era_engine
 
 		animation_component->trigger_reset_inertial_blend(result_pose, 0.18f);
 
-		//MotionComponent* motion_component = entity.get_component<MotionComponent>();
-		//motion_component->init_root_motion(skeleton, 
-		//	result.animation, 
-		//	result.anim_position, 
-		//	0.28f,
-		//	RootMotionType::LOCATION);
+		/*MotionComponent* motion_component = entity.get_component<MotionComponent>();
+		motion_component->init_root_motion(skeleton, 
+			result.animation, 
+			result.anim_position, 
+			0.28f,
+			RootMotionType::LOCATION);*/
 	}
 
 }

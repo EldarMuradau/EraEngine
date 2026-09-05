@@ -439,7 +439,7 @@ namespace era_engine
 
 		const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-		run_schedule(get_schedule(UpdateType::FIXED), dt, QUEUE_FIXED);
+		run_schedule(get_schedule(UpdateType::FIXED), world->get_fixed_update_dt(), QUEUE_FIXED);
 
 		const double step_ms =
 			std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();

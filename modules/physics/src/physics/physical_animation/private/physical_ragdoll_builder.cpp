@@ -91,7 +91,7 @@ namespace era_engine::physics
 
 		if (is_tgs)
 		{
-			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 1 : 1;
+			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 0 : 1;
 			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 16 : 6;
 
 		}

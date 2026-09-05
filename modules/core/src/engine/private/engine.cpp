@@ -35,6 +35,10 @@
 
 #include <fstream>
 
+#include <timeapi.h>
+
+#pragma comment(lib, "winmm.lib") 
+
 namespace era_engine
 {
 	bool handleWindowsMessages();
@@ -148,6 +152,8 @@ namespace era_engine
 	static bool verbose = false;
 	static bool main_menu = false;
 
+	static MMRESULT timer_result;
+
 	Engine::Engine(int argc, char** argv)
 	{
 		using namespace clara;
@@ -176,6 +182,14 @@ namespace era_engine
 
 		const bool dx_inited = dxContext.initialize();
 		ASSERT(dx_inited);
+
+		timer_result = timeBeginPeriod(1);
+		if (timer_result != TIMERR_NOERROR)
+		{
+			std::cerr << "Failed to set precise Windows timer resolution." << std::endl;
+		}
+
+		std::cout << "Windows scheduler precision set to 1ms. Running physics thread..." << std::endl;
 	}
 
 	Engine::~Engine()
@@ -295,6 +309,11 @@ namespace era_engine
 	}
 
 	terminate();
+
+	if (timer_result == TIMERR_NOERROR)
+	{
+		timeEndPeriod(1);
+	}
 
 	return true;
 }
