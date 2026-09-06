@@ -16,6 +16,7 @@ namespace era_engine
 
 		void init() override;
 		void update(float dt) override;
+		void update_transforms(float dt);
 
 		void update_base(float dt);
 		void reset_input(float dt);

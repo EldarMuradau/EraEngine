@@ -54,12 +54,10 @@ namespace era_engine
 		vec3 desired_velocity = vec3::zero;
 		vec3 desired_velocity_change_curr = vec3::zero;
 		vec3 desired_velocity_change_prev = vec3::zero;
-		float desired_velocity_change_threshold = deg2rad(50.0);
 
 		quat desired_rotation = quat::identity;
 		vec3 desired_rotation_change_curr = vec3::zero;
 		vec3 desired_rotation_change_prev = vec3::zero;
-		float desired_rotation_change_threshold = deg2rad(50.0);
 
 		float desired_gait = 0.0f;
 		float desired_gait_velocity = 0.0f;
@@ -74,11 +72,11 @@ namespace era_engine
 
 		float run_fwrd_speed = 5.0f;
 		float run_side_speed = 4.0f;
-		float run_back_speed = 3.5f;
+		float run_back_speed = 1.5f;
 
 		float walk_fwrd_speed = 2.25f;
-		float walk_side_speed = 2.0f;
-		float walk_back_speed = 1.75f;
+		float walk_side_speed = 1.5f;
+		float walk_back_speed = 1.0f;
 
 		std::optional<RootMotion> root_motion;
 

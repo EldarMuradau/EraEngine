@@ -128,6 +128,8 @@
   Path: E:\Era Engine\resources\assets\springtrap\source\animations\animation_clip9.eanm
 - Handle: 17302304986486503060
   Path: E:\Era Engine\resources\assets\Sponza\textures\background_ddn.png
+- Handle: 9093792622083268120
+  Path: E:\Era Engine\resources\assets\test_character\Running Backward.fbx
 - Handle: 18312049689507638649
   Path: E:\Era Engine\resources\assets\Sponza\textures\chain_texture_bump.png
 - Handle: 5737820042833821992
@@ -648,6 +650,8 @@
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_BC.png
 - Handle: 1389090883369141382
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_M.png
+- Handle: 15563878114337848481
+  Path: E:\Era Engine\resources\assets\test_character\Run Backward Arc Right.fbx
 - Handle: 9335539683665609231
   Path: E:\Era Engine\resources\assets\springtrap\textures\T_K40Torso01_N.71.cache.dds
 - Handle: 9543147117147045894
@@ -692,12 +696,18 @@
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Strafe Left_mixamo.com_clip0.eanm
 - Handle: 3017964886787934483
   Path: E:\Era Engine\resources\assets\test_character\animations\Jog Strafe Right_mixamo.com_clip0.eanm
+- Handle: 14066684253668160163
+  Path: E:\Era Engine\resources\assets\test_character\animations\Run Backward Arc Left_mixamo.com_clip0.eanm
+- Handle: 17882486983354351504
+  Path: E:\Era Engine\resources\assets\test_character\animations\Run Backward Arc Right_mixamo.com_clip0.eanm
 - Handle: 4061747199753316909
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Turn 180R_mixamo.com_clip0.eanm
 - Handle: 4057452502098619265
   Path: E:\Era Engine\resources\assets\test_character\animations\Run Forward Arc Left_mixamo.com_clip0.eanm
 - Handle: 6429235645903736993
   Path: E:\Era Engine\resources\assets\test_character\animations\Run To Stop_mixamo.com_clip0.eanm
+- Handle: 14309910121574079007
+  Path: E:\Era Engine\resources\assets\test_character\animations\Running Backward_mixamo.com_clip0.eanm
 - Handle: 3935631872595920757
   Path: E:\Era Engine\resources\assets\test_character\animations\Running Left Turn_mixamo.com_clip0.eanm
 - Handle: 15894539209243173498
@@ -708,6 +718,10 @@
   Path: E:\Era Engine\resources\assets\test_character\Catwalk Sequence 02L.fbx
 - Handle: 16568861616353332792
   Path: E:\Era Engine\resources\assets\test_character\animations\Sprint_mixamo.com_clip0.eanm
+- Handle: 14342187815091086555
+  Path: E:\Era Engine\resources\assets\test_character\animations\StrafeL_mixamo.com_clip0.eanm
+- Handle: 314597541634126098
+  Path: E:\Era Engine\resources\assets\test_character\animations\StrafeR_mixamo.com_clip0.eanm
 - Handle: 6054911159769588479
   Path: E:\Era Engine\resources\assets\test_character\animations\Turn To RunningR_mixamo.com_clip0.eanm
 - Handle: 13674513843379087077
@@ -732,6 +746,8 @@
   Path: E:\Era Engine\resources\assets\test_character\Jog Backward DiagonalR.fbx
 - Handle: 6861707000305150441
   Path: E:\Era Engine\resources\assets\test_character\Jog Strafe Right.fbx
+- Handle: 1914838460764724376
+  Path: E:\Era Engine\resources\assets\test_character\Run Backward Arc Left.fbx
 - Handle: 8220758205052736509
   Path: E:\Era Engine\resources\assets\test_character\Run Forward Arc Right.fbx
 - Handle: 16310859480061287194
@@ -744,12 +760,26 @@
   Path: E:\Era Engine\resources\assets\test_character\Running Turn 180L.fbx
 - Handle: 700154776220207193
   Path: E:\Era Engine\resources\assets\test_character\Running.fbx
+- Handle: 12376705141443144763
+  Path: E:\Era Engine\resources\assets\test_character\skeletons\Run Backward Arc Left_skeleton0.eskeleton
+- Handle: 6440629283495512838
+  Path: E:\Era Engine\resources\assets\test_character\skeletons\Run Backward Arc Right_skeleton0.eskeleton
+- Handle: 9345815749628581999
+  Path: E:\Era Engine\resources\assets\test_character\skeletons\Running Backward_skeleton0.eskeleton
+- Handle: 18345003607388493296
+  Path: E:\Era Engine\resources\assets\test_character\skeletons\StrafeL_skeleton0.eskeleton
+- Handle: 1672088783969032521
+  Path: E:\Era Engine\resources\assets\test_character\StrafeR.fbx
+- Handle: 14648926066840411371
+  Path: E:\Era Engine\resources\assets\test_character\skeletons\StrafeR_skeleton0.eskeleton
 - Handle: 5461263588396731930
   Path: E:\Era Engine\resources\assets\test_character\Sprint.fbx
 - Handle: 15771764961496923185
   Path: E:\Era Engine\resources\assets\test_character\Start Walking.fbx
 - Handle: 15927738870226428809
   Path: E:\Era Engine\resources\assets\test_character\Stop Walking.fbx
+- Handle: 14696831062930323108
+  Path: E:\Era Engine\resources\assets\test_character\StrafeL.fbx
 - Handle: 13830409654947800529
   Path: E:\Era Engine\resources\assets\test_character\textures\Ch15_1001_Diffuse.png
 - Handle: 5621775074392942170

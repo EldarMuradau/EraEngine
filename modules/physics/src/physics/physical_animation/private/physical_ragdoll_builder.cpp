@@ -78,13 +78,14 @@ namespace era_engine::physics
 		dynamic_body_component->max_depenetration_velocity = 20.0f;
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
+		dynamic_body_component->enable_gyroscopic_forces.get_for_write() = true;
 		dynamic_body_component->linear_damping.get_for_write() = 0.05f;
 		dynamic_body_component->angular_damping.get_for_write() = 0.05f;
+		dynamic_body_component->stabilization_threshold.get_for_write() = 0.01f;
+		dynamic_body_component->sleep_threshold.get_for_write() = 0.02f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
 		dynamic_body_component->max_linear_velocity.get_for_write() = max_linear_velocity;
-		dynamic_body_component->stabilization_threshold.get_for_write() = 0.01f;
-		dynamic_body_component->sleep_threshold.get_for_write() = 0.02f;
 
 		const bool is_tgs = PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver;
 		const bool is_gpu = PhysicsEngine::get_physics_core()->is_gpu();
@@ -93,14 +94,12 @@ namespace era_engine::physics
 		{
 			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 0 : 1;
 			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 16 : 6;
-
 		}
 		else
 		{
 			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 6 : 4;
 			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 12 : 8;
 		}
-		
 
 		return dynamic_body_component;
 	}
@@ -1383,17 +1382,12 @@ namespace era_engine::physics
 
 		// Left arm -> left forearm
 		constexpr float forearm_d6_swing_y_deg = deg2rad(70.0f);
-		const vec3 left_forearm_capsule_y_axis = left_forearm_joint_transform.rotation * vec3::up;
-		const trs left_forearm_d6_transform = trs(
-			left_forearm_joint_transform.position,
-			quat(left_forearm_capsule_y_axis, deg2rad(35.0f)) * left_forearm_joint_transform.rotation,
-			left_forearm_joint_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
 			structure.left_arm_joint,
 			structure.left_forearm_joint,
-			left_forearm_d6_transform,
+			left_forearm_joint_transform,
 			left_forearm_joint_transform,
 			deg2rad(-5.0f), deg2rad(5.0f),
 			forearm_d6_swing_y_deg, deg2rad(6.0f));
@@ -1406,8 +1400,8 @@ namespace era_engine::physics
 			structure.left_hand_joint,
 			left_hand_joint_transform,
 			left_hand_joint_transform,
-			deg2rad(-25.0f), deg2rad(25.0f),
-			deg2rad(40.0f), deg2rad(30.0f));
+			deg2rad(-15.0f), deg2rad(15.0f),
+			deg2rad(25.0f), deg2rad(20.0f));
 
 		// Body upper -> right clavicle
 		create_d6_joint(
@@ -1432,17 +1426,12 @@ namespace era_engine::physics
 			arm_d6_swing_y_deg, deg2rad(60.0f));
 
 		// Right arm -> right forearm
-		const vec3 right_forearm_capsule_y_axis = right_forearm_joint_transform.rotation * vec3::up;
-		const trs right_forearm_d6_transform = trs(
-			right_forearm_joint_transform.position,
-			quat(right_forearm_capsule_y_axis, deg2rad(35.0f)) * right_forearm_joint_transform.rotation,
-			right_forearm_joint_transform.scale);
 		create_d6_joint(
 			ctx.enable_physical_animation,
 			ctx.ragdoll,
 			structure.right_arm_joint,
 			structure.right_forearm_joint,
-			right_forearm_d6_transform,
+			right_forearm_joint_transform,
 			right_forearm_joint_transform,
 			deg2rad(-5.0f), deg2rad(5.0f),
 			forearm_d6_swing_y_deg, deg2rad(6.0f));
@@ -1455,8 +1444,8 @@ namespace era_engine::physics
 			structure.right_hand_joint,
 			right_hand_joint_transform,
 			right_hand_joint_transform,
-			deg2rad(-25.0f), deg2rad(25.0f),
-			deg2rad(40.0f), deg2rad(30.0f));
+			deg2rad(-15.0f), deg2rad(15.0f),
+			deg2rad(25.0f), deg2rad(20.0f));
 
 		// Pelvis -> left up leg
 		constexpr  float up_leg_back_angle_deg = deg2rad(5.0); // How far up leg can be rotated around y axis in backwards direction

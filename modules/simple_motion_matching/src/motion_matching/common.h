@@ -20,6 +20,14 @@ namespace era_engine
 		float current_anim_position = 0.0f;
 	};
 
+	enum class SearchResultType : uint8
+	{
+		NEW_ANIMATION = 0,
+		SAME_ANIMATION,
+		SAME_FRAME, // Corner case of SAME_ANIMATION
+		FAILED
+	};
+
 	struct ERA_MOTION_MATCHING_API SearchResult final
 	{
 		ref<animation::AnimationAssetClip> animation;
@@ -27,6 +35,8 @@ namespace era_engine
 
 		std::vector<float> found_features;
 		float anim_position = -1.0f;
+
+		SearchResultType type = SearchResultType::FAILED;
 	};
 
 	static inline float clampf(float x, float min, float max)

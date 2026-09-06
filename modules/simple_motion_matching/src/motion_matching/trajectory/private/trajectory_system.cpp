@@ -72,11 +72,18 @@ namespace era_engine
         velocities(0) = velocity;
         accelerations(0) = acceleration;
 
+        float current_time = time_offsets(0);
+
         for (int i = 1; i < positions.size; i++)
         {
             positions(i) = positions(i - 1);
             velocities(i) = velocities(i - 1);
             accelerations(i) = accelerations(i - 1);
+
+            float prev_time = current_time;
+            current_time = time_offsets(i);
+
+            float time_offset = current_time - prev_time;
 
             MotionUtils::simulation_positions_update(
                 positions(i),
@@ -84,7 +91,7 @@ namespace era_engine
                 accelerations(i),
                 desired_velocities(i),
                 halflife,
-                time_offsets(i));
+                time_offset);
         }
     }
 
@@ -123,14 +130,21 @@ namespace era_engine
         rotations.set(rotation);
         angular_velocities.set(angular_velocity);
 
+        float current_time = time_offsets(0);
+
         for (int i = 1; i < rotations.size; i++)
         {
+            float prev_time = current_time;
+            current_time = time_offsets(i);
+
+            float time_offset = current_time - prev_time;
+
             MotionUtils::simulation_rotations_update(
                 rotations(i),
                 angular_velocities(i),
                 desired_rotations(i),
                 halflife,
-                time_offsets(i));
+                time_offset);
         }
     }
 
@@ -141,7 +155,8 @@ namespace era_engine
         registration::class_<TrajectoryMotionSystem>("TrajectoryMotionSystem")
             .constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
             .method("update", &TrajectoryMotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
-                metadata("After", std::vector<std::string>{"MotionSystem::update"}))
+                metadata("After", std::vector<std::string>{"MotionSystem::update"}),
+                metadata("After", std::vector<std::string>{"MotionSystem::update_transforms"}))
             .method("debug_draw_update", &TrajectoryMotionSystem::debug_draw_update)(metadata("update_group", update_types::RENDER));
     }
 
@@ -169,27 +184,14 @@ namespace era_engine
         {
             const trs& current_world_transform = transform_component.get_world_transform();
 
-            // Get gamepad stick states
             const vec3 input = noz(motion_component.get_desired_input());
 
-            // Get if strafe is desired
             bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
-
             const float strafe_direction = 0.0f;
 
-            // Get the desired simulation speeds based on the gait
             float simulation_fwrd_speed = lerpf(motion_component.run_fwrd_speed, motion_component.walk_fwrd_speed, motion_component.desired_gait);
             float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
             float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
-
-            trajectory_desired_velocities_predict(
-                trajectory_component.trajectory_desired_velocities,
-                motion_component.velocity,
-                input,
-                motion_component.input_movement_rotation,
-                simulation_fwrd_speed,
-                simulation_side_speed,
-                simulation_back_speed);
 
             trajectory_desired_rotations_predict(
                 trajectory_component.trajectory_desired_rotations,
@@ -207,6 +209,15 @@ namespace era_engine
                 trajectory_component.trajectory_desired_rotations,
                 motion_component.rotation_halflife,
                 trajectory_component.time_offsets);
+
+            trajectory_desired_velocities_predict(
+                trajectory_component.trajectory_desired_velocities,
+                motion_component.velocity,
+                input,
+                motion_component.input_movement_rotation,
+                simulation_fwrd_speed,
+                simulation_side_speed,
+                simulation_back_speed);
 
             trajectory_positions_predict(
                 trajectory_component.trajectory_positions,

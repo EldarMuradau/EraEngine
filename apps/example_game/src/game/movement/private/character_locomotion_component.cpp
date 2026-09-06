@@ -3,6 +3,7 @@
 #include <ecs/entity.h>
 #include <ecs/base_components/transform_component.h>
 
+#include <core/log.h>
 #include <core/ecs/input_receiver_component.h>
 
 #include <motion_matching/motion_data_component.h>
@@ -33,7 +34,7 @@ namespace era_engine
 		motion_data_component->on_search_succeeded_func = std::bind(&CharacterLocomotionComponent::on_search_succeeded, this, std::placeholders::_1);
 		motion_data_component->need_force_start_search_func = std::bind(&CharacterLocomotionComponent::need_force_start_search, this);
 
-		motion_data_component->search_time = 0.28f;
+		motion_data_component->search_time = 0.23f;
 	}
 
 	CharacterLocomotionComponent::~CharacterLocomotionComponent()
@@ -66,29 +67,34 @@ namespace era_engine
 		Entity entity = get_entity();
 
 		AnimationComponent* animation_component = entity.get_component<AnimationComponent>();
+		
 		const SkeletonComponent* skeleton_component = entity.get_component<SkeletonComponent>();
-
 		const Skeleton* skeleton = skeleton_component->skeleton.get();
 
-		AnimationPoseSampler sampler;
-		sampler.init(skeleton, result.animation);
-
-		if (!animation_component->enable_root_motion)
+		if (result.type != SearchResultType::SAME_FRAME)
 		{
-			sampler.set_joint_enabled(skeleton->joints[0].name, false);
+			AnimationPoseSampler sampler;
+			sampler.init(skeleton, result.animation);
+
+			if (!animation_component->enable_root_motion)
+			{
+				sampler.set_joint_enabled(skeleton->joints[0].name, false);
+			}
+
+			SkeletonPose result_pose = SkeletonPose(skeleton->joints.size());
+			sampler.sample_pose(result.anim_position, result_pose);
+
+			animation_component->trigger_reset_inertial_blend(result_pose, 0.16f);
 		}
 
-		SkeletonPose result_pose = SkeletonPose(skeleton->joints.size());
-		sampler.sample_pose(result.anim_position, result_pose);
+		//LOG_MESSAGE(std::format("Found animation: {}, at position {}", get_path_from_asset_handle(result.animation->handle).string().c_str(), result.anim_position).c_str());
 
-		animation_component->trigger_reset_inertial_blend(result_pose, 0.18f);
-
-		/*MotionComponent* motion_component = entity.get_component<MotionComponent>();
-		motion_component->init_root_motion(skeleton, 
-			result.animation, 
-			result.anim_position, 
-			0.28f,
-			RootMotionType::LOCATION);*/
+		//MotionComponent* motion_component = entity.get_component<MotionComponent>();
+		//motion_component->init_root_motion(skeleton, 
+		//	result.animation, 
+		//	result.anim_position, 
+		//	0.23f,
+		//	RootMotionType::LOCATION);
 	}
 
 }

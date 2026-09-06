@@ -33,6 +33,8 @@ namespace era_engine
 		registration::class_<MotionSystem>("MotionSystem")
 			.constructor<World*>()(policy::ctor::as_raw_ptr, metadata("Tag", std::string("motion_matching")))
 			.method("update", &MotionSystem::update)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS))
+			.method("update_transforms", &MotionSystem::update_transforms)(metadata("update_group", update_types::GAMEPLAY_BEFORE_PHYSICS),
+				metadata("After", std::vector<std::string>{"MotionSystem::update"}))
 			.method("update_base", &MotionSystem::update_base)(metadata("update_group", update_types::GAMEPLAY_NORMAL_CONCURRENT))
 			.method("reset_input", &MotionSystem::reset_input)(metadata("update_group", update_types::END_FIXED));
 	}
@@ -57,37 +59,30 @@ namespace era_engine
         for (auto&& [handle, transform_component, reciever_component, motion_component]
 			: world->group(components_group<TransformComponent, InputReceiverComponent, MotionComponent>).each())
         {
-			trs desired_world_transform = transform_component.get_world_transform();
+			const trs& desired_world_transform = transform_component.get_world_transform();
 
-			// Get gamepad stick states
 			const vec3 input = noz(motion_component.get_desired_input());
 
-			// Get if strafe is desired
-			bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
-
+			const bool desired_strafe = reciever_component.get_frame_input().keyboard[key_ctrl].down;
 			const float strafe_direction = 0.0f;
 
-			// Get the desired gait (walk / run)
 			MotionUtils::desired_gait_update(
 				motion_component.desired_gait,
 				motion_component.desired_gait_velocity,
 				dt);
 
-			// Get the desired simulation speeds based on the gait
-			float simulation_fwrd_speed = lerpf(motion_component.run_fwrd_speed, motion_component.walk_fwrd_speed, motion_component.desired_gait);
-			float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
-			float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
+			const float simulation_fwrd_speed = lerpf(motion_component.run_fwrd_speed, motion_component.walk_fwrd_speed, motion_component.desired_gait);
+			const float simulation_side_speed = lerpf(motion_component.run_side_speed, motion_component.walk_side_speed, motion_component.desired_gait);
+			const float simulation_back_speed = lerpf(motion_component.run_back_speed, motion_component.walk_back_speed, motion_component.desired_gait);
 
-			// Get the desired velocity
-			vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
+			const vec3 desired_velocity_curr = MotionUtils::desired_velocity_update(
 				input,
 				motion_component.input_movement_rotation,
 				simulation_fwrd_speed,
 				simulation_side_speed,
 				simulation_back_speed);
 
-			// Get the desired rotation/direction
-			quat desired_rotation_curr = MotionUtils::desired_rotation_update(
+			const quat desired_rotation_curr = MotionUtils::desired_rotation_update(
 				desired_world_transform.rotation,
 				length(input) > 0.01f,
 				strafe_direction,
@@ -95,12 +90,23 @@ namespace era_engine
 				desired_velocity_curr);
 
 			motion_component.desired_velocity_change_prev = motion_component.desired_velocity_change_curr;
-			motion_component.desired_velocity_change_curr = (desired_velocity_curr - motion_component.desired_velocity) / dt;
+			motion_component.desired_velocity_change_curr = (desired_velocity_curr - motion_component.desired_velocity) * dt;
 			motion_component.desired_velocity = desired_velocity_curr;
 
 			motion_component.desired_rotation_change_prev = motion_component.desired_rotation_change_curr;
-			motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) / dt;
+			motion_component.desired_rotation_change_curr = quat_to_scaled_angle_axis(abs((conjugate(desired_rotation_curr) * motion_component.desired_rotation))) * dt;
 			motion_component.desired_rotation = desired_rotation_curr;
+		}
+	}
+
+	void MotionSystem::update_transforms(float dt)
+	{
+		ZoneScopedN("MotionSystem::update_transforms");
+
+		for (auto&& [handle, transform_component, reciever_component, motion_component]
+			: world->group(components_group<TransformComponent, InputReceiverComponent, MotionComponent>).each())
+		{
+			trs desired_world_transform = transform_component.get_world_transform();
 
 			if (motion_component.has_root_motion())
 			{

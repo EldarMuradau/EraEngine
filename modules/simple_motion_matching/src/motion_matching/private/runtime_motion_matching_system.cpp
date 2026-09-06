@@ -49,11 +49,11 @@ namespace era_engine
 
 		ZoneScopedN("RuntimeMotionMatchingSystem::update");
 
-        for (auto&& [handle, transform_component, mm_controller, motion_data_component, animation_component] : world->group(components_group<TransformComponent, 
+		for (auto&& [handle, transform_component, mm_controller, motion_data_component, animation_component] : world->group(components_group<TransformComponent, 
 			MotionMatchingComponent, 
 			MotionDataComponent, 
 			AnimationComponent>).each())
-        {
+		{
 			motion_data_component.search_timer -= dt;
 
 			if (motion_data_component.on_update_func != nullptr)
@@ -128,6 +128,6 @@ namespace era_engine
 					}
 				}
 			}
-        }
+		}
 	}
 }

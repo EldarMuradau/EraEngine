@@ -401,6 +401,8 @@ namespace era_engine
 
         const std::shared_ptr<MotionMatchingDatabase::Sample>& result_candidate = resulted_candidates.front();
 
+        SearchResultType result_type = SearchResultType::NEW_ANIMATION;
+
         if (has_flag(narrow_phase_params.flags, NarrowPhaseFlags::SAME_FRAME_CHECK) &&
             params.current_animation == animations[result_candidate->anim_index])
         {
@@ -408,11 +410,13 @@ namespace era_engine
 
             if (abs(anim_position_diff) < narrow_phase_params.same_frame_time_threshold)
 			{
-				return SearchResult(params.current_animation, database_id, params.query, params.current_anim_position);
+				return SearchResult(params.current_animation, database_id, params.query, params.current_anim_position, SearchResultType::SAME_FRAME);
 			}
+
+            result_type = SearchResultType::SAME_ANIMATION;
 		}
 
-		return SearchResult(animations[result_candidate->anim_index], database_id, result_candidate->features, result_candidate->anim_position);
+		return SearchResult(animations[result_candidate->anim_index], database_id, result_candidate->features, result_candidate->anim_position, result_type);
 	}
 
 	MotionMatchingDatabase::MotionMatchingDatabase(KnnStructureType _knn_type /*= KnnStructureType::DEFAULT*/)
