@@ -250,6 +250,12 @@ namespace era_engine
 
 					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/StrafeL.fbx"),
 						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Slow Jog Backwards.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
+
+					import_animations_and_skeletons(get_asset_path("/resources/assets/test_character/Run Backward.fbx"),
+						mesh_creation_flags_animated | mesh_creation_flags_sm_to_m | mesh_creation_flags_generate_root_motion);
 				}
 
 				//ref<MultiMesh> mesh = import_animated_mesh_from_file_async(get_asset_path("/resources/assets/test_character/Walking.fbx"),
@@ -629,8 +635,8 @@ namespace era_engine
 					add_animation("/resources/assets/test_character/animations/Running Turn 180R_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Running_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Sprint_mixamo.com_clip0.eanm");
-					add_animation("/resources/assets/test_character/animations/Start Walking_mixamo.com_clip0.eanm");
-					add_animation("/resources/assets/test_character/animations/Stop Walking_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Start Walking_mixamo.com_clip0.eanm");
+					//add_animation("/resources/assets/test_character/animations/Stop Walking_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Turn To RunningL_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Turn To RunningR_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/Walking Backwards_mixamo.com_clip0.eanm");
@@ -647,6 +653,8 @@ namespace era_engine
 					add_animation("/resources/assets/test_character/animations/Running Backward_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/StrafeL_mixamo.com_clip0.eanm");
 					add_animation("/resources/assets/test_character/animations/StrafeR_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Run Backward_mixamo.com_clip0.eanm");
+					add_animation("/resources/assets/test_character/animations/Slow Jog Backwards_mixamo.com_clip0.eanm");
 
 					database->generate_initial_data();
 

@@ -1,6 +1,7 @@
 #include "motion_matching/features/trajectory_feature.h"
 #include "motion_matching/trajectory/trajectory_component.h"
 #include "motion_matching/motion/root_trajectory_utils.h"
+#include "motion_matching/motion/motion_component.h"
 
 #include <animation/animation_pose_sampler.h>
 #include <animation/skeleton_component.h>
@@ -60,14 +61,14 @@ namespace era_engine
 
 					if (trajectory_feature_desc->type == FeatureDescType::LOCATION)
 					{
-						const vec3 position = root_space_transform.position;
+						const vec3& position = root_space_transform.position;
 
 						values.emplace_back(position.x);
 						values.emplace_back(position.z);
 					}
 					else if (trajectory_feature_desc->type == FeatureDescType::DIRECTION)
 					{
-						const quat rotation = root_space_transform.rotation;
+						const quat& rotation = root_space_transform.rotation;
 						const vec3 direction = noz(rotation * vec3::forward);
 
 						values.emplace_back(direction.x);
@@ -75,7 +76,7 @@ namespace era_engine
 					}
 					else if (trajectory_feature_desc->type == FeatureDescType::VELOCITY)
 					{
-						const vec3 velocity = conjugate(world_transform.rotation) * context.trajectory_component->trajectory_velocities(i);
+						const vec3 velocity = conjugate(context.motion_component->get_input_movement_rotation()) * context.trajectory_component->trajectory_velocities(i);
 
 						values.emplace_back(velocity.x);
 						values.emplace_back(velocity.z);
@@ -115,7 +116,7 @@ namespace era_engine
 			{
 				for (uint32 i = 0; i < num_samples; ++i)
 				{
-					const trs current_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, max(current_time + trajectory_feature_desc->time_offset, 0.0f));
+					const trs current_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, current_time + trajectory_feature_desc->time_offset);
 
 					if (trajectory_feature_desc->type == FeatureDescType::LOCATION)
 					{
@@ -131,7 +132,7 @@ namespace era_engine
 					}
 					else if (trajectory_feature_desc->type == FeatureDescType::VELOCITY)
 					{
-						const trs prev_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, max(current_time + trajectory_feature_desc->time_offset - timestep, 0.0f));
+						const trs prev_transform = RootTrajectoryUtils::get_trs_from_origin(sampler, current_time, current_time + trajectory_feature_desc->time_offset - timestep);
 						const vec3 velocity = (current_transform.position - prev_transform.position) / timestep;
 
 						descriptor_values_x.emplace_back(velocity.x);

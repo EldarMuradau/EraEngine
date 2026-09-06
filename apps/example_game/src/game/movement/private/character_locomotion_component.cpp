@@ -87,7 +87,7 @@ namespace era_engine
 			animation_component->trigger_reset_inertial_blend(result_pose, 0.16f);
 		}
 
-		//LOG_MESSAGE(std::format("Found animation: {}, at position {}", get_path_from_asset_handle(result.animation->handle).string().c_str(), result.anim_position).c_str());
+		LOG_MESSAGE(std::format("Found animation: {}, at position {}", get_path_from_asset_handle(result.animation->handle).string().c_str(), result.anim_position).c_str());
 
 		//MotionComponent* motion_component = entity.get_component<MotionComponent>();
 		//motion_component->init_root_motion(skeleton, 

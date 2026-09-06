@@ -30,7 +30,7 @@ namespace era_engine
         PhysicsDescriptor desc;
         //desc.broad_phase = physx::PxBroadPhaseType::eGPU;
         //desc.enable_tgs_solver = false;
-        
+
 #if _DEBUG
         desc.enable_pvd = true;
 #else

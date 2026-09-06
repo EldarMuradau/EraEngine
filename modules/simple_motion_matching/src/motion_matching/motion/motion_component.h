@@ -72,11 +72,11 @@ namespace era_engine
 
 		float run_fwrd_speed = 5.0f;
 		float run_side_speed = 4.0f;
-		float run_back_speed = 1.5f;
+		float run_back_speed = 2.25f;
 
 		float walk_fwrd_speed = 2.25f;
-		float walk_side_speed = 1.5f;
-		float walk_back_speed = 1.0f;
+		float walk_side_speed = 1.75f;
+		float walk_back_speed = 1.5f;
 
 		std::optional<RootMotion> root_motion;
 

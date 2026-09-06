@@ -98,7 +98,7 @@ namespace era_engine
 	void MotionComponent::apply_desired_input()
 	{
 		last_input = current_input;
-		current_input = desired_input;
+		current_input = noz(desired_input);
 		desired_input = vec3::zero;
 	}
 
