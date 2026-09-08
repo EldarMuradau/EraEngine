@@ -1,4 +1,36 @@
 
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=EldarMuradov&project=EraEngine&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
+
 ![EraEngine Logo](https://github.com/EldarMuradov/EldarMuradov/blob/a4d76f9ec241f35d76237f3e637cbf1921de5d2d/Editor.png)
 
 ![EraEngine Logo](https://github.com/EldarMuradov/EldarMuradov/blob/99a6272b7b5f123c8f20b7c39f773714f79810cd/MESH_EDITOR.png)
