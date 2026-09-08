@@ -33,7 +33,7 @@
 
 using namespace physx;
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 PxFilterFlags VehicleFilterShader(
@@ -67,4 +67,4 @@ bool parseVehicleDataPath(int argc, const char *const* argv, const char* snippet
 	return true;
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

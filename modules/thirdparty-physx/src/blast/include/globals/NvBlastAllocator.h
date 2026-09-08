@@ -58,7 +58,7 @@ public:
         return NvBlastGlobalGetAllocatorCallback()->allocate(size, nullptr, filename, line);
     }
 
-    void deallocate(void* ptr)
+    void deallocate(void* ptr, uint32_t* cookie=nullptr)
     {
         NvBlastGlobalGetAllocatorCallback()->deallocate(ptr);
     }

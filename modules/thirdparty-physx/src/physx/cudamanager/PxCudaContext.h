@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 
 #ifndef PX_CUDA_CONTEX_H
 #define PX_CUDA_CONTEX_H
@@ -66,6 +66,7 @@ namespace physx
 #define PX_CUDA_KERNEL_PARAM2(X)	(void*)&X
 
 	class PxDeviceAllocatorCallback;
+	class PxPinnedHostAllocatorCallback;
 	/**
 	Cuda Context
 	*/
@@ -74,7 +75,8 @@ namespace physx
 	protected:
 		virtual ~PxCudaContext() {}
 
-		PxDeviceAllocatorCallback* mAllocatorCallback;
+		PxDeviceAllocatorCallback* mDeviceAllocatorCallback;
+		PxPinnedHostAllocatorCallback* mPinnedHostAllocatorCallback;
 
 	public:
 		virtual void release() = 0;
@@ -102,6 +104,8 @@ namespace physx
 		virtual PxCUresult streamFlush(CUstream hStream) = 0;
 
 		virtual PxCUresult streamWaitEvent(CUstream hStream, CUevent hEvent, unsigned int Flags) = 0;
+
+		virtual PxCUresult streamWaitEvent(CUstream hStream, CUevent hEvent) = 0;
 
 		virtual PxCUresult streamDestroy(CUstream hStream) = 0;
 
@@ -174,7 +178,13 @@ namespace physx
 
 		virtual PxCUresult getLastError() = 0;
 
-		PxDeviceAllocatorCallback* getAllocatorCallback() { return mAllocatorCallback; }
+		PX_DEPRECATED PxDeviceAllocatorCallback* getAllocatorCallback() { return mDeviceAllocatorCallback; }
+		PxDeviceAllocatorCallback* getDeviceAllocatorCallback() { return mDeviceAllocatorCallback; }
+		PxPinnedHostAllocatorCallback* getPinnedHostAllocatorCallback() { return mPinnedHostAllocatorCallback; }
+
+		virtual void setAbortMode(bool abort) = 0;
+
+		virtual bool isInAbortMode() = 0;
 	};
 
 #if !PX_DOXYGEN

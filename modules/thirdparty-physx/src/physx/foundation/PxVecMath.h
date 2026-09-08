@@ -22,14 +22,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_VEC_MATH_H
 #define PX_VEC_MATH_H
 
-#include "foundation/Px.h"
 #include "foundation/PxIntrinsics.h"
 #include "foundation/PxVec3.h"
 #include "foundation/PxVec4.h"
@@ -41,7 +40,7 @@
 // It will also be useful for benchmarking and testing.
 // NEVER submit with vector intrinsics deactivated without good reason.
 // AM: deactivating SIMD for debug win64 just so autobuild will also exercise
-// non-SIMD path, until a dedicated non-SIMD platform sich as Arm comes online.
+// non-SIMD path, until a dedicated non-SIMD platform such as Arm comes online.
 // TODO: dima: reference all platforms with SIMD support here,
 // all unknown/experimental cases should better default to NO SIMD.
 
@@ -121,7 +120,7 @@ PX_FORCE_INLINE Vec4V V4LoadU(const PxF32* const f);
 //(f[0],f[1],f[2],f[3]), f must be 16-byte aligned
 PX_FORCE_INLINE Vec4V V4LoadA(const PxF32* const f);
 //(x,y,z,w)
-PX_FORCE_INLINE Vec4V V4LoadXYZW(const PxF32& x, const PxF32& y, const PxF32& z, const PxF32& w);
+PX_FORCE_INLINE Vec4V V4LoadXYZW(PxF32 x, PxF32 y, PxF32 z, PxF32 w);
 
 // BoolV
 //(f,f,f,f)
@@ -302,10 +301,10 @@ PX_FORCE_INLINE FloatV FOne();
 PX_FORCE_INLINE FloatV FHalf();
 //(PX_EPS_REAL,PX_EPS_REAL,PX_EPS_REAL,PX_EPS_REAL)
 PX_FORCE_INLINE FloatV FEps();
-//! @cond
+//! \cond
 //(PX_MAX_REAL, PX_MAX_REAL, PX_MAX_REAL PX_MAX_REAL)
 PX_FORCE_INLINE FloatV FMax();
-//! @endcond
+//! \endcond
 //(-PX_MAX_REAL, -PX_MAX_REAL, -PX_MAX_REAL -PX_MAX_REAL)
 PX_FORCE_INLINE FloatV FNegMax();
 //(1e-6f, 1e-6f, 1e-6f, 1e-6f)
@@ -1257,35 +1256,57 @@ PX_FORCE_INLINE const PxVec3& V4ReadXYZ(const Vec4V& v)
 	return reinterpret_cast<const PxVec3&>(v);
 }
 
-// this macro transposes 4 Vec4V into 3 Vec4V (assuming that the W component can be ignored
-#define PX_TRANSPOSE_44_34(inA, inB, inC, inD, outA, outB, outC)                                                       \
-outA = V4UnpackXY(inA, inC);                                                                                           \
-inA = V4UnpackZW(inA, inC);                                                                                            \
-inC = V4UnpackXY(inB, inD);                                                                                            \
-inB = V4UnpackZW(inB, inD);                                                                                            \
-outB = V4UnpackZW(outA, inC);                                                                                          \
-outA = V4UnpackXY(outA, inC);                                                                                          \
+// this macro transposes 4 Vec4V into 3 Vec4V (assuming that the W component can be ignored)
+//inA:  1   2   3   4
+//inB:  5   6   7   8
+//inC:  9  10  11  12
+//inD:  13 14  15  16
+//outA: 1   5   9  13
+//outB: 2   6  10  14
+//outC: 3   7  11  15
+#define PX_TRANSPOSE_44_34(inA, inB, inC, inD, outA, outB, outC)	\
+outA = V4UnpackXY(inA, inC);                                        \
+inA = V4UnpackZW(inA, inC);                                         \
+inC = V4UnpackXY(inB, inD);                                         \
+inB = V4UnpackZW(inB, inD);                                         \
+outB = V4UnpackZW(outA, inC);                                       \
+outA = V4UnpackXY(outA, inC);                                       \
 outC = V4UnpackXY(inA, inB);
 
 // this macro transposes 3 Vec4V into 4 Vec4V (with W components as garbage!)
-#define PX_TRANSPOSE_34_44(inA, inB, inC, outA, outB, outC, outD)                                                      \
-	outA = V4UnpackXY(inA, inC);                                                                                       \
-	inA = V4UnpackZW(inA, inC);                                                                                        \
-	outC = V4UnpackXY(inB, inB);                                                                                       \
-	inC = V4UnpackZW(inB, inB);                                                                                        \
-	outB = V4UnpackZW(outA, outC);                                                                                     \
-	outA = V4UnpackXY(outA, outC);                                                                                     \
-	outC = V4UnpackXY(inA, inC);                                                                                       \
+//inA:  1   2   3   4
+//inB:  5   6   7   8
+//inC:  9  10  11  12
+//outA: 1   5   9  undefined
+//outB: 2   6  10  undefined
+//outC: 3   7  11  undefined
+//outD: 4   8  12  undefined
+#define PX_TRANSPOSE_34_44(inA, inB, inC, outA, outB, outC, outD)	\
+	outA = V4UnpackXY(inA, inC);                                    \
+	inA = V4UnpackZW(inA, inC);                                     \
+	outC = V4UnpackXY(inB, inB);                                    \
+	inC = V4UnpackZW(inB, inB);                                     \
+	outB = V4UnpackZW(outA, outC);                                  \
+	outA = V4UnpackXY(outA, outC);                                  \
+	outC = V4UnpackXY(inA, inC);                                    \
 	outD = V4UnpackZW(inA, inC);
 
-#define PX_TRANSPOSE_44(inA, inB, inC, inD, outA, outB, outC, outD)                                                    \
-	outA = V4UnpackXY(inA, inC);                                                                                       \
-	inA = V4UnpackZW(inA, inC);                                                                                        \
-	inC = V4UnpackXY(inB, inD);                                                                                        \
-	inB = V4UnpackZW(inB, inD);                                                                                        \
-	outB = V4UnpackZW(outA, inC);                                                                                      \
-	outA = V4UnpackXY(outA, inC);                                                                                      \
-	outC = V4UnpackXY(inA, inB);                                                                                       \
+//inA:  1   2   3   4
+//inB:  5   6   7   8
+//inC:  9  10  11  12
+//inD:  13 14  15  16
+//outA: 1   5   9  13
+//outB: 2   6  10  14
+//outC: 3   7  11  15
+//outD: 4   8  12  16
+#define PX_TRANSPOSE_44(inA, inB, inC, inD, outA, outB, outC, outD)	\
+	outA = V4UnpackXY(inA, inC);                                    \
+	inA = V4UnpackZW(inA, inC);                                     \
+	inC = V4UnpackXY(inB, inD);                                     \
+	inB = V4UnpackZW(inB, inD);                                     \
+	outB = V4UnpackZW(outA, inC);                                   \
+	outA = V4UnpackXY(outA, inC);                                   \
+	outC = V4UnpackXY(inA, inB);                                    \
 	outD = V4UnpackZW(inA, inB);
 
 // This function returns a Vec4V, where each element is the dot product of one pair of Vec3Vs. On PC, each element in

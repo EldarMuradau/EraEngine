@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_COOKING_H
 #define PX_COOKING_H
-/** \addtogroup cooking
-@{
-*/
 #include "common/PxPhysXCommonConfig.h"
 #include "common/PxTolerancesScale.h"
 #include "cooking/Pxc.h"
@@ -69,7 +66,7 @@ struct PxConvexMeshCookingResult
 		/**
 		\brief Convex mesh cooking failed, algorithm couldn't find 4 initial vertices without a small triangle.
 
-		@see PxCookingParams::areaTestEpsilon PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
+		\see PxCookingParams::areaTestEpsilon PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
 		*/
 		eZERO_AREA_TEST_FAILED,
 
@@ -78,7 +75,7 @@ struct PxConvexMeshCookingResult
 			The produced hull does not contain all input vertices. Try to simplify the input vertices
 			or try to use the eINFLATE_CONVEX or the eQUANTIZE_INPUT flags.
 
-		@see PxConvexFlag::eINFLATE_CONVEX PxConvexFlag::eQUANTIZE_INPUT
+		\see PxConvexFlag::eINFLATE_CONVEX PxConvexFlag::eQUANTIZE_INPUT
 		*/
 		ePOLYGONS_LIMIT_REACHED,
 
@@ -178,7 +175,7 @@ struct PxMeshPreprocessingFlag
 		eENABLE_VERT_MAPPING	=   1 << 4,
 
 		/**
-		\brief When set, inertia tensor is calculated for the mesh.
+		\brief When set, inertia data is calculated for the mesh, assuming unit density.
 		*/
 		eENABLE_INERTIA	= 1 << 5
 	};
@@ -189,7 +186,7 @@ typedef PxFlags<PxMeshPreprocessingFlag::Enum,PxU32> PxMeshPreprocessingFlags;
 /**
 \brief Structure describing parameters affecting mesh cooking.
 
-@see PxSetCookingParams() PxGetCookingParams()
+\see PxSetCookingParams() PxGetCookingParams()
 */
 struct PxCookingParams
 {
@@ -199,7 +196,7 @@ struct PxCookingParams
 	If the area of a triangle of the hull is below this value, the triangle will be rejected. This test
 	is done only if PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES is used.
 
-	@see PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
+	\see PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
 
 	<b>Default value:</b> 0.06f*PxTolerancesScale.length*PxTolerancesScale.length
 
@@ -234,7 +231,7 @@ struct PxCookingParams
 
 	<b>Default value:</b> PxConvexMeshCookingType::eQUICKHULL
 
-	@see PxConvexMeshCookingType
+	\see PxConvexMeshCookingType
 	*/
 	PxConvexMeshCookingType::Enum convexMeshCookingType;
 
@@ -256,7 +253,7 @@ struct PxCookingParams
 	bool		buildTriangleAdjacencies;
 
 	/**
-	\brief When true, addigional information required for GPU-accelerated rigid body simulation is created. This can increase memory usage and cooking times for convex meshes and triangle meshes.
+	\brief When true, additional information required for GPU-accelerated rigid body simulation is created. This can increase memory usage and cooking times for convex meshes and triangle meshes.
 
 	<b>Default value:</b> false
 	*/
@@ -267,7 +264,7 @@ struct PxCookingParams
 
 	\note The PxTolerancesScale values have to match the values used when creating a PxPhysics or PxScene instance.
 
-	@see PxTolerancesScale
+	\see PxTolerancesScale
 	*/
 	PxTolerancesScale scale;
 
@@ -306,7 +303,7 @@ struct PxCookingParams
 	Default value is 0.0f to be consistent with previous PhysX versions, which only removed triangles whose area
 	was exactly zero.
 
-	@see PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH
+	\see PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH
 
 	<b>Default value:</b> 0.0f
 
@@ -325,7 +322,7 @@ struct PxCookingParams
 	Default value is 500.0f to be consistent with previous PhysX versions. This value is internally multiplied by
 	PxTolerancesScale::length before being used. Use 0.0f to disable the checks.
 
-	@see PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH
+	\see PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH
 
 	<b>Default value:</b> 500.0f
 
@@ -336,7 +333,7 @@ struct PxCookingParams
 	/**
 	\brief Controls the desired midphase desc structure for triangle meshes.
 
-	@see PxBVH33MidphaseDesc, PxBVH34MidphaseDesc, PxMidphaseDesc
+	\see PxBVH33MidphaseDesc, PxBVH34MidphaseDesc, PxMidphaseDesc
 
 	<b>Default value:</b> PxMeshMidPhase::eBVH34
 	*/
@@ -389,7 +386,7 @@ struct PxCookingParams
 
 This interface allows the creation of standalone objects that can exist without a PxPhysics or PxScene object.
 
-@see PxCreateTriangleMesh PxCreateHeightfield PxCreateTetrahedronMesh PxCreateBVH
+\see PxCreateTriangleMesh PxCreateHeightfield PxCreateTetrahedronMesh PxCreateBVH
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxInsertionCallback* PxGetStandaloneInsertionCallback();
 
@@ -405,7 +402,7 @@ suitable for loading and performing BVH detection at runtime.
 \param[in] stream	User stream to output the cooked data.
 \return true on success.
 
-@see PxBVH PxRigidActorExt::getRigidActorShapeLocalBoundsList
+\see PxBVH PxRigidActorExt::getRigidActorShapeLocalBoundsList
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookBVH(const physx::PxBVHDesc& desc, physx::PxOutputStream& stream);
 
@@ -423,7 +420,7 @@ or PxGetStandaloneInsertionCallback().
 \param[in] insertionCallback	The insertion interface.
 \return PxBVH pointer on success
 
-@see PxCookBVH() PxInsertionCallback
+\see PxCookBVH() PxInsertionCallback
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxBVH* PxCreateBVH(const physx::PxBVHDesc& desc, physx::PxInsertionCallback& insertionCallback);
 
@@ -437,7 +434,7 @@ object. Use this method if you are unable to cook offline.
 \param[in] desc					The BVH descriptor.
 \return PxBVH pointer on success
 
-@see PxCookBVH() PxInsertionCallback
+\see PxCookBVH() PxInsertionCallback
 */
 PX_FORCE_INLINE	physx::PxBVH* PxCreateBVH(const physx::PxBVHDesc& desc)
 {
@@ -458,7 +455,7 @@ suitable for loading and performing collision detection at runtime.
 \param[in] stream	User stream to output the cooked data.
 \return true on success
 
-@see PxPhysics.createHeightField()
+\see PxPhysics.createHeightField()
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookHeightField(const physx::PxHeightFieldDesc& desc, physx::PxOutputStream& stream);
 
@@ -469,7 +466,7 @@ PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookHeightField(const physx::PxHeightFie
 \param[in] insertionCallback	The insertion interface from PxPhysics.
 \return PxHeightField pointer on success
 
-@see PxCookHeightField() PxPhysics.createHeightField() PxInsertionCallback
+\see PxCookHeightField() PxPhysics.createHeightField() PxInsertionCallback
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxHeightField* PxCreateHeightField(const physx::PxHeightFieldDesc& desc, physx::PxInsertionCallback& insertionCallback);
 
@@ -479,7 +476,7 @@ PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxHeightField* PxCreateHeightField(const
 \param[in] desc					The heightfield descriptor to read the HF from.	
 \return PxHeightField pointer on success
 
-@see PxCookHeightField() PxPhysics.createHeightField() PxInsertionCallback
+\see PxCookHeightField() PxPhysics.createHeightField() PxInsertionCallback
 */
 PX_FORCE_INLINE	physx::PxHeightField* PxCreateHeightField(const physx::PxHeightFieldDesc& desc)
 {
@@ -506,7 +503,7 @@ suitable for loading and performing collision detection at runtime.
 \param[out] condition	Result from convex mesh cooking.
 \return true on success.
 
-@see PxCookTriangleMesh() PxConvexMeshCookingResult::Enum
+\see PxCookTriangleMesh() PxConvexMeshCookingResult::Enum
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookConvexMesh(const physx::PxCookingParams& params, const physx::PxConvexMeshDesc& desc, physx::PxOutputStream& stream, physx::PxConvexMeshCookingResult::Enum* condition=NULL);
 
@@ -526,7 +523,7 @@ or PxGetStandaloneInsertionCallback().
 \param[out] condition			Result from convex mesh cooking.
 \return PxConvexMesh pointer on success	
 
-@see PxCookConvexMesh() PxInsertionCallback
+\see PxCookConvexMesh() PxInsertionCallback
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxConvexMesh* PxCreateConvexMesh(const physx::PxCookingParams& params, const physx::PxConvexMeshDesc& desc, physx::PxInsertionCallback& insertionCallback, physx::PxConvexMeshCookingResult::Enum* condition=NULL);
 
@@ -541,7 +538,7 @@ object. Use this method if you are unable to cook offline.
 \param[in] desc			The convex mesh descriptor to read the mesh from.
 \return PxConvexMesh pointer on success
 
-@see PxCookConvexMesh()  PxInsertionCallback
+\see PxCookConvexMesh()  PxInsertionCallback
 */
 PX_FORCE_INLINE	physx::PxConvexMesh* PxCreateConvexMesh(const physx::PxCookingParams& params, const physx::PxConvexMeshDesc& desc)
 {
@@ -560,7 +557,7 @@ The convex mesh descriptor must contain an already created convex mesh - the ver
 
 \return true if all the validity conditions hold, false otherwise.
 
-@see PxCookConvexMesh()
+\see PxCookConvexMesh()
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxValidateConvexMesh(const physx::PxCookingParams& params, const physx::PxConvexMeshDesc& desc);
 
@@ -583,7 +580,7 @@ The provided PxAllocatorCallback does allocate the out arrays. It is the user re
 \param[out] hullPolygons	Polygons array.
 \return true on success
 
-@see PxCookConvexMesh() PxConvexFlags PxConvexMeshDesc PxSimpleTriangleMesh
+\see PxCookConvexMesh() PxConvexFlags PxConvexMeshDesc PxSimpleTriangleMesh
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxComputeHullPolygons(const physx::PxCookingParams& params, const physx::PxSimpleTriangleMesh& mesh, physx::PxAllocatorCallback& inCallback, physx::PxU32& nbVerts, physx::PxVec3*& vertices,
 														physx::PxU32& nbIndices, physx::PxU32*& indices, physx::PxU32& nbPolygons, physx::PxHullPolygon*& hullPolygons);
@@ -602,7 +599,7 @@ The following conditions are true for a valid triangle mesh:
 
 \return true if all the validity conditions hold, false otherwise.
 
-@see PxCookTriangleMesh()
+\see PxCookTriangleMesh()
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxValidateTriangleMesh(const physx::PxCookingParams& params, const physx::PxTriangleMeshDesc& desc);
 
@@ -621,7 +618,7 @@ suitable for loading and performing collision detection at runtime.
 \param[out]	condition	Result from triangle mesh cooking.
 \return true on success
 
-@see PxCookConvexMesh() PxPhysics.createTriangleMesh() PxTriangleMeshCookingResult::Enum
+\see PxCookConvexMesh() PxPhysics.createTriangleMesh() PxTriangleMeshCookingResult::Enum
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookTriangleMesh(const physx::PxCookingParams& params, const physx::PxTriangleMeshDesc& desc, physx::PxOutputStream& stream, physx::PxTriangleMeshCookingResult::Enum* condition=NULL);
 
@@ -641,7 +638,7 @@ or PxGetStandaloneInsertionCallback().
 \param[out] condition			Result from triangle mesh cooking.
 \return PxTriangleMesh pointer on success.	
 
-@see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
+\see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxTriangleMesh* PxCreateTriangleMesh(const physx::PxCookingParams& params, const physx::PxTriangleMeshDesc& desc, physx::PxInsertionCallback& insertionCallback, physx::PxTriangleMeshCookingResult::Enum* condition=NULL);
 
@@ -656,14 +653,14 @@ object. Use this method if you are unable to cook offline.
 \param[in] params	The cooking parameters
 \param[in] desc		The triangle mesh descriptor to read the mesh from.
 
-@see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
+\see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
 */
 PX_FORCE_INLINE	physx::PxTriangleMesh*	PxCreateTriangleMesh(const physx::PxCookingParams& params, const physx::PxTriangleMeshDesc& desc)
 {
 	return PxCreateTriangleMesh(params, desc, *PxGetStandaloneInsertionCallback());
 }
 
-// ==== Tetrahedron & soft body meshes ====
+// ==== Tetrahedron & deformable volume meshes ====
 
 /**
 \brief Cooks a tetrahedron mesh. The results are written to the stream.
@@ -679,7 +676,7 @@ suitable for loading and performing collision detection at runtime.
 \param[in] stream		User stream to output the cooked data.
 \return true on success
 
-@see PxCookConvexMesh() PxPhysics.createTetrahedronMesh() 
+\see PxCookConvexMesh() PxPhysics.createTetrahedronMesh() 
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookTetrahedronMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& meshDesc, physx::PxOutputStream& stream);
 
@@ -698,7 +695,7 @@ or PxGetStandaloneInsertionCallback().
 \param[in] insertionCallback	The insertion interface from PxPhysics.
 \return PxTetrahedronMesh pointer on success.
 
-@see PxCookTetrahedronMesh() PxInsertionCallback
+\see PxCookTetrahedronMesh() PxInsertionCallback
 */
 PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxTetrahedronMesh* PxCreateTetrahedronMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& meshDesc, physx::PxInsertionCallback& insertionCallback);
 
@@ -713,7 +710,7 @@ object. Use this method if you are unable to cook offline.
 \param[in] meshDesc		The tetrahedron mesh descriptor to read the mesh from.
 \return PxTetrahedronMesh pointer on success.
 
-@see PxCookTetrahedronMesh() PxInsertionCallback
+\see PxCookTetrahedronMesh() PxInsertionCallback
 */
 PX_FORCE_INLINE	physx::PxTetrahedronMesh*	PxCreateTetrahedronMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& meshDesc)
 {
@@ -721,31 +718,32 @@ PX_FORCE_INLINE	physx::PxTetrahedronMesh*	PxCreateTetrahedronMesh(const physx::P
 }
 
 /**
-\brief Cooks a softbody mesh. The results are written to the stream.
+\brief Cooks a deformable volume mesh. The results are written to the stream.
 
-To create a softbody mesh object it is necessary to first 'cook' the mesh data into
+To create a deformable volume mesh object it is necessary to first 'cook' the mesh data into
 a form which allows the SDK to perform efficient collision detection and to store data
 used during the FEM calculations.
 
-PxCookSoftBodyMesh() allows a mesh description to be cooked into a binary stream
+PxCookDeformableVolumeMesh() allows a mesh description to be cooked into a binary stream
 suitable for loading and performing collision detection at runtime.
 
 \param[in] params				The cooking parameters
 \param[in] simulationMeshDesc	The tetrahedron mesh descriptor to read the simulation mesh from.
 \param[in] collisionMeshDesc	The tetrahedron mesh descriptor to read the collision mesh from.
-\param[in] softbodyDataDesc		The softbody data descriptor to read mapping information from.
+\param[in] simulationDataDesc	The deformable volume data descriptor to read mapping information from.
 \param[in] stream				User stream to output the cooked data.
 \return true on success
 
-@see PxCookConvexMesh() PxPhysics.createTriangleMesh() PxTriangleMeshCookingResult::Enum
+\see PxCookConvexMesh() PxPhysics.createTriangleMesh() PxTriangleMeshCookingResult::Enum
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookSoftBodyMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
-														const physx::PxSoftBodySimulationDataDesc& softbodyDataDesc, physx::PxOutputStream& stream);
+PX_C_EXPORT PX_PHYSX_COOKING_API	bool PxCookDeformableVolumeMesh(const physx::PxCookingParams& params,
+	const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
+	const physx::PxDeformableVolumeSimulationDataDesc& simulationDataDesc, physx::PxOutputStream& stream);
 
 /**
-\brief Cooks and creates a softbody mesh without going through a stream.
+\brief Cooks and creates a deformable volume mesh without going through a stream.
 
-\note This method does the same as PxCookSoftBodyMesh, but the produced mesh is not stored
+\note This method does the same as PxCookDeformableVolumeMesh, but the produced mesh is not stored
 into a stream but is either directly inserted in PxPhysics, or created as a standalone
 object. Use this method if you are unable to cook offline.
 
@@ -755,40 +753,42 @@ or PxGetStandaloneInsertionCallback().
 \param[in] params				The cooking parameters
 \param[in] simulationMeshDesc	The tetrahedron mesh descriptor to read the simulation mesh from.
 \param[in] collisionMeshDesc	The tetrahedron mesh descriptor to read the collision mesh from.
-\param[in] softbodyDataDesc		The softbody data descriptor to read mapping information from.
+\param[in] simulationDataDesc	The deformable volume data descriptor to read mapping information from.
 \param[in] insertionCallback	The insertion interface from PxPhysics.
-\return PxSoftBodyMesh pointer on success.
+\return PxDeformableVolumeMesh pointer on success.
 
-@see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
+\see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxSoftBodyMesh* PxCreateSoftBodyMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
-																const physx::PxSoftBodySimulationDataDesc& softbodyDataDesc, physx::PxInsertionCallback& insertionCallback);
+PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxDeformableVolumeMesh* PxCreateDeformableVolumeMesh(const physx::PxCookingParams& params, 
+	const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
+	const physx::PxDeformableVolumeSimulationDataDesc& simulationDataDesc, physx::PxInsertionCallback& insertionCallback);
 
 /**
-\brief Cooks and creates a softbody mesh without going through a stream. Convenience function for standalone objects.
+\brief Cooks and creates a deformable volume mesh without going through a stream. Convenience function for standalone objects.
 
-\note This method does the same as PxCookSoftBodyMesh, but the produced mesh is not stored
+\note This method does the same as PxCreateDeformableVolumeMesh, but the produced mesh is not stored
 into a stream but is either directly inserted in PxPhysics, or created as a standalone
 object. Use this method if you are unable to cook offline.
 
 \param[in] params				The cooking parameters
 \param[in] simulationMeshDesc	The tetrahedron mesh descriptor to read the simulation mesh from.
 \param[in] collisionMeshDesc	The tetrahedron mesh descriptor to read the collision mesh from.
-\param[in] softbodyDataDesc		The softbody data descriptor to read mapping information from.
-\return PxSoftBodyMesh pointer on success.
+\param[in] simulationDataDesc	The deformable volume data descriptor to read mapping information from.
+\return PxDeformableVolumeMesh pointer on success.
 
-@see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
+\see PxCookTriangleMesh() PxPhysics.createTriangleMesh() PxInsertionCallback
 */
-PX_FORCE_INLINE	physx::PxSoftBodyMesh*	PxCreateSoftBodyMesh(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
-	const physx::PxSoftBodySimulationDataDesc& softbodyDataDesc)
+PX_FORCE_INLINE	physx::PxDeformableVolumeMesh* PxCreateDeformableVolumeMesh(const physx::PxCookingParams& params,
+	const physx::PxTetrahedronMeshDesc& simulationMeshDesc, const physx::PxTetrahedronMeshDesc& collisionMeshDesc,
+	const physx::PxDeformableVolumeSimulationDataDesc& simulationDataDesc)
 {
-	return PxCreateSoftBodyMesh(params, simulationMeshDesc, collisionMeshDesc, softbodyDataDesc, *PxGetStandaloneInsertionCallback());
+	return PxCreateDeformableVolumeMesh(params, simulationMeshDesc, collisionMeshDesc, simulationDataDesc, *PxGetStandaloneInsertionCallback());
 }
 
 /**
 \brief Computes the mapping between collision and simulation mesh
 
-The softbody deformation is computed on the simulation mesh. To deform the collision mesh accordingly
+The deformable volume deformation is computed on the simulation mesh. To deform the collision mesh accordingly
 it needs to be specified how its vertices need to be placed and updated inside the deformation mesh.
 This method computes that embedding information.
 
@@ -801,10 +801,11 @@ This method computes that embedding information.
 	PxTetMaker::createVoxelTetrahedronMesh, then the vertexToTet map createVoxelTetrahedronMesh returned should be used here.
 \return PxCollisionMeshMappingData pointer that describes how the collision mesh is embedded into the simulation mesh
 
-@see PxTetMaker::createVoxelTetrahedronMesh
+\see PxTetMaker::createVoxelTetrahedronMesh
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxCollisionMeshMappingData* PxComputeModelsMapping(const physx::PxCookingParams& params, physx::PxTetrahedronMeshData& simulationMesh, const physx::PxTetrahedronMeshData& collisionMesh, 
-																				const physx::PxSoftBodyCollisionData& collisionData, const physx::PxBoundedData* vertexToTet = NULL);
+PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxCollisionMeshMappingData* PxComputeModelsMapping(const physx::PxCookingParams& params,
+	physx::PxTetrahedronMeshData& simulationMesh, const physx::PxTetrahedronMeshData& collisionMesh, 
+	const physx::PxDeformableVolumeCollisionData& collisionData, const physx::PxBoundedData* vertexToTet = NULL);
 	
 /**
 \brief Computes data to accelerate collision detection of tetrahedral meshes
@@ -812,26 +813,28 @@ PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxCollisionMeshMappingData* PxComputeMod
 Computes data structures to speed up collision detection with tetrahedral meshes.
 
 \param[in] params				The cooking parameters
-\param[in] collisionMeshDesc	Raw tetrahedral mesh descriptor wich will be used for collision detection 
+\param[in] collisionMeshDesc	Raw tetrahedral mesh descriptor which will be used for collision detection 
 \return PxCollisionTetrahedronMeshData pointer that describes the collision mesh
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxCollisionTetrahedronMeshData* PxComputeCollisionData(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& collisionMeshDesc);
+PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxCollisionTetrahedronMeshData* PxComputeCollisionData(const physx::PxCookingParams& params,
+	const physx::PxTetrahedronMeshDesc& collisionMeshDesc);
 
 /**
 \brief Computes data to accelerate collision detection of tetrahedral meshes
 
-Computes data to compute and store a softbody's deformation using FEM.
+Computes data to compute and store a deformable volume's deformation using FEM.
 
 \param[in] params				The cooking parameters
-\param[in] simulationMeshDesc	Raw tetrahedral mesh descriptor wich will be used for FEM simulation
+\param[in] simulationMeshDesc	Raw tetrahedral mesh descriptor which will be used for FEM simulation
 \return PxSimulationTetrahedronMeshData pointer that describes the simulation mesh
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxSimulationTetrahedronMeshData* PxComputeSimulationData(const physx::PxCookingParams& params, const physx::PxTetrahedronMeshDesc& simulationMeshDesc);
+PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxSimulationTetrahedronMeshData* PxComputeSimulationData(const physx::PxCookingParams& params,
+	const physx::PxTetrahedronMeshDesc& simulationMeshDesc);
 
 /**
-\brief Bundles all data required for softbody simulation
+\brief Bundles all data required for deformable volume simulation
 
-Creates a container that provides everything to create a PxSoftBody
+Creates a container that provides everything to create a PxDeformableVolume
 
 \param[in] simulationMesh		The geometry (tetrahedral mesh) to be used as simulation mesh
 \param[in] simulationData		Additional non-tetmesh data that contains mass information etc. for the simulation mesh 
@@ -839,28 +842,12 @@ Creates a container that provides everything to create a PxSoftBody
 \param[in] collisionData		Additional non-tetmesh data that contains surface information, acceleration structures etc. for the simulation mesh 
 \param[in] mappingData			Mapping that describes how the collision mesh's vertices are embedded into the simulation mesh
 \param[in] insertionCallback	The insertion interface from PxPhysics.
-\return PxSoftBodyMesh pointer that represents a softbody mesh bundling all data (simulation mesh, collision mesh etc.)
+\return PxDeformableVolumeMesh pointer that represents a deformable volume mesh bundling all data (simulation mesh, collision mesh etc.)
 
-@see PxSoftBody createSoftBody()
+\see PxDeformableVolume createDeformableVolume()
 */
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxSoftBodyMesh*	PxAssembleSoftBodyMesh(physx::PxTetrahedronMeshData& simulationMesh, physx::PxSoftBodySimulationData& simulationData, physx::PxTetrahedronMeshData& collisionMesh,
-																	physx::PxSoftBodyCollisionData& collisionData, physx::PxCollisionMeshMappingData& mappingData, physx::PxInsertionCallback& insertionCallback);
-	
-/**
-\brief Bundles all data required for softbody simulation
+PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxDeformableVolumeMesh*	PxAssembleDeformableVolumeMesh(physx::PxTetrahedronMeshData& simulationMesh,
+	physx::PxDeformableVolumeSimulationData& simulationData, physx::PxTetrahedronMeshData& collisionMesh, physx::PxDeformableVolumeCollisionData& collisionData,
+	physx::PxCollisionMeshMappingData& mappingData, physx::PxInsertionCallback& insertionCallback);
 
-Creates a container that provides everything to create a PxSoftBody
-
-\param[in] simulationMesh		Container that provides all information about the simulation mesh (geometry, mass distribution etc.)
-\param[in] collisionMesh		Container that provides all information about the collision mesh (geometry, surface information, acceleration structures etc.)
-\param[in] mappingData			Mapping that describes how the collision mesh's vertices are embedded into the simulation mesh
-\param[in] insertionCallback	The insertion interface from PxPhysics.
-\return PxSoftBodyMesh pointer that represents a softbody mesh bundling all data (simulation mesh, collision mesh etc.)
-
-@see PxSoftBody createSoftBody()
-*/
-PX_C_EXPORT PX_PHYSX_COOKING_API	physx::PxSoftBodyMesh*	PxAssembleSoftBodyMesh_Sim(physx::PxSimulationTetrahedronMeshData& simulationMesh, physx::PxCollisionTetrahedronMeshData& collisionMesh, 
-																	physx::PxCollisionMeshMappingData& mappingData, physx::PxInsertionCallback& insertionCallback);
-
-/** @} */
 #endif

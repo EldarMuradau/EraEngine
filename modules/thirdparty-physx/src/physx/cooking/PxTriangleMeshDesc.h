@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_TRIANGLE_MESH_DESC_H
 #define PX_TRIANGLE_MESH_DESC_H
-/** \addtogroup cooking
-@{
-*/
 
 #include "PxPhysXConfig.h"
 #include "geometry/PxSimpleTriangleMesh.h"
@@ -49,7 +46,7 @@ Note that this class is derived from PxSimpleTriangleMesh which contains the mem
 The mesh data is *copied* when an PxTriangleMesh object is created from this descriptor. After the call the
 user may discard the triangle data.
 
-@see PxTriangleMesh PxTriangleMeshGeometry PxShape
+\see PxTriangleMesh PxTriangleMeshGeometry PxShape
 */
 class PxTriangleMeshDesc : public PxSimpleTriangleMesh
 {
@@ -69,16 +66,30 @@ public:
 
 	<b>Default:</b> NULL
 
-	@see materialIndexStride
+	\see materialIndexStride
 	*/
-	PxTypedStridedData<PxMaterialTableIndex> materialIndices;
+	PxTypedBoundedData<const PxMaterialTableIndex> materialIndices;
 
 	/**
-	\brief SDF descriptor. When this descriptor is set, signed distance field is calculated for this convex mesh.
+	\brief SDF descriptor. When this descriptor is set, a signed distance field (SDF) is calculated. SDF collisions only 
+	work when the GPU solver is used to run the simulation. The GPU solver is enabled by setting the flag PxSceneFlag::eENABLE_GPU_DYNAMICS in the scene description.
 
 	<b>Default:</b> NULL
 	*/
 	PxSDFDesc* sdfDesc;
+
+	/**
+	\brief Optional user-defined geometry epsilon for ray-triangle intersection tolerance.
+
+	The geometry epsilon controls how much the barycentric bounds of each triangle are enlarged
+	during raycasts and other scene queries. By default (0.0) it is auto-computed from the mesh's
+	local bounding box. Set a positive value to override the automatic computation.
+
+	<b>Default:</b> 0.0
+
+	<b>Range:</b> [0.0, PX_MAX_F32)
+	*/
+	PxReal geomEpsilon;
 
 	/**
 	\brief Constructor sets to default.
@@ -102,6 +113,7 @@ PX_INLINE PxTriangleMeshDesc::PxTriangleMeshDesc()	//constructor sets to default
 {
 	PxSimpleTriangleMesh::setToDefault();
 	sdfDesc = NULL;
+	geomEpsilon = 0.0f;
 }
 
 PX_INLINE void PxTriangleMeshDesc::setToDefault()
@@ -130,5 +142,4 @@ PX_INLINE bool PxTriangleMeshDesc::isValid() const
 } // namespace physx
 #endif
 
-/** @} */
 #endif

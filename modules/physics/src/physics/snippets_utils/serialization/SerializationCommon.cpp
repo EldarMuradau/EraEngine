@@ -31,7 +31,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 bool openDocument(const char* directory, const char* filename,
@@ -355,7 +355,7 @@ bool writeVec3LookupTable(const PxVehicleFixedSizeLookupTable<PxVec3, 3>& lookup
 
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle
 
 
 

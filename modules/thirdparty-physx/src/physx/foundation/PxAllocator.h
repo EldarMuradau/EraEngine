@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
@@ -32,21 +32,22 @@
 #include "foundation/PxAllocatorCallback.h"
 #include "foundation/PxAssert.h"
 #include "foundation/PxFoundation.h"
-#include "foundation/Px.h"
+#include "foundation/PxIO.h"
+#include <stdlib.h>
 
 #if PX_VC
-#pragma warning(push)
-#pragma warning(disable : 4577)
+	#pragma warning(push)
+	#pragma warning(disable : 4577)
 #endif
 
 #if PX_WINDOWS_FAMILY
-	#include <exception>
 #if(_MSC_VER >= 1923)
 	#include <typeinfo>
 #else
 	#include <typeinfo.h>
 #endif
 #endif
+
 #if(PX_APPLE_FAMILY)
 	#include <typeinfo>
 #endif
@@ -54,7 +55,7 @@
 #include <new>
 
 #if PX_VC
-#pragma warning(pop)
+	#pragma warning(pop)
 #endif
 
 // PT: the rules are simple:
@@ -78,8 +79,13 @@
 
 #define PX_FREE_THIS	physx::PxAllocator().deallocate(this)
 
-#define PX_NEW(T)				new (physx::PxReflectionAllocator<T>(), PX_FL) T
+// PT: placement new is only needed when you control where the object is created (i.e. you already have an address for it before creating the object).
+// So there are basically 2 legitimate placement new usages in PhysX:
+// - binary deserialization
+// - arrays/pools
+// If you end up writing "PX_PLACEMENT_NEW(PX_ALLOC(sizeof(X), "X")", consider deriving X from PxUserAllocated and using PX_NEW instead.
 #define PX_PLACEMENT_NEW(p, T)	new (p) T
+#define PX_NEW(T)				new (physx::PxReflectionAllocator<T>(), PX_FL) T
 #define PX_DELETE_THIS			delete this
 #define PX_DELETE(x)			if(x)	{ delete x;		x = NULL;	}
 #define PX_DELETE_ARRAY(x)		if(x)	{ delete []x;	x = NULL;	}
@@ -97,13 +103,15 @@ namespace physx
 	public:
 		PX_FORCE_INLINE	PxAllocator(const char* = NULL){}
 
-		PX_FORCE_INLINE	void*	allocate(size_t size, const char* file, int line)
+		static PX_FORCE_INLINE	void*	allocate(size_t size, const char* file, int line, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			return size ? PxGetBroadcastAllocator()->allocate(size, "", file, line) : NULL;
 		}
 
-		PX_FORCE_INLINE	void	deallocate(void* ptr)
+		static PX_FORCE_INLINE	void	deallocate(void* ptr, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			if(ptr)
 				PxGetBroadcastAllocator()->deallocate(ptr);
 		}
@@ -118,73 +126,19 @@ namespace physx
 	public:
 		PxRawAllocator(const char* = 0)	{}
 
-		PX_FORCE_INLINE	void*	allocate(size_t size, const char*, int)
+		static PX_FORCE_INLINE	void*	allocate(size_t size, const char*, int, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			// malloc returns valid pointer for size==0, no need to check
 			return ::malloc(size);
 		}
 
-		PX_FORCE_INLINE	void	deallocate(void* ptr)
+		static PX_FORCE_INLINE	void	deallocate(void* ptr, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			// free(0) is guaranteed to have no side effect, no need to check
 			::free(ptr);
 		}
-	};
-
-	/**
-	\brief	Virtual allocator callback used to provide run-time defined allocators to foundation types like Array or Bitmap.
-	This is used by VirtualAllocator
-	*/
-	class PxVirtualAllocatorCallback
-	{
-	public:
-		PxVirtualAllocatorCallback()			{}
-		virtual ~PxVirtualAllocatorCallback()	{}
-
-		virtual void*	allocate(const size_t size, const int group, const char* file, const int line) = 0;
-		virtual void	deallocate(void* ptr) = 0;
-	};
-
-	/**
-	\brief Virtual allocator to be used by foundation types to provide run-time defined allocators.
-	Due to the fact that Array extends its allocator, rather than contains a reference/pointer to it, the VirtualAllocator must
-	be a concrete type containing a pointer to a virtual callback. The callback may not be available at instantiation time,
-	therefore methods are provided to set the callback later.
-	*/
-	class PxVirtualAllocator
-	{
-	public:
-		PxVirtualAllocator(PxVirtualAllocatorCallback* callback = NULL, const int group = 0) : mCallback(callback), mGroup(group)	{}
-
-		PX_FORCE_INLINE	void* allocate(const size_t size, const char* file, const int line)
-		{
-			PX_ASSERT(mCallback);
-			if (size)
-				return mCallback->allocate(size, mGroup, file, line);
-			return NULL;
-		}
-
-		PX_FORCE_INLINE	void deallocate(void* ptr)
-		{
-			PX_ASSERT(mCallback);
-			if (ptr)
-				mCallback->deallocate(ptr);
-		}
-
-		void setCallback(PxVirtualAllocatorCallback* callback)
-		{
-			mCallback = callback;
-		}
-
-		PxVirtualAllocatorCallback* getCallback()
-		{
-			return mCallback;
-		}
-
-	private:
-		PxVirtualAllocatorCallback* mCallback;
-		const int mGroup;
-		PxVirtualAllocator& operator=(const PxVirtualAllocator&);
 	};
 
 	/**
@@ -211,8 +165,9 @@ namespace physx
 
 		inline PxReflectionAllocator(const PxReflectionAllocator&)	{}
 
-		PX_FORCE_INLINE	void*	allocate(size_t size, const char* filename, int line)
+		static PX_FORCE_INLINE	void*	allocate(size_t size, const char* filename, int line, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			if(!size)
 				return NULL;
 
@@ -222,8 +177,9 @@ namespace physx
 			return cb->allocate(size, getName(reportAllocationNames), filename, line);
 		}
 
-		PX_FORCE_INLINE	void	deallocate(void* ptr)
+		static PX_FORCE_INLINE	void	deallocate(void* ptr, uint32_t* cookie=NULL)
 		{
+			PX_UNUSED(cookie);
 			if(ptr)
 				PxGetBroadcastAllocator()->deallocate(ptr);
 		}

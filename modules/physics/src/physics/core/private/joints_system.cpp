@@ -448,7 +448,12 @@ namespace era_engine::physics
 
 			if (joint_component.linear_limit.is_changed())
 			{
-				native_joint->setLinearLimit(PxJointLinearLimit{ joint_component.linear_limit });
+				const PxTolerancesScale& tolerance_scale = PhysicsEngine::get_physics_core()->get_tolerance_scale();
+
+				native_joint->setLinearLimit(PxD6Axis::eX, PxJointLinearLimitPair{ tolerance_scale, 0.0f, joint_component.linear_limit.get() });
+				native_joint->setLinearLimit(PxD6Axis::eY, PxJointLinearLimitPair{ tolerance_scale, 0.0f, joint_component.linear_limit.get() });
+				native_joint->setLinearLimit(PxD6Axis::eZ, PxJointLinearLimitPair{ tolerance_scale, 0.0f, joint_component.linear_limit.get() });
+
 				joint_component.linear_limit.sync_changes();
 			}
 
@@ -554,12 +559,15 @@ namespace era_engine::physics
 				joint_component.swing_drive_force_limit.is_changed()) &&
 				!joint_component.perform_slerp_drive)
 			{
+				native_joint->setAngularDriveConfig(PxD6AngularDriveConfig::eSWING_TWIST);
+
 				PxD6JointDrive drive;
 				drive.stiffness = joint_component.swing_drive_stiffness;
 				drive.damping = joint_component.swing_drive_damping;
 				drive.forceLimit = joint_component.swing_drive_force_limit;
 				drive.flags = static_cast<PxD6JointDriveFlags>(joint_component.swing_drive_accelerated ? 1 : 0);
-				native_joint->setDrive(PxD6Drive::eSWING, drive);
+				native_joint->setDrive(PxD6Drive::eSWING1, drive);
+				native_joint->setDrive(PxD6Drive::eSWING2, drive);
 
 				PxRigidActor* actor0 = nullptr;
 				PxRigidActor* actor1 = nullptr;
@@ -595,6 +603,8 @@ namespace era_engine::physics
 				joint_component.slerp_drive_force_limit.is_changed())
 				&& joint_component.perform_slerp_drive)
 			{
+				native_joint->setAngularDriveConfig(PxD6AngularDriveConfig::eSLERP);
+
 				PxD6JointDrive drive;
 				drive.stiffness = joint_component.slerp_drive_stiffness;
 				drive.damping = joint_component.slerp_drive_damping;

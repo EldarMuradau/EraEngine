@@ -52,7 +52,6 @@ namespace era_engine::physics
 	void VehicleSystem::update(float dt)
 	{
 		using namespace physx;
-		using namespace physx::vehicle2;
 
 		process_added_vehicles();
 
@@ -123,8 +122,7 @@ namespace era_engine::physics
 	void VehicleSystem::process_added_vehicles()
 	{
 		using namespace physx;
-		using namespace physx::vehicle2;
-		using namespace snippetvehicle2;
+		using namespace snippetvehicle;
 
 		ScopedSpinLock _lock{ sync };
 

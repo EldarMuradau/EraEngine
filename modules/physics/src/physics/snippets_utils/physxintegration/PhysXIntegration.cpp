@@ -32,7 +32,7 @@
 
 #include "ecs/world.h"
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 void PhysXIntegrationParams::create
@@ -189,4 +189,4 @@ void PhysXActorVehicle::setUpActor(era_engine::World* world, PxScene& scene, con
 	mPhysXState.physxActor.rigidBody->setName(vehicleName);
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

@@ -46,9 +46,9 @@ namespace era_engine::physics
 	private:
 		ref<Allocator> allocator = nullptr;
 
-		physx::PxPBDMaterial* material = nullptr;
-		physx::PxPBDParticleSystem* particle_system = nullptr;
-		physx::PxParticleClothBuffer* cloth_buffer = nullptr;
+		//physx::PxPBDMaterial* material = nullptr;
+		//physx::PxPBDParticleSystem* particle_system = nullptr;
+		//physx::PxParticleClothBuffer* cloth_buffer = nullptr;
 
 		friend class PBDClothSystem;
 	};

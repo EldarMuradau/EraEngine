@@ -14,7 +14,7 @@ namespace era_engine
 	{
 		world_data = new WorldData();
 		world_data->name = _name;
-		world_data->scheduler = new WorldSystemScheduler(this);
+		world_data->scheduler = new WorldSystemScheduler(this, 1, 1);
 
 		worlds.emplace(_name, this);
 	}

@@ -28,7 +28,7 @@
 
 #include "Base.h"
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 BaseVehicleParams BaseVehicleParams::transformAndScale
@@ -81,4 +81,4 @@ void BaseVehicle::step(const PxReal dt, const PxVehicleSimulationContext& contex
 	mComponentSequence.update(dt, context);
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

@@ -29,7 +29,7 @@
 #include "EngineDrivetrain.h"
 #include "../base/Base.h"
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 EngineDrivetrainParams EngineDrivetrainParams::transformAndScale(
@@ -166,4 +166,4 @@ void EngineDriveVehicle::initComponentSequence(bool addPhysXBeginEndComponents)
 		mComponentSequence.add(static_cast<PxVehiclePhysXActorEndComponent*>(this));
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

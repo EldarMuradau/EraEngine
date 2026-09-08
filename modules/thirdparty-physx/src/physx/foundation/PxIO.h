@@ -22,16 +22,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_IO_H
 #define PX_IO_H
 
-/** \addtogroup common
-  @{
-*/
 
 #include "foundation/PxSimpleTypes.h"
 
@@ -39,6 +36,12 @@
 namespace physx
 {
 #endif
+
+/** enum for empty constructor tag*/
+enum PxEMPTY
+{
+	PxEmpty
+};
 
 /**
 \brief Input stream class for I/O.
@@ -58,7 +61,7 @@ class PxInputStream
 	\return the number of bytes read from the stream.
 	*/
 
-	virtual uint32_t read(void* dest, uint32_t count) = 0;
+	virtual uint64_t read(void* dest, uint64_t count) = 0;
 
 	virtual ~PxInputStream()
 	{
@@ -80,7 +83,7 @@ class PxInputData : public PxInputStream
 	\return size in bytes of the input data
 	*/
 
-	virtual uint32_t getLength() const = 0;
+	virtual uint64_t getLength() const = 0;
 
 	/**
 	\brief seek to the given offset from the start of the data.
@@ -89,7 +92,7 @@ class PxInputData : public PxInputStream
 	seek(length);
 	*/
 
-	virtual void seek(uint32_t offset) = 0;
+	virtual void seek(uint64_t offset) = 0;
 
 	/**
 	\brief return the current offset from the start of the data
@@ -97,7 +100,7 @@ class PxInputData : public PxInputStream
 	\return the offset to seek to.
 	*/
 
-	virtual uint32_t tell() const = 0;
+	virtual uint64_t tell() const = 0;
 
 	virtual ~PxInputData()
 	{
@@ -122,7 +125,7 @@ class PxOutputStream
 	\return the number of bytes written to the stream by this call.
 	*/
 
-	virtual uint32_t write(const void* src, uint32_t count) = 0;
+	virtual uint64_t write(const void* src, uint64_t count) = 0;
 
 	virtual ~PxOutputStream()
 	{
@@ -133,6 +136,5 @@ class PxOutputStream
 } // namespace physx
 #endif
 
-/** @} */
 #endif
 

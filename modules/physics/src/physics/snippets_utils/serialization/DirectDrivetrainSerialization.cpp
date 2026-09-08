@@ -32,7 +32,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 bool readThrottleResponseParams
@@ -90,4 +90,4 @@ bool writeDirectDrivetrainParamsToJsonFile(const char* directory, const char* fi
 	return true;
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

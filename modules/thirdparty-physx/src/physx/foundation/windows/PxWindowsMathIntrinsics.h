@@ -22,14 +22,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_WINDOWS_MATH_INTRINSICS_H
 #define PX_WINDOWS_MATH_INTRINSICS_H
 
-#include "foundation/Px.h"
 #include "foundation/PxAssert.h"
 
 #if !PX_WINDOWS_FAMILY
@@ -121,7 +120,7 @@ PX_CUDA_CALLABLE PX_FORCE_INLINE float selectMax(float a, float b)
 //! \brief platform-specific finiteness check (not INF or NAN)
 PX_CUDA_CALLABLE PX_FORCE_INLINE bool isFinite(float a)
 {
-#ifdef __CUDACC__
+#if PX_CUDA_COMPILER
 	return !!isfinite(a);
 #else
 	return (0 == ((_FPCLASS_SNAN | _FPCLASS_QNAN | _FPCLASS_NINF | _FPCLASS_PINF) & _fpclass(a)));
@@ -131,7 +130,7 @@ PX_CUDA_CALLABLE PX_FORCE_INLINE bool isFinite(float a)
 //! \brief platform-specific finiteness check (not INF or NAN)
 PX_CUDA_CALLABLE PX_FORCE_INLINE bool isFinite(double a)
 {
-#ifdef __CUDACC__
+#if PX_CUDA_COMPILER
 	return !!isfinite(a);
 #else
 	return (0 == ((_FPCLASS_SNAN | _FPCLASS_QNAN | _FPCLASS_NINF | _FPCLASS_PINF) & _fpclass(a)));
@@ -141,7 +140,7 @@ PX_CUDA_CALLABLE PX_FORCE_INLINE bool isFinite(double a)
 /*!
 Sets \c count bytes starting at \c dst to zero.
 */
-PX_FORCE_INLINE void* memZero(void* dest, uint32_t count)
+PX_FORCE_INLINE void* memZero(void* dest, size_t count)
 {
 	return memset(dest, 0, count);
 }
@@ -149,7 +148,7 @@ PX_FORCE_INLINE void* memZero(void* dest, uint32_t count)
 /*!
 Sets \c count bytes starting at \c dst to \c c.
 */
-PX_FORCE_INLINE void* memSet(void* dest, int32_t c, uint32_t count)
+PX_FORCE_INLINE void* memSet(void* dest, int32_t c, size_t count)
 {
 	return memset(dest, c, count);
 }
@@ -157,7 +156,7 @@ PX_FORCE_INLINE void* memSet(void* dest, int32_t c, uint32_t count)
 /*!
 Copies \c count bytes from \c src to \c dst. User memMove if regions overlap.
 */
-PX_FORCE_INLINE void* memCopy(void* dest, const void* src, uint32_t count)
+PX_FORCE_INLINE void* memCopy(void* dest, const void* src, size_t count)
 {
 	return memcpy(dest, src, count);
 }
@@ -165,7 +164,7 @@ PX_FORCE_INLINE void* memCopy(void* dest, const void* src, uint32_t count)
 /*!
 Copies \c count bytes from \c src to \c dst. Supports overlapping regions.
 */
-PX_FORCE_INLINE void* memMove(void* dest, const void* src, uint32_t count)
+PX_FORCE_INLINE void* memMove(void* dest, const void* src, size_t count)
 {
 	return memmove(dest, src, count);
 }

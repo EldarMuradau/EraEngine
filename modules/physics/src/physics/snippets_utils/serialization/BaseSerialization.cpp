@@ -32,7 +32,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 bool readAxleDescription(const rapidjson::Document& config, PxVehicleAxleDescription& axleDesc)
@@ -910,4 +910,4 @@ bool writeBaseParamsToJsonFile(const char* directory, const char* filename, cons
 	return true;
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

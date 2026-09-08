@@ -204,7 +204,6 @@ namespace era_engine
 		}
 
 		work_available.notify_all();
-		queue_idle.notify_all();
 
 		if (fixed_timer_thread.joinable())
 		{
@@ -224,7 +223,6 @@ namespace era_engine
 		for (size_t kind = 0; kind < QUEUE_COUNT; ++kind)
 		{
 			queues[kind].clear();
-			in_flight[kind] = 0;
 		}
 	}
 
@@ -268,6 +266,29 @@ namespace era_engine
 	void WorldSystemScheduler::set_max_fixed_steps_per_wakeup(uint32 steps)
 	{
 		max_fixed_steps_per_wakeup.store(std::max<uint32>(1u, steps), std::memory_order_relaxed);
+	}
+
+	void WorldSystemScheduler::set_group_overlap(const std::string& group_name, bool may_overlap_previous)
+	{
+		const bool changed = may_overlap_previous ? overlapping_groups.insert(group_name).second
+			: overlapping_groups.erase(group_name) != 0;
+		if (changed)
+		{
+			refresh_graph();
+		}
+	}
+
+	void WorldSystemScheduler::set_overlapping_groups(const std::vector<std::string>& group_names)
+	{
+		overlapping_groups.clear();
+		overlapping_groups.insert(group_names.begin(), group_names.end());
+
+		refresh_graph();
+	}
+
+	bool WorldSystemScheduler::get_group_overlap(const std::string& group_name) const
+	{
+		return overlapping_groups.find(group_name) != overlapping_groups.end();
 	}
 
 	std::chrono::steady_clock::duration WorldSystemScheduler::fixed_interval() const
@@ -371,6 +392,7 @@ namespace era_engine
 			LOG_WARNING("initialize_all_systems() called more than once, ignored.");
 			return;
 		}
+		systems_initialized = true;
 
 		refresh_graph();
 
@@ -380,8 +402,6 @@ namespace era_engine
 		}
 
 		refresh_graph();
-
-		systems_initialized = true;
 
 		next_fixed_update = std::chrono::steady_clock::now() + fixed_interval();
 		fixed_timer_thread = std::thread(&WorldSystemScheduler::fixed_timer_loop, this);
@@ -439,7 +459,7 @@ namespace era_engine
 
 		const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-		run_schedule(get_schedule(UpdateType::FIXED), world->get_fixed_update_dt(), QUEUE_FIXED);
+		run_schedule(get_schedule(UpdateType::FIXED), dt, QUEUE_FIXED);
 
 		const double step_ms =
 			std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();
@@ -461,74 +481,75 @@ namespace era_engine
 			return;
 		}
 
-		for (const GroupSchedule& group : schedule->groups)
+		for (const StageSchedule& stage : schedule->stages)
 		{
 			if (!running.load(std::memory_order_relaxed))
 			{
 				return;
 			}
 
-			for (const std::vector<ref<Task>>& wave : group.waves)
-			{
-				if (group.serial)
-				{
-					for (const ref<Task>& task : wave)
-					{
-						task->invoke(dt);
-					}
-				}
-				else
-				{
-					run_wave(wave, dt, kind);
-				}
-			}
+			run_stage(stage, dt, kind);
 		}
 	}
 
-	void WorldSystemScheduler::run_wave(const std::vector<ref<Task>>& wave, float dt, size_t kind)
+	void WorldSystemScheduler::run_stage(const StageSchedule& stage, float dt, size_t kind)
 	{
-		if (wave.empty())
+		if (stage.nodes.empty())
 		{
 			return;
 		}
 
-		if (wave.size() == 1 || workers.empty())
+		// A main-thread stage belongs entirely to the calling thread, in topological order.
+		if (stage.serial || workers.empty() || stage.nodes.size() == 1)
 		{
-			for (const ref<Task>& task : wave)
+			for (const StageNode& node : stage.nodes)
 			{
-				task->invoke(dt);
+				node.task->invoke(dt);
 			}
 			return;
+		}
+
+		StageRun run;
+		run.stage = &stage;
+		run.dt = dt;
+		run.total = static_cast<uint32>(stage.nodes.size());
+		run.remaining.resize(stage.nodes.size());
+		for (size_t i = 0; i < stage.nodes.size(); ++i)
+		{
+			run.remaining[i] = stage.nodes[i].predecessor_count;
 		}
 
 		{
 			std::lock_guard<std::mutex> lock(work_mutex);
-			for (size_t i = 0; i + 1 < wave.size(); ++i)
+			for (uint32 root : stage.roots)
 			{
-				queues[kind].push_back(TaskItem{ wave[i], dt });
+				queues[kind].push_back(TaskItem{ &run, root });
 			}
 		}
 		work_available.notify_all();
 
-		wave.back()->invoke(dt);
-
+		// The driving thread is a worker too.
 		while (true)
 		{
 			TaskItem item;
 			{
 				std::unique_lock<std::mutex> lock(work_mutex);
+				work_available.wait(lock, [this, kind, &run] {
+					return run.completed == run.total || !queues[kind].empty();
+					});
+
+				if (run.completed == run.total)
+				{
+					return;
+				}
+
 				if (!pop_from_locked(kind, item))
 				{
-					queue_idle.wait(lock, [this, kind] {
-						return !running.load(std::memory_order_relaxed) ||
-							(queues[kind].empty() && in_flight[kind] == 0);
-						});
-					return;
+					continue;
 				}
 			}
 
-			item.task->invoke(item.dt);
-			on_task_finished(kind);
+			execute_node(item, kind);
 		}
 	}
 
@@ -544,9 +565,8 @@ namespace era_engine
 			return false;
 		}
 
-		out_item = std::move(queues[kind].front());
+		out_item = queues[kind].front();
 		queues[kind].pop_front();
-		++in_flight[kind];
 
 		return true;
 	}
@@ -573,18 +593,35 @@ namespace era_engine
 		return false;
 	}
 
-	void WorldSystemScheduler::on_task_finished(size_t kind)
+	void WorldSystemScheduler::execute_node(const TaskItem& item, size_t kind)
 	{
-		bool became_idle = false;
+		StageRun& run = *item.run;
+		const StageNode& node = run.stage->nodes[item.node];
+
+		// StageRun::dt is written before the roots are published.
+		node.task->invoke(run.dt);
+
+		size_t released = 0;
+		bool finished = false;
 		{
 			std::lock_guard<std::mutex> lock(work_mutex);
-			--in_flight[kind];
-			became_idle = in_flight[kind] == 0 && queues[kind].empty();
+
+			for (uint32 successor : node.successors)
+			{
+				if (--run.remaining[successor] == 0)
+				{
+					queues[kind].push_back(TaskItem{ &run, successor });
+					++released;
+				}
+			}
+
+			++run.completed;
+			finished = run.completed == run.total;
 		}
 
-		if (became_idle)
+		if (released != 0 || finished)
 		{
-			queue_idle.notify_all();
+			work_available.notify_all();
 		}
 	}
 
@@ -601,19 +638,18 @@ namespace era_engine
 					return !running.load(std::memory_order_relaxed) || has_pending_locked();
 					});
 
-				if (!running.load(std::memory_order_relaxed))
-				{
-					break;
-				}
-
 				if (!pop_any_locked(item, kind))
 				{
+					if (!running.load(std::memory_order_relaxed))
+					{
+						break;
+					}
+
 					continue;
 				}
 			}
 
-			item.task->invoke(item.dt);
-			on_task_finished(kind);
+			execute_node(item, kind);
 		}
 	}
 
@@ -728,29 +764,32 @@ namespace era_engine
 	{
 		const std::unordered_map<std::string, ref<Task>>& source = type == UpdateType::NORMAL ? tasks : fixed_tasks;
 
+		// Deterministic node order: unordered_map iteration order is unspecified.
 		std::vector<std::string> names;
 		names.reserve(source.size());
 		for (const auto& entry : source)
 		{
 			names.push_back(entry.first);
 		}
-
 		std::sort(names.begin(), names.end());
 
-		std::unordered_map<std::string, std::vector<std::string>> adjacency;
-		std::unordered_map<std::string, int32> in_degree;
-		adjacency.reserve(names.size());
-		in_degree.reserve(names.size());
-
+		// Tag filtering is per task. Tasks of another tag are simply not part of the schedule and
+		// dependencies pointing at them resolve to nothing.
+		std::unordered_map<std::string, std::vector<std::string>> group_task_names;
 		for (const std::string& task_name : names)
 		{
-			adjacency.emplace(task_name, std::vector<std::string>{});
-			in_degree.emplace(task_name, 0);
+			const ref<Task>& task = source.at(task_name);
+			if (!world->has_tag(task->tag))
+			{
+				continue;
+			}
+
+			group_task_names[task->group].push_back(task_name);
 		}
 
 		std::set<std::pair<std::string, std::string>> edges;
 
-		const auto add_edge = [&](const std::string& from, const std::string& to, const char* relation) {
+		const auto declare_edge = [&](const std::string& from, const std::string& to, const char* relation) {
 			const bool from_known = source.find(from) != source.end();
 			const bool to_known = source.find(to) != source.end();
 
@@ -766,13 +805,7 @@ namespace era_engine
 				return;
 			}
 
-			if (!edges.emplace(from, to).second)
-			{
-				return;
-			}
-
-			adjacency[from].push_back(to);
-			++in_degree[to];
+			edges.emplace(from, to);
 			};
 
 		for (const std::string& task_name : names)
@@ -780,101 +813,33 @@ namespace era_engine
 			const ref<Task>& task = source.at(task_name);
 			for (const std::string& dependency : task->dependencies)
 			{
-				add_edge(dependency, task_name, "After");
+				declare_edge(dependency, task_name, "After");
 			}
 			for (const std::string& dependent : task->dependents)
 			{
-				add_edge(task_name, dependent, "Before");
+				declare_edge(task_name, dependent, "Before");
 			}
 		}
 
-		std::unordered_map<std::string, uint32> levels;
-		levels.reserve(names.size());
-
-		std::vector<std::string> frontier;
-		for (const std::string& task_name : names)
+		struct StageBuilder
 		{
-			if (in_degree[task_name] == 0)
-			{
-				frontier.push_back(task_name);
-			}
-		}
+			std::vector<std::string> group_names;
+			std::vector<std::string> member_names;
+			bool serial = false;
+		};
 
-		uint32 level = 0;
-		size_t resolved = 0;
-		while (!frontier.empty())
-		{
-			std::vector<std::string> next_frontier;
-
-			for (const std::string& task_name : frontier)
-			{
-				levels[task_name] = level;
-				++resolved;
-
-				for (const std::string& neighbour : adjacency[task_name])
-				{
-					if (--in_degree[neighbour] == 0)
-					{
-						next_frontier.push_back(neighbour);
-					}
-				}
-			}
-
-			std::sort(next_frontier.begin(), next_frontier.end());
-			frontier.swap(next_frontier);
-			++level;
-		}
-
-		if (resolved != names.size())
-		{
-			std::string cycle_members;
-			for (const std::string& task_name : names)
-			{
-				if (levels.find(task_name) == levels.end())
-				{
-					if (!cycle_members.empty())
-					{
-						cycle_members += ", ";
-					}
-					cycle_members += task_name;
-					levels[task_name] = level;
-				}
-			}
-
-			LOG_ERROR(std::format("Cycle in the task dependency graph, these tasks are scheduled last: {}", cycle_members).c_str());
-			ASSERT(false);
-		}
-
-		std::unordered_map<std::string, std::vector<ref<Task>>> group_members;
-		for (const std::string& task_name : names)
-		{
-			const ref<Task>& task = source.at(task_name);
-
-			if (!world->has_tag(task->tag))
-			{
-				continue;
-			}
-
-			group_members[task->group].push_back(task);
-		}
-
-		ref<UpdateSchedule> schedule = make_ref<UpdateSchedule>();
-
+		std::vector<StageBuilder> stages;
 		std::unordered_set<std::string> scheduled_groups;
+
 		for (const std::string& group_name : UpdatesHolder::update_order)
 		{
-			if (group_name.empty())
+			if (group_name.empty() || !scheduled_groups.insert(group_name).second)
 			{
 				continue;
 			}
 
-			if (!scheduled_groups.insert(group_name).second)
-			{
-				continue;
-			}
-
-			const auto members_iter = group_members.find(group_name);
-			if (members_iter == group_members.end() || members_iter->second.empty())
+			const auto members_iter = group_task_names.find(group_name);
+			if (members_iter == group_task_names.end() || members_iter->second.empty())
 			{
 				continue;
 			}
@@ -882,7 +847,7 @@ namespace era_engine
 			UpdateGroup* group = find_group(group_name);
 			if (group == nullptr)
 			{
-				LOG_WARNING(std::format("Update group {} is in the update order but not registered.", group_name).c_str());
+				LOG_ERROR(std::format("Update group {} is in the update order but not registered.", group_name).c_str());
 				continue;
 			}
 
@@ -891,40 +856,318 @@ namespace era_engine
 				continue;
 			}
 
-			GroupSchedule group_schedule;
-			group_schedule.name = group_name;
-			group_schedule.serial = group->main_thread;
+			const bool serial = group->main_thread;
+			bool overlap = overlapping_groups.find(group_name) != overlapping_groups.end();
 
-			std::vector<ref<Task>> members = members_iter->second;
-			std::stable_sort(members.begin(), members.end(), [&levels](const ref<Task>& a, const ref<Task>& b) {
-				return levels.at(a->name) < levels.at(b->name);
-				});
-
-			for (const ref<Task>& task : members)
+			if (overlap && serial)
 			{
-				const uint32 task_level = levels.at(task->name);
-
-				if (group_schedule.waves.empty() || levels.at(group_schedule.waves.back().front()->name) != task_level)
-				{
-					group_schedule.waves.emplace_back();
-				}
-
-				group_schedule.waves.back().push_back(task);
+				LOG_ERROR(std::format("Group {} is marked as overlapping but runs on the main thread, overlap ignored.", group_name).c_str());
+				overlap = false;
 			}
 
-			schedule->task_count += members.size();
-			schedule->groups.push_back(std::move(group_schedule));
+			if (overlap && stages.empty())
+			{
+				LOG_ERROR(std::format("Group {} is marked as overlapping but is the first stage of the pass, overlap ignored.", group_name).c_str());
+				overlap = false;
+			}
+
+			if (overlap && stages.back().serial)
+			{
+				LOG_ERROR(std::format("Group {} is marked as overlapping but {} before it runs on the main thread, overlap ignored.", group_name, stages.back().group_names.back()).c_str());
+				overlap = false;
+			}
+
+			if (!overlap)
+			{
+				stages.emplace_back();
+				stages.back().serial = serial;
+			}
+
+			StageBuilder& stage = stages.back();
+			stage.group_names.push_back(group_name);
+			stage.member_names.insert(stage.member_names.end(), members_iter->second.begin(),
+				members_iter->second.end());
 		}
 
-		for (const auto& entry : group_members)
+		std::unordered_map<std::string, size_t> stage_of_task;
+		for (size_t stage_index = 0; stage_index < stages.size(); ++stage_index)
+		{
+			for (const std::string& task_name : stages[stage_index].member_names)
+			{
+				stage_of_task[task_name] = stage_index;
+			}
+		}
+
+		// Only dependencies inside a stage constrain parallelism.
+		std::vector<std::vector<std::pair<std::string, std::string>>> stage_edges(stages.size());
+
+		for (const std::pair<std::string, std::string>& edge : edges)
+		{
+			const auto from_stage = stage_of_task.find(edge.first);
+			const auto to_stage = stage_of_task.find(edge.second);
+
+			if (from_stage == stage_of_task.end() || to_stage == stage_of_task.end())
+			{
+				// One of the two is filtered out by tag, or sits in a group that is not scheduled -
+				// the latter is reported separately below.
+				continue;
+			}
+
+			if (from_stage->second == to_stage->second)
+			{
+				stage_edges[from_stage->second].push_back(edge);
+				continue;
+			}
+
+			if (from_stage->second > to_stage->second)
+			{
+				LOG_ERROR(std::format("Dependency {} -> {} cannot be satisfied: it points backwards through the update order.", edge.first, edge.second).c_str());
+			}
+		}
+
+		ref<UpdateSchedule> schedule = make_ref<UpdateSchedule>();
+		schedule->stages.reserve(stages.size());
+
+		for (size_t stage_index = 0; stage_index < stages.size(); ++stage_index)
+		{
+			const StageBuilder& builder = stages[stage_index];
+			const std::vector<std::string>& members = builder.member_names;
+			const std::unordered_set<std::string> member_set(members.begin(), members.end());
+
+			std::string stage_label;
+			for (const std::string& group_name : builder.group_names)
+			{
+				if (!stage_label.empty())
+				{
+					stage_label += "+";
+				}
+				stage_label += group_name;
+			}
+
+			std::vector<std::pair<std::string, std::string>> local_edges;
+			for (const std::pair<std::string, std::string>& edge : stage_edges[stage_index])
+			{
+				if (member_set.find(edge.first) == member_set.end() || member_set.find(edge.second) == member_set.end())
+				{
+					continue;
+				}
+
+				local_edges.push_back(edge);
+			}
+
+			// Deterministic topological order.
+			const auto topological_order = [&members](const std::vector<std::pair<std::string, std::string>>& edge_list,
+				std::vector<std::string>& out_order) -> bool {
+					std::unordered_map<std::string, std::vector<std::string>> adjacency;
+					std::unordered_map<std::string, int32> in_degree;
+					adjacency.reserve(members.size());
+					in_degree.reserve(members.size());
+
+					for (const std::string& task_name : members)
+					{
+						adjacency.emplace(task_name, std::vector<std::string>{});
+						in_degree.emplace(task_name, 0);
+					}
+
+					for (const std::pair<std::string, std::string>& edge : edge_list)
+					{
+						adjacency[edge.first].push_back(edge.second);
+						++in_degree[edge.second];
+					}
+
+					std::vector<std::string> frontier;
+					for (const std::string& task_name : members)
+					{
+						if (in_degree[task_name] == 0)
+						{
+							frontier.push_back(task_name);
+						}
+					}
+					std::sort(frontier.begin(), frontier.end());
+
+					out_order.clear();
+					out_order.reserve(members.size());
+
+					while (!frontier.empty())
+					{
+						std::vector<std::string> next_frontier;
+						for (const std::string& task_name : frontier)
+						{
+							out_order.push_back(task_name);
+
+							for (const std::string& neighbour : adjacency[task_name])
+							{
+								if (--in_degree[neighbour] == 0)
+								{
+									next_frontier.push_back(neighbour);
+								}
+							}
+						}
+
+						std::sort(next_frontier.begin(), next_frontier.end());
+						frontier.swap(next_frontier);
+					}
+
+					return out_order.size() == members.size();
+				};
+
+			std::vector<std::string> order;
+			if (!topological_order(local_edges, order))
+			{
+				const std::unordered_set<std::string> ordered(order.begin(), order.end());
+
+				std::string cycle_members;
+				for (const std::string& task_name : members)
+				{
+					if (ordered.find(task_name) != ordered.end())
+					{
+						continue;
+					}
+
+					if (!cycle_members.empty())
+					{
+						cycle_members += ", ";
+					}
+					cycle_members += task_name;
+				}
+				LOG_ERROR(std::format("Cycle in the task dependency graph, these tasks are scheduled last: {}", cycle_members).c_str());
+
+				std::vector<std::pair<std::string, std::string>> acyclic_edges;
+				for (const std::pair<std::string, std::string>& edge : local_edges)
+				{
+					if (ordered.find(edge.first) == ordered.end() && ordered.find(edge.second) == ordered.end())
+					{
+						continue;
+					}
+
+					acyclic_edges.push_back(edge);
+				}
+				local_edges.swap(acyclic_edges);
+
+				const bool resolved = topological_order(local_edges, order);
+				ASSERT(resolved);
+			}
+
+			StageSchedule stage_schedule;
+			stage_schedule.name = stage_label;
+			stage_schedule.group_names = builder.group_names;
+			stage_schedule.serial = builder.serial;
+			stage_schedule.nodes.reserve(order.size());
+
+			std::unordered_map<std::string, uint32> node_index;
+			node_index.reserve(order.size());
+
+			for (const std::string& task_name : order)
+			{
+				node_index.emplace(task_name, static_cast<uint32>(stage_schedule.nodes.size()));
+
+				StageNode node;
+				node.task = source.at(task_name);
+				stage_schedule.nodes.push_back(std::move(node));
+			}
+
+			for (const std::pair<std::string, std::string>& edge : local_edges)
+			{
+				const uint32 from = node_index.at(edge.first);
+				const uint32 to = node_index.at(edge.second);
+
+				stage_schedule.nodes[from].successors.push_back(to);
+				++stage_schedule.nodes[to].predecessor_count;
+			}
+
+			for (uint32 index = 0; index < static_cast<uint32>(stage_schedule.nodes.size()); ++index)
+			{
+				if (stage_schedule.nodes[index].predecessor_count == 0)
+				{
+					stage_schedule.roots.push_back(index);
+				}
+			}
+
+			if (!stage_schedule.serial && stage_schedule.nodes.size() > 1)
+			{
+				std::vector<uint32> depth(stage_schedule.nodes.size(), 1);
+				uint32 critical_path = 1;
+
+				for (size_t index = 0; index < stage_schedule.nodes.size(); ++index)
+				{
+					for (uint32 successor : stage_schedule.nodes[index].successors)
+					{
+						depth[successor] = std::max(depth[successor], depth[index] + 1);
+						critical_path = std::max(critical_path, depth[successor]);
+					}
+				}
+
+				if (critical_path == static_cast<uint32>(stage_schedule.nodes.size()))
+				{
+					LOG_ERROR(std::format("Concurrent stage {} is a single After/Before chain of {} tasks - nothing inside it can run in parallel.", stage_label, std::to_string(stage_schedule.nodes.size())).c_str());
+				}
+			}
+
+			schedule->task_count += stage_schedule.nodes.size();
+			schedule->stages.push_back(std::move(stage_schedule));
+		}
+
+		for (const auto& entry : group_task_names)
 		{
 			if (scheduled_groups.find(entry.first) == scheduled_groups.end())
 			{
-				LOG_WARNING(std::format("Group {} is not part of the update order, {} task(s) will never run.", entry.first, entry.second.size()).c_str());
+				LOG_ERROR(std::format("Group {} is not part of the update order, {} task(s) will never run.", entry.first, std::to_string(entry.second.size())).c_str());
 			}
 		}
 
 		return schedule;
+	}
+
+	std::string WorldSystemScheduler::describe_schedule(UpdateType type) const
+	{
+		const UpdateScheduleRef schedule = get_schedule(type);
+
+		std::string result = type == UpdateType::NORMAL ? std::string("NORMAL schedule") : std::string("FIXED schedule");
+
+		if (!schedule)
+		{
+			result += ": not built yet\n";
+			return result;
+		}
+
+		result += ": " + std::to_string(schedule->task_count) + " task(s), " +
+			std::to_string(schedule->stages.size()) + " stage(s), " + std::to_string(workers.size()) +
+			" worker(s) + the calling thread\n";
+
+		for (const StageSchedule& stage : schedule->stages)
+		{
+			std::vector<uint32> depth(stage.nodes.size(), 1);
+			uint32 critical_path = stage.nodes.empty() ? 0u : 1u;
+
+			for (size_t index = 0; index < stage.nodes.size(); ++index)
+			{
+				for (uint32 successor : stage.nodes[index].successors)
+				{
+					depth[successor] = std::max(depth[successor], depth[index] + 1);
+					critical_path = std::max(critical_path, depth[successor]);
+				}
+			}
+
+			result += "  stage " + stage.name + (stage.serial ? " [serial]" : " [concurrent]");
+			if (stage.group_names.size() > 1)
+			{
+				result += " (" + std::to_string(stage.group_names.size()) + " fused groups)";
+			}
+			result += ": " + std::to_string(stage.nodes.size()) + " task(s), " + std::to_string(stage.roots.size()) +
+				" runnable immediately, critical path " + std::to_string(critical_path) + "\n";
+
+			for (const StageNode& node : stage.nodes)
+			{
+				result += "    " + node.task->name;
+				if (node.predecessor_count != 0)
+				{
+					result += " (waits for " + std::to_string(node.predecessor_count) + ")";
+				}
+				result += "\n";
+			}
+		}
+
+		return result;
 	}
 
 	WorldSystemScheduler::Stats WorldSystemScheduler::get_stats() const
@@ -977,5 +1220,4 @@ namespace era_engine
 
 		method.invoke(*system, dt);
 	}
-
 }

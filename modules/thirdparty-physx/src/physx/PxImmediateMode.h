@@ -22,14 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_IMMEDIATE_MODE_H
 #define PX_IMMEDIATE_MODE_H
-/** \addtogroup immediatemode
-@{ */
 
 #include "PxPhysXConfig.h"
 #include "foundation/PxMemory.h"
@@ -42,7 +40,6 @@ namespace physx
 {
 #endif
 
-	class PxCudaContextManager;
 	class PxBaseTask;
 	class PxGeometry;
 
@@ -170,10 +167,11 @@ namespace immediate
 	\param	[in] allocator		An allocator callback to allocate constraint data.
 	\param	[in] dt				The timestep.
 	\param	[in] invDt			The inverse timestep.
-	\param	[out] Z				Temporary buffer for impulse propagation.
+	\param	[out] Z				Deprecated, no longer used. Any value (including NULL) can be passed.
 	\return a boolean indicating if this method was successful or not.
 	*/
-	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraints(PxConstraintBatchHeader* batchHeaders, PxU32 nbHeaders, PxSolverConstraintPrepDesc* jointDescs, PxConstraintAllocator& allocator, PxSpatialVector* Z, PxReal dt, PxReal invDt);
+	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraints(PxConstraintBatchHeader* batchHeaders, PxU32 nbHeaders, PxSolverConstraintPrepDesc* jointDescs, 
+		PxConstraintAllocator& allocator, PxSpatialVector* Z, PxReal dt, PxReal invDt);
 
 	/**
 	\brief Creates a set of joint constraint blocks. This function runs joint shaders defined inside PxConstraint** param, fills in joint row information in jointDescs and then calls PxCreateJointConstraints.
@@ -186,7 +184,7 @@ namespace immediate
 	\param	[in] invDt			The inverse timestep.
 	\param	[out] Z				Temporary buffer for impulse propagation. 
 	\return a boolean indicating if this method was successful or not.
-	@see PxCreateJointConstraints
+	\see PxCreateJointConstraints
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraintsWithShaders(PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, PxConstraint** constraints, PxSolverConstraintPrepDesc* jointDescs, PxConstraintAllocator& allocator, PxReal dt, PxReal invDt, PxSpatialVector* Z = NULL);
 
@@ -207,7 +205,7 @@ namespace immediate
 	\param	[in] invDt			The inverse timestep.
 	\param	[out] Z				Temporary buffer for impulse propagation.
 	\return a boolean indicating if this method was successful or not.
-	@see PxCreateJointConstraints
+	\see PxCreateJointConstraints
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraintsWithImmediateShaders(PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, PxImmediateConstraint* constraints, PxSolverConstraintPrepDesc* jointDescs, PxConstraintAllocator& allocator, PxReal dt, PxReal invDt, PxSpatialVector* Z = NULL);
 
@@ -226,7 +224,7 @@ namespace immediate
 	\param	[in] invDt					Inverse timestep. Only needed if articulations are sent to the function.
 	\param	[in] nbSolverArticulations	Number of articulations to solve constraints for.
 	\param	[in] solverArticulations	Array of articulations to solve constraints for.
-	\param	[out] Z						Temporary buffer for impulse propagation 
+	\param	[out] Z						Deprecated, no longer used. Any value (including NULL) can be passed.
 	\param	[out] deltaV				Temporary buffer for velocity change
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxSolveConstraints(const PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, const PxSolverConstraintDesc* solverConstraintDescs,
@@ -236,14 +234,14 @@ namespace immediate
 	/**
 	\brief Integrates a rigid body, returning the new velocities and transforms. After this function has been called, solverBodyData stores all the body's velocity data.
 
-	\param	[in,out] solverBodyData		The array of solver body data to be integrated
-	\param	[in] solverBody				The bodies' linear and angular velocities
-	\param	[in] linearMotionVelocity	The bodies' linear motion velocity array
-	\param	[in] angularMotionState		The bodies' angular motion velocity array
-	\param	[in] nbBodiesToIntegrate	The total number of bodies to integrate
-	\param	[in] dt						The timestep
+	\param	[in,out] solverBodyData			The array of solver body data to be integrated
+	\param	[in,out] solverBody				The bodies' linear and angular velocities
+	\param	[in,out] linearMotionVelocity	The bodies' linear motion velocity array
+	\param	[in,out] angularMotionState		The bodies' angular motion velocity array
+	\param	[in] nbBodiesToIntegrate		The total number of bodies to integrate
+	\param	[in] dt							The timestep
 	*/
-	PX_C_EXPORT PX_PHYSX_CORE_API void PxIntegrateSolverBodies(PxSolverBodyData* solverBodyData, PxSolverBody* solverBody, const PxVec3* linearMotionVelocity, const PxVec3* angularMotionState, PxU32 nbBodiesToIntegrate, PxReal dt);
+	PX_C_EXPORT PX_PHYSX_CORE_API void PxIntegrateSolverBodies(PxSolverBodyData* solverBodyData, PxSolverBody* solverBody, PxVec3* linearMotionVelocity, PxVec3* angularMotionState, PxU32 nbBodiesToIntegrate, PxReal dt);
 
 	/**
 	\brief Performs contact generation for a given pair of geometries at the specified poses. Produced contacts are stored in the provided contact recorder. Information is cached in PxCache structure
@@ -282,7 +280,7 @@ namespace immediate
 		PxReal							jointPos[PxArticulationAxis::eCOUNT];
 		PxReal							jointVel[PxArticulationAxis::eCOUNT];
 		PxReal							frictionCoefficient;
-		PxReal							maxJointVelocity;
+		PxReal							maxJointVelocity[PxArticulationAxis::eCOUNT];
 		PxArticulationJointType::Enum	type;
 
 		void	initData()
@@ -290,7 +288,6 @@ namespace immediate
 			parentPose			= PxTransform(PxIdentity);
 			childPose			= PxTransform(PxIdentity);
 			frictionCoefficient	= 0.05f;
-			maxJointVelocity	= 100.0f;
 			type				= PxArticulationJointType::eUNDEFINED;	// For root
 
 			for(PxU32 i=0;i<PxArticulationAxis::eCOUNT;i++)
@@ -301,6 +298,7 @@ namespace immediate
 				armature[i] = 0.0f;
 				jointPos[i] = 0.0f;
 				jointVel[i] = 0.0f;
+				maxJointVelocity[i] = 100.0f;
 			}
 			PxMemSet(targetPos, 0xff, sizeof(PxReal)*PxArticulationAxis::eCOUNT);
 			PxMemSet(targetVel, 0xff, sizeof(PxReal)*PxArticulationAxis::eCOUNT);
@@ -395,7 +393,7 @@ namespace immediate
 
 	\return	Articulation cookie
 
-	@see PxAddArticulationLink PxEndCreateArticulationRC
+	\see PxAddArticulationLink PxEndCreateArticulationRC
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API PxArticulationCookie PxBeginCreateArticulationRC(const PxArticulationDataRC& data);
 
@@ -412,7 +410,7 @@ namespace immediate
 
 	\return	Link cookie
 
-	@see PxBeginCreateArticulationRC PxEndCreateArticulationRC
+	\see PxBeginCreateArticulationRC PxEndCreateArticulationRC
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API PxArticulationLinkCookie PxAddArticulationLink(PxArticulationCookie articulation, const PxArticulationLinkCookie* parent, const PxArticulationLinkDataRC& data);
 
@@ -431,7 +429,7 @@ namespace immediate
 
 	\return	Articulation handle, or NULL if creation failed
 
-	@see PxAddArticulationLink PxEndCreateArticulationRC
+	\see PxAddArticulationLink PxEndCreateArticulationRC
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API PxArticulationHandle PxEndCreateArticulationRC(PxArticulationCookie articulation, PxArticulationLinkHandle* linkHandles, PxU32 bufferSize);
 
@@ -439,7 +437,7 @@ namespace immediate
 	\brief Releases an immediate-mode reduced-coordinate articulation.
 	\param	[in] articulation	Articulation handle
 
-	@see PxCreateFeatherstoneArticulation
+	\see PxBeginCreateArticulationRC PxEndCreateArticulationRC
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxReleaseArticulation(PxArticulationHandle articulation);
 
@@ -448,7 +446,7 @@ namespace immediate
 	\param	[in] articulation	Articulation handle
 	\return	Articulation cache
 
-	@see PxReleaseArticulationCache
+	\see PxReleaseArticulationCache
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API PxArticulationCache* PxCreateArticulationCache(PxArticulationHandle articulation);
 
@@ -458,7 +456,7 @@ namespace immediate
 	\param[in] cache		Articulation data
 	\param[in] flag			Indicates which values of the articulation system are copied to the cache
 
-	@see createCache PxApplyArticulationCache
+	\see createCache PxApplyArticulationCache
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxCopyInternalStateToArticulationCache(PxArticulationHandle articulation, PxArticulationCache& cache, PxArticulationCacheFlags flag);
 	
@@ -468,7 +466,7 @@ namespace immediate
 	\param[in] cache 		Articulation data.
 	\param[in] flag			Defines which values in the cache will be applied to the articulation
 
-	@see createCache PxCopyInternalStateToArticulationCache
+	\see createCache PxCopyInternalStateToArticulationCache
 	*/	
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxApplyArticulationCache(PxArticulationHandle articulation, PxArticulationCache& cache, PxArticulationCacheFlags flag);
 
@@ -477,7 +475,7 @@ namespace immediate
 
 	\param[in] cache	The cache to release
 
-	@see PxCreateArticulationCache PxCopyInternalStateToArticulationCache PxCopyInternalStateToArticulationCache
+	\see PxCreateArticulationCache PxCopyInternalStateToArticulationCache PxCopyInternalStateToArticulationCache
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxReleaseArticulationCache(PxArticulationCache& cache);
 
@@ -488,7 +486,7 @@ namespace immediate
 	\param	[out] data	Link data
 	\return	True if success
 
-	@see PxGetAllLinkData
+	\see PxGetAllLinkData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxGetLinkData(const PxArticulationLinkHandle& link, PxArticulationLinkDerivedDataRC& data);
 
@@ -499,7 +497,7 @@ namespace immediate
 	\param	[out] data			Link data for N links, or NULL to just retrieve the number of links.
 	\return	Number of links in the articulation = number of link data structure written to the data array.
 
-	@see PxGetLinkData
+	\see PxGetLinkData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API PxU32 PxGetAllLinkData(const PxArticulationHandle articulation, PxArticulationLinkDerivedDataRC* data);
 
@@ -509,7 +507,7 @@ namespace immediate
 	\param	[out] data	Data for this link
 	\return	True if success
 
-	@see PxSetMutableLinkData
+	\see PxSetMutableLinkData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxGetMutableLinkData(const PxArticulationLinkHandle& link, PxArticulationLinkMutableDataRC& data);
 
@@ -519,7 +517,7 @@ namespace immediate
 	\param	[in] data	Data for this link
 	\return	True if success
 
-	@see PxGetMutableLinkData
+	\see PxGetMutableLinkData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxSetMutableLinkData(const PxArticulationLinkHandle& link, const PxArticulationLinkMutableDataRC& data);
 
@@ -529,7 +527,7 @@ namespace immediate
 	\param	[out] data	Joint data for this link
 	\return	True if success
 
-	@see PxSetJointData
+	\see PxSetJointData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxGetJointData(const PxArticulationLinkHandle& link, PxArticulationJointDataRC& data);
 
@@ -539,7 +537,7 @@ namespace immediate
 	\param	[in] data	Joint data for this link
 	\return	True if success
 
-	@see PxGetJointData
+	\see PxGetJointData
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxSetJointData(const PxArticulationLinkHandle& link, const PxArticulationJointDataRC& data);
 
@@ -674,7 +672,7 @@ namespace immediate
 	\param	[in] invTotalDt		The inverse total time-step
 	\param	[in] lengthScale	PxToleranceScale::length, i.e. a meter in simulation units
 	\return a boolean indicating if this method was successful or not.
-	@see PxCreateJointConstraints
+	\see PxCreateJointConstraints
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraintsWithShadersTGS(	PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, PxConstraint** constraints, PxTGSSolverConstraintPrepDesc* jointDescs, PxConstraintAllocator& allocator,
 																				PxReal dt, PxReal totalDt, PxReal invDt, PxReal invTotalDt, PxReal lengthScale);
@@ -692,7 +690,7 @@ namespace immediate
 	\param	[in] invTotalDt		The inverse total time-step
 	\param	[in] lengthScale	PxToleranceScale::length, i.e. a meter in simulation units
 	\return a boolean indicating if this method was successful or not.
-	@see PxCreateJointConstraints
+	\see PxCreateJointConstraints
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API bool PxCreateJointConstraintsWithImmediateShadersTGS(PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, PxImmediateConstraint* constraints, PxTGSSolverConstraintPrepDesc* jointDescs,
 																						PxConstraintAllocator& allocator, PxReal dt, PxReal totalDt, PxReal invDt, PxReal invTotalDt, PxReal lengthScale);
@@ -711,7 +709,7 @@ namespace immediate
 	\param	[in] invDt					1/(time-step/nbPositionIterations)
 	\param	[in] nbSolverArticulations	Number of articulations to solve constraints for.
 	\param	[in] solverArticulations	Array of articulations to solve constraints for.
-	\param	[out] Z						Temporary buffer for impulse propagation (only if articulations are used, size should be at least as large as the maximum number of links in any articulations being simulated)
+	\param	[out] Z						Deprecated, no longer used. Any value (including NULL) can be passed.
 	\param	[out] deltaV				Temporary buffer for velocity change (only if articulations are used, size should be at least as large as the maximum number of links in any articulations being simulated)
 	*/
 	PX_C_EXPORT PX_PHYSX_CORE_API void PxSolveConstraintsTGS(	const PxConstraintBatchHeader* batchHeaders, PxU32 nbBatchHeaders, const PxSolverConstraintDesc* solverConstraintDescs,
@@ -727,7 +725,7 @@ namespace immediate
 	\param	[in] nbBodiesToIntegrate	The total number of bodies to integrate
 	\param	[in] dt						The timestep
 	*/
-	PX_C_EXPORT PX_PHYSX_CORE_API void PxIntegrateSolverBodiesTGS(PxTGSSolverBodyVel* solverBody, PxTGSSolverBodyTxInertia* txInertia, PxTransform* poses, PxU32 nbBodiesToIntegrate, PxReal dt);
+	PX_C_EXPORT PX_PHYSX_CORE_API void PxIntegrateSolverBodiesTGS(PxTGSSolverBodyVel* solverBody, const PxTGSSolverBodyTxInertia* txInertia, PxTransform* poses, PxU32 nbBodiesToIntegrate, PxReal dt);
 
 #if !PX_DOXYGEN
 }
@@ -737,6 +735,5 @@ namespace immediate
 }
 #endif
 
-/** @} */
 #endif
 

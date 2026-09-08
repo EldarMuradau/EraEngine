@@ -13,9 +13,7 @@
 
 #include <extensions/PxRaycastCCD.h>
 #include <extensions/PxRemeshingExt.h>
-#include <extensions/PxSoftBodyExt.h>
 #include <extensions/PxParticleExt.h>
-#include <extensions/PxParticleClothCooker.h>
 
 #include <PxPBDParticleSystem.h>
 
@@ -33,14 +31,11 @@
 #define PX_NB_MAX_RAYCAST_HITS 64
 #define PX_NB_MAX_RAYCAST_DISTANCE 128
 
-#define PX_VEHICLE 1
 
 #if DEBUG || _DEBUG
 #define PX_BLAST_ENABLE 0
-#define PX_VEHICLE_DEBUG 1
 #else
 #define PX_BLAST_ENABLE 1
-#define PX_VEHICLE_DEBUG 0
 #endif
 
 #ifndef PX_RELEASE

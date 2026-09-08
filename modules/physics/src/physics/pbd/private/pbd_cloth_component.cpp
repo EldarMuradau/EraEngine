@@ -33,7 +33,7 @@ namespace era_engine::physics
 	{
 		using namespace physx;
 
-		PxCudaContextManager* cuda_context_manager = PhysicsEngine::get_physics_core()->get_cuda_context_manager();
+		/*PxCudaContextManager* cuda_context_manager = PhysicsEngine::get_physics_core()->get_cuda_context_manager();
 
 		PxScopedCudaLock lock{ *cuda_context_manager };
 
@@ -53,7 +53,7 @@ namespace era_engine::physics
 			view_pos_buffer[i + 1] = vec3(native_pos_buffer[i + 1].x, native_pos_buffer[i + 1].y, native_pos_buffer[i + 1].z);
 			view_pos_buffer[i + 2] = vec3(native_pos_buffer[i + 2].x, native_pos_buffer[i + 2].y, native_pos_buffer[i + 2].z);
 			view_pos_buffer[i + 3] = vec3(native_pos_buffer[i + 3].x, native_pos_buffer[i + 3].y, native_pos_buffer[i + 3].z);
-		}
+		}*/
 	}
 
 	std::tuple<dx_vertex_buffer_group_view, dx_vertex_buffer_group_view, dx_index_buffer_view, SubmeshInfo> PBDClothComponent::get_render_data(ClothRenderComponent* render_component)

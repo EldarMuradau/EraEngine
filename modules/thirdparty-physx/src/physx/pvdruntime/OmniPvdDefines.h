@@ -22,20 +22,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef OMNI_PVD_DEFINES_H
 #define OMNI_PVD_DEFINES_H
 
+#define OMNI_PVD_INVALID_HANDLE 0
+
 #define OMNI_PVD_VERSION_MAJOR 0
-#define OMNI_PVD_VERSION_MINOR 3
+#define OMNI_PVD_VERSION_MINOR 4
 #define OMNI_PVD_VERSION_PATCH 0
 
 ////////////////////////////////////////////////////////////////////////////////
 // Versions so far : (major, minor, patch), top one is newest
 //
+// [0, 4,  0]
+//   add new eRECORD_MESSAGE command to record messages in the OVD stream.
 // [0, 3,  0]
 //   writes/read out the base class handle in the class registration call
 //   backwards compatible with [0, 2, 0] and [0, 1, 42]
@@ -139,5 +143,57 @@ inline uint32_t getOmniPvdDataTypeSize<OmniPvdDataType::eENUM_VALUE>() { return 
 
 template<>
 inline uint32_t getOmniPvdDataTypeSize<OmniPvdDataType::eFLAGS_WORD>() { return sizeof(OmniPvdClassHandle); }
+
+inline uint32_t getOmniPvdDataTypeSizeFromEnum(OmniPvdDataType::Enum dataType)
+{
+	switch (dataType)
+	{
+	case OmniPvdDataType::eINT8:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eINT8>();
+		break;
+	case OmniPvdDataType::eINT16:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eINT16>();
+		break;
+	case OmniPvdDataType::eINT32:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eINT32>();
+		break;
+	case OmniPvdDataType::eINT64:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eINT64>();
+		break;
+	case OmniPvdDataType::eUINT8:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eUINT8>();
+		break;
+	case OmniPvdDataType::eUINT16:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eUINT16>();
+		break;
+	case OmniPvdDataType::eUINT32:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eUINT32>();
+		break;
+	case OmniPvdDataType::eUINT64:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eUINT64>();
+		break;
+	case OmniPvdDataType::eFLOAT32:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eFLOAT32>();
+		break;
+	case OmniPvdDataType::eFLOAT64:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eFLOAT64>();
+		break;
+	case OmniPvdDataType::eSTRING:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eSTRING>();
+		break;
+	case OmniPvdDataType::eOBJECT_HANDLE:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eOBJECT_HANDLE>();
+		break;
+	case OmniPvdDataType::eENUM_VALUE:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eENUM_VALUE>();
+		break;
+	case OmniPvdDataType::eFLAGS_WORD:
+		return getOmniPvdDataTypeSize<OmniPvdDataType::eFLAGS_WORD>();
+		break;
+	default:
+		return 0;
+		break;
+	}
+}
 
 #endif

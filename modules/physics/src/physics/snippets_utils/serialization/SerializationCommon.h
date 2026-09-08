@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "vehicle2/PxVehicleAPI.h"
+#include "vehicle/PxVehicleAPI.h"
 
 #if PX_SWITCH
 #pragma clang diagnostic push
@@ -48,11 +48,10 @@
 #pragma clang diagnostic pop
 #endif
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 using namespace physx;
-using namespace physx::vehicle2;
 
 bool openDocument(const char* directory, const char* filename, rapidjson::Document&);
 
@@ -78,4 +77,4 @@ bool readVec3LookupTable(const rapidjson::Value& values, PxVehicleFixedSizeLooku
 bool writeVec3LookupTable(const PxVehicleFixedSizeLookupTable<PxVec3, 3>& lookupTable, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 bool writeFloatLookupTable(const PxVehicleFixedSizeLookupTable<PxReal, 3>& lookupTable, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 bool writeFloatLookupTable(const PxVehicleFixedSizeLookupTable<PxReal, PxVehicleEngineParams::eMAX_NB_ENGINE_TORQUE_CURVE_ENTRIES>& lookupTable, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

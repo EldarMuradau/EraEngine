@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "vehicle2/PxVehicleAPI.h"
+#include "vehicle/PxVehicleAPI.h"
 
 #include "../enginedrivetrain/EngineDrivetrain.h"
 
@@ -50,11 +50,10 @@
 #pragma clang diagnostic pop
 #endif
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 using namespace physx;
-using namespace physx::vehicle2;
 
 bool readAutoboxParams(const rapidjson::Document& config, PxVehicleAutoboxParams& autoboxParams);
 bool writeAutoboxParams(const PxVehicleAutoboxParams& autoboxParams, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
@@ -85,4 +84,4 @@ bool readEngineDrivetrainParamsFromJsonFile(const char* directory, const char* f
 bool writeEngineDrivetrainParamsToJsonFile(const char* directory, const char* filename,
 	const EngineDrivetrainParams&);
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

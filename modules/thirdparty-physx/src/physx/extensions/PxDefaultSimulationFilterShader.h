@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_DEFAULT_SIMULATION_FILTER_SHADER_H
 #define PX_DEFAULT_SIMULATION_FILTER_SHADER_H
-/** \addtogroup extensions
-  @{
-*/
 
 #include "PxPhysXConfig.h"
 
@@ -63,7 +60,7 @@ with
 
 If the filtering equation is true, collision detection is enabled.
 
-@see PxSetFilterOps()
+\see PxSetFilterOps()
 */
 class PxGroupsMask
 {
@@ -77,7 +74,7 @@ public:
 /**
 \brief Collision filtering operations.
 
-@see PxGroupsMask
+\see PxGroupsMask
 */
 struct PxFilterOp
 {
@@ -108,67 +105,75 @@ conditions are met:
 	1) Collision groups of the pair are enabled
 	2) Collision filtering equation is satisfied
 
-@see PxSimulationFilterShader
-*/
+Each actor can belong to a single collision group. Use PxSetGroup to set the group of an actor and PxGetGroup to retrieve the group of an actor.
+A collision group is an integer value between 0 and 31 defining which group the actor belongs to. Because that value is written to an actor's
+shapes internally (it is stored in the shapes' PxFilterData), this feature does not work with shared shapes, unless they all belong to actors
+whose groups are similar. For example it would not work to share a shape between actors A and B, and then assign A to group 0 and B to group 1,
+as they would both internally try to write different group values to the same shape.
 
+Once actors are assigned to groups, it is possible to define how groups collide with each-other using the PxSetGroupCollisionFlag function.
+Use this function to set a simple boolean value per group pairs, defining if the corresponding groups should collide. If not, collisions between
+actors of these non-colliding groups will be automatically disabled by the PxDefaultSimulationFilterShader.
+
+\see PxSimulationFilterShader PxGetGroupCollisionFlag PxSetGroupCollisionFlag PxGetGroup PxSetGroup
+*/
 PxFilterFlags PxDefaultSimulationFilterShader(
-	PxFilterObjectAttributes attributes0,
-	PxFilterData filterData0, 
-	PxFilterObjectAttributes attributes1,
-	PxFilterData filterData1,
+	PxFilterObjectAttributes attributes0, PxFilterData filterData0, 
+	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
 	PxPairFlags& pairFlags,
-	const void* constantBlock,
-	PxU32 constantBlockSize);
+	const void* constantBlock, PxU32 constantBlockSize);
 
 /**
-	\brief Determines if collision detection is performed between a pair of groups
+\brief Determines if collision detection is performed between a pair of groups
 
-	\note Collision group is an integer between 0 and 31.
+\note Collision group is an integer between 0 and 31.
+\note PxGetGroupCollisionFlag(a, b) is the same as PxGetGroupCollisionFlag(b, a)
 
-	\param[in] group1 First Group
-	\param[in] group2 Second Group
+\param[in] group1	First Group
+\param[in] group2	Second Group
 
-	\return True if the groups could collide
+\return True if the groups should collide
 
-	@see PxSetGroupCollisionFlag
+\see PxSetGroupCollisionFlag
 */
 bool PxGetGroupCollisionFlag(const PxU16 group1, const PxU16 group2);
 
 /**
-	\brief Specifies if collision should be performed by a pair of groups
+\brief Specifies if collision should be performed by a pair of groups
 
-	\note Collision group is an integer between 0 and 31.
+\note Collision group is an integer between 0 and 31.
+\note PxSetGroupCollisionFlag(a, b) is the same as PxSetGroupCollisionFlag(b, a)
 
-	\param[in] group1 First Group
-	\param[in] group2 Second Group
-	\param[in] enable True to enable collision between the groups
+\param[in] group1	First Group
+\param[in] group2	Second Group
+\param[in] enable	True to enable collision between the groups
 
-	@see PxGetGroupCollisionFlag
+\see PxGetGroupCollisionFlag
 */
 void PxSetGroupCollisionFlag(const PxU16 group1, const PxU16 group2, const bool enable);
 
 /**
-	\brief Retrieves the value set with PxSetGroup()
+\brief Retrieves the value set with PxSetGroup()
 
-	\note Collision group is an integer between 0 and 31.
+\note Collision group is an integer between 0 and 31.
 
-	\param[in] actor The actor
+\param[in] actor The actor
 
-	\return The collision group this actor belongs to
+\return The collision group this actor belongs to
 
-	@see PxSetGroup
+\see PxSetGroup
 */
 PxU16 PxGetGroup(const PxActor& actor);
 
 /**
-	\brief Sets which collision group this actor is part of
+\brief Sets which collision group this actor is part of
 
-	\note Collision group is an integer between 0 and 31.
+\note Collision group is an integer between 0 and 31.
 
-	\param[in] actor The actor
-	\param[in] collisionGroup Collision group this actor belongs to
+\param[in] actor The actor
+\param[in] collisionGroup Collision group this actor belongs to
 
-	@see PxGetGroup
+\see PxGetGroup
 */
 void PxSetGroup(PxActor& actor, const PxU16 collisionGroup);
 
@@ -179,7 +184,7 @@ void PxSetGroup(PxActor& actor, const PxU16 collisionGroup);
 \param[out] op1 Second filter operator.
 \param[out] op2 Third filter operator.
 
-@see PxSetFilterOps PxSetFilterBool PxSetFilterConstants
+\see PxSetFilterOps PxSetFilterBool PxSetFilterConstants
 */
 void PxGetFilterOps(PxFilterOp::Enum& op0, PxFilterOp::Enum& op1, PxFilterOp::Enum& op2);
 
@@ -190,7 +195,7 @@ void PxGetFilterOps(PxFilterOp::Enum& op0, PxFilterOp::Enum& op1, PxFilterOp::En
 \param[in] op1 Filter op 1.
 \param[in] op2 Filter op 2.
 
-@see PxSetFilterBool PxSetFilterConstants
+\see PxSetFilterBool PxSetFilterConstants
 */
 void PxSetFilterOps(const PxFilterOp::Enum& op0, const PxFilterOp::Enum& op1, const PxFilterOp::Enum& op2);
 
@@ -199,7 +204,7 @@ void PxSetFilterOps(const PxFilterOp::Enum& op0, const PxFilterOp::Enum& op1, co
 
 \return flag Boolean value for filter.
 
-@see PxSetFilterBool PxSetFilterConstants
+\see PxSetFilterBool PxSetFilterConstants
 */
 bool PxGetFilterBool();
 
@@ -208,7 +213,7 @@ bool PxGetFilterBool();
 
 \param[in] enable Boolean value for filter.
 
-@see PxSetFilterOps PxSsetFilterConstants
+\see PxSetFilterOps PxSsetFilterConstants
 */
 void PxSetFilterBool(const bool enable);
 
@@ -218,7 +223,7 @@ void PxSetFilterBool(const bool enable);
 \param[out] c0 the filtering constants, as a mask. See #PxGroupsMask.
 \param[out] c1 the filtering constants, as a mask. See #PxGroupsMask.
 
-@see PxSetFilterOps PxSetFilterBool PxSetFilterConstants
+\see PxSetFilterOps PxSetFilterBool PxSetFilterConstants
 */
 void PxGetFilterConstants(PxGroupsMask& c0, PxGroupsMask& c1);
 
@@ -228,7 +233,7 @@ void PxGetFilterConstants(PxGroupsMask& c0, PxGroupsMask& c1);
 \param[in] c0 The new group mask. See #PxGroupsMask.
 \param[in] c1 The new group mask. See #PxGroupsMask.
 
-@see PxSetFilterOps PxSetFilterBool PxGetFilterConstants
+\see PxSetFilterOps PxSetFilterBool PxGetFilterConstants
 */
 void PxSetFilterConstants(const PxGroupsMask& c0, const PxGroupsMask& c1);
 
@@ -239,7 +244,7 @@ void PxSetFilterConstants(const PxGroupsMask& c0, const PxGroupsMask& c1);
 
 \return The group mask for the actor.
 
-@see PxSetGroupsMask()
+\see PxSetGroupsMask()
 */
 PxGroupsMask PxGetGroupsMask(const PxActor& actor);
 
@@ -249,7 +254,7 @@ PxGroupsMask PxGetGroupsMask(const PxActor& actor);
 \param[in] actor The actor
 \param[in] mask The group mask to set for the actor.
 
-@see PxGetGroupsMask()
+\see PxGetGroupsMask()
 */
 void PxSetGroupsMask(PxActor& actor, const PxGroupsMask& mask);
 
@@ -257,5 +262,4 @@ void PxSetGroupsMask(PxActor& actor, const PxGroupsMask& mask);
 } // namespace physx
 #endif
 
-/** @} */
 #endif

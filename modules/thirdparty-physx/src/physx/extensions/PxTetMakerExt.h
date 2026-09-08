@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_TETMAKER_EXT_H
 #define PX_TETMAKER_EXT_H
-/** \addtogroup extensions
-  @{
-*/
 
 #include "foundation/PxSimpleTypes.h"
 #include "foundation/PxVec3.h"
@@ -46,7 +43,7 @@ namespace physx
 
 class PxTriangleMesh;
 class PxTetrahedronMeshDesc;
-class PxSoftBodySimulationDataDesc;
+class PxDeformableVolumeSimulationDataDesc;
 struct PxTetMakerData;
 class PxSimpleTriangleMesh;
 
@@ -111,7 +108,7 @@ public:
 	static PxTriangleMeshAnalysisResults validateTriangleMesh(const PxSimpleTriangleMesh& triangleMesh, const PxReal minVolumeThreshold = 1e-6f, const PxReal minTriangleAngleRadians = 10.0f*3.1415926535898f / 180.0f);
 
 	/**
-	\brief Analyzes the tetrahedron mesh to get a report about deficiencies. Some deficiencies can be handled by the softbody cooker, others cannot.
+	\brief Analyzes the tetrahedron mesh to get a report about deficiencies. Some deficiencies can be handled by the deformable volume cooker, others cannot.
 
 	\param[in] points The mesh's points
 	\param[in] tetrahedra The mesh's tetrahedra (index buffer)
@@ -220,6 +217,5 @@ public:
 }
 #endif
 
-/** @} */
 #endif
 

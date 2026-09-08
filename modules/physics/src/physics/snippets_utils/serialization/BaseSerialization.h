@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "vehicle2/PxVehicleAPI.h"
+#include "vehicle/PxVehicleAPI.h"
 
 #include "../base/Base.h"
 
@@ -51,11 +51,10 @@
 #endif
 
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 using namespace physx;
-using namespace physx::vehicle2;
 
 bool readAxleDescription(const rapidjson::Document& config, PxVehicleAxleDescription& axleDesc);
 bool writeAxleDescription(const PxVehicleAxleDescription& axleDesc, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
@@ -176,4 +175,4 @@ bool writeWheelParams
 bool readBaseParamsFromJsonFile(const char* directory, const char* filename, BaseVehicleParams&);
 bool writeBaseParamsToJsonFile(const char* directory, const char* filename, const BaseVehicleParams&);
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

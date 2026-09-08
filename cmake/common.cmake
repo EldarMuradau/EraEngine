@@ -199,7 +199,6 @@ debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/LowLevelDynamics_sta
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysX_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXCharacterKinematic_static_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXPvdSDK_static_64.lib
-debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXVehicle2_static_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXCooking_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXCommon_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXExtensions_static_64.lib
@@ -210,6 +209,14 @@ debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PVDRuntime_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/SceneQuery_static_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/SimulationController_static_64.lib
 debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/SnippetUtils_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXArticulationGpu_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXBroadphaseGpu_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXCommonGpu_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXCudaContextManager_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXGpu_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXNarrowphaseGpu_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXSimulationControllerGpu_static_64.lib
+debug ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Debug/PhysXSolverGpu_static_64.lib
 )
 
 set(PHYSX_RELEASE_LIBS
@@ -219,7 +226,6 @@ optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/LowLevelDynami
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysX_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXCharacterKinematic_static_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXPvdSDK_static_64.lib
-optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXVehicle2_static_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXCooking_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXCommon_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXExtensions_static_64.lib
@@ -230,6 +236,14 @@ optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PVDRuntime_64.
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/SceneQuery_static_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/SimulationController_static_64.lib
 optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/SnippetUtils_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXArticulationGpu_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXBroadphaseGpu_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXCommonGpu_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXCudaContextManager_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXGpu_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXNarrowphaseGpu_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXSimulationControllerGpu_static_64.lib
+optimized ${ERA_ENGINE_PATH}/modules/thirdparty-physx/lib/Release/PhysXSolverGpu_static_64.lib
 )
 
 set(PHYSX_BLAST_RELEASE_LIBS

@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_ISOSURFACE_EXTRACTION_H
 #define PX_ISOSURFACE_EXTRACTION_H
-/** \addtogroup extensions
-  @{
-*/
 
 
 #include "cudamanager/PxCudaContext.h"
@@ -81,7 +78,7 @@ namespace physx
 			numMeshNormalSmoothingPasses = 4;
 			gridFilteringFlags = 0;
 			gridSmoothingRadius = 0.2f;
-		}		
+		}
 
 		/**
 		\brief Clears the filtering operations
@@ -313,7 +310,7 @@ namespace physx
 	PxScene will synchronize the work such that the caller knows that the post solve task completed.
 	*/
 	class PxIsosurfaceCallback : public PxParticleSystemCallback
-	{		
+	{
 	public:
 		/**
 		\brief Initializes the isosurface callback
@@ -348,5 +345,4 @@ namespace physx
 } // namespace physx
 #endif
 
-/** @} */
 #endif

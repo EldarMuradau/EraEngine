@@ -58,20 +58,20 @@ namespace era_engine::physics
 
 		for (auto&& [entity_handle, transform_component, cloth_component] : world->group(components_group<TransformComponent, PBDClothComponent>).each())
 		{
-			{
-				PxScopedCudaLock lock{ *cuda_context_manager };
+			//{
+			//	PxScopedCudaLock lock{ *cuda_context_manager };
 
-				PxVec4* positions = cloth_component.cloth_buffer->getPositionInvMasses();
+			//	PxVec4* positions = cloth_component.cloth_buffer->getPositionInvMasses();
 
-				const PxU32 numParticles = cloth_component.cloth_buffer->getNbActiveParticles();
+			//	const PxU32 numParticles = cloth_component.cloth_buffer->getNbActiveParticles();
 
-				cuda_context_manager->acquireContext();
+			//	cuda_context_manager->acquireContext();
 
-				PxCudaContext* cudaContext = cuda_context_manager->getCudaContext();
-				cudaContext->memcpyDtoH(cloth_component.native_pos_buffer, CUdeviceptr(positions), sizeof(PxVec4) * numParticles);
+			//	PxCudaContext* cudaContext = cuda_context_manager->getCudaContext();
+			//	cudaContext->memcpyDtoH(cloth_component.native_pos_buffer, CUdeviceptr(positions), sizeof(PxVec4) * numParticles);
 
-				cuda_context_manager->releaseContext();
-			}
+			//	cuda_context_manager->releaseContext();
+			//}
 			
 			cloth_component.sync_positions_buffers_locked();
 		}
@@ -120,141 +120,140 @@ namespace era_engine::physics
 			ClothRenderComponent* render_component = entity.add_component<ClothRenderComponent>();
 			render_component->get_data_internal = std::bind(&PBDClothComponent::get_render_data, cloth_component, std::placeholders::_1);
 
-			// Test cloth data.
-			{
-				const uint32 num_particles = cloth_component->num_x * cloth_component->num_z;
-				const PxU32 num_springs = (cloth_component->num_x - 1) * (cloth_component->num_z - 1) * 4 + (cloth_component->num_x - 1) + (cloth_component->num_z - 1);
-				const PxU32 num_triangles = (cloth_component->num_x - 1) * (cloth_component->num_z - 1) * 2;
+			//// Test cloth data.
+			//{
+			//	const uint32 num_particles = cloth_component->num_x * cloth_component->num_z;
+			//	const PxU32 num_springs = (cloth_component->num_x - 1) * (cloth_component->num_z - 1) * 4 + (cloth_component->num_x - 1) + (cloth_component->num_z - 1);
+			//	const PxU32 num_triangles = (cloth_component->num_x - 1) * (cloth_component->num_z - 1) * 2;
 
-				const PxReal rest_offset = cloth_component->spacing;
+			//	const PxReal rest_offset = cloth_component->spacing;
 
-				const PxReal stretch_stiffness = 10000.f;
-				const PxReal shear_stiffness = 100.f;
-				const PxReal spring_damping = 0.001f;
+			//	const PxReal stretch_stiffness = 10000.f;
+			//	const PxReal shear_stiffness = 100.f;
+			//	const PxReal spring_damping = 0.001f;
 
-				cloth_component->material = PhysicsEngine::get_physics_core()->get_physics()->
-					createPBDMaterial(0.8f, 0.05f, 1e+6f, 0.001f, 0.5f, 0.005f, 0.05f, 0.f, 0.f);
+			//	cloth_component->material = PhysicsEngine::get_physics_core()->get_physics()->
+			//		createPBDMaterial(0.8f, 0.05f, 1e+6f, 0.001f, 0.5f, 0.005f, 0.05f, 0.f, 0.f);
 
-				cloth_component->particle_system = PhysicsEngine::get_physics_core()->get_physics()->
-					createPBDParticleSystem(*cuda_context_manager);
+			//	cloth_component->particle_system = PhysicsEngine::get_physics_core()->get_physics()->
+			//		createPBDParticleSystem(*cuda_context_manager);
 
-				const PxReal particle_mass = cloth_component->total_mass / num_particles;
-				cloth_component->particle_system->setRestOffset(rest_offset);
-				cloth_component->particle_system->setContactOffset(rest_offset + 0.02f);
-				cloth_component->particle_system->setParticleContactOffset(rest_offset + 0.02f);
-				cloth_component->particle_system->setSolidRestOffset(rest_offset);
-				cloth_component->particle_system->setFluidRestOffset(0.0f);
-				cloth_component->particle_system->enableCCD(true);
+			//	const PxReal particle_mass = cloth_component->total_mass / num_particles;
+			//	cloth_component->particle_system->setRestOffset(rest_offset);
+			//	cloth_component->particle_system->setContactOffset(rest_offset + 0.02f);
+			//	cloth_component->particle_system->setParticleContactOffset(rest_offset + 0.02f);
+			//	cloth_component->particle_system->setSolidRestOffset(rest_offset);
+			//	cloth_component->particle_system->setFluidRestOffset(0.0f);
 
-				PxFilterData filter_data;
-				filter_data.word0 = -1; // word0 = own ID
-				filter_data.word1 = -1;  // word1 = ID mask to filter pairs that trigger a contact callback
-				cloth_component->particle_system->setSimulationFilterData(filter_data);
+			//	PxFilterData filter_data;
+			//	filter_data.word0 = -1; // word0 = own ID
+			//	filter_data.word1 = -1;  // word1 = ID mask to filter pairs that trigger a contact callback
+			//	cloth_component->particle_system->setSimulationFilterData(filter_data);
 
-				PhysicsEngine::execute_write([&]() {
-					PhysicsEngine::get_physics_core()->get_scene()->addActor(*cloth_component->particle_system);
-					});
+			//	PhysicsEngine::execute_write([&]() {
+			//		PhysicsEngine::get_physics_core()->get_scene()->addActor(*cloth_component->particle_system);
+			//		});
 
-				const PxU32 particle_phase = cloth_component->particle_system->createPhase(cloth_component->material, PxParticlePhaseFlags(PxParticlePhaseFlag::eParticlePhaseSelfCollideFilter | PxParticlePhaseFlag::eParticlePhaseSelfCollide));
+			//	const PxU32 particle_phase = cloth_component->particle_system->createPhase(cloth_component->material, PxParticlePhaseFlags(PxParticlePhaseFlag::eParticlePhaseSelfCollideFilter | PxParticlePhaseFlag::eParticlePhaseSelfCollide));
 
-				ExtGpu::PxParticleClothBufferHelper* cloth_buffers = ExtGpu::PxCreateParticleClothBufferHelper(1, num_triangles, num_springs, num_particles, cuda_context_manager);
+			//	ExtGpu::PxParticleClothBufferHelper* cloth_buffers = ExtGpu::PxCreateParticleClothBufferHelper(1, num_triangles, num_springs, num_particles, cuda_context_manager);
 
-				PxU32* phase = cuda_context_manager->allocPinnedHostBuffer<PxU32>(num_particles);
-				PxVec4* position_inv_mass = cuda_context_manager->allocPinnedHostBuffer<PxVec4>(num_particles);
-				PxVec4* velocity = cuda_context_manager->allocPinnedHostBuffer<PxVec4>(num_particles);
+			//	PxU32* phase = cuda_context_manager->allocPinnedHostBuffer<PxU32>(num_particles);
+			//	PxVec4* position_inv_mass = cuda_context_manager->allocPinnedHostBuffer<PxVec4>(num_particles);
+			//	PxVec4* velocity = cuda_context_manager->allocPinnedHostBuffer<PxVec4>(num_particles);
 
-				const vec3& position = transform_component->get_world_transform().position;
+			//	const vec3& position = transform_component->get_world_transform().position;
 
-				PxReal x = position.x;
-				PxReal y = position.y;
-				PxReal z = position.z;
+			//	PxReal x = position.x;
+			//	PxReal y = position.y;
+			//	PxReal z = position.z;
 
-				PxArray<PxParticleSpring> springs;
-				springs.reserve(num_springs);
-				PxArray<PxU32> triangles;
-				triangles.reserve(num_triangles * 3);
+			//	PxArray<PxParticleSpring> springs;
+			//	springs.reserve(num_springs);
+			//	PxArray<PxU32> triangles;
+			//	triangles.reserve(num_triangles * 3);
 
-				for (PxU32 i = 0; i < cloth_component->num_x; ++i)
-				{
-					for (PxU32 j = 0; j < cloth_component->num_z; ++j)
-					{
-						const PxU32 index = i * cloth_component->num_z + j;
+			//	for (PxU32 i = 0; i < cloth_component->num_x; ++i)
+			//	{
+			//		for (PxU32 j = 0; j < cloth_component->num_z; ++j)
+			//		{
+			//			const PxU32 index = i * cloth_component->num_z + j;
 
-						PxVec4 pos(x, y, z, 1.0f / particle_mass);
-						phase[index] = particle_phase;
-						position_inv_mass[index] = pos;
-						velocity[index] = PxVec4(0.0f);
+			//			PxVec4 pos(x, y, z, 1.0f / particle_mass);
+			//			phase[index] = particle_phase;
+			//			position_inv_mass[index] = pos;
+			//			velocity[index] = PxVec4(0.0f);
 
-						if (i > 0)
-						{
-							PxParticleSpring spring = { id(i - 1, j, cloth_component->num_z), id(i, j, cloth_component->num_z), rest_offset, stretch_stiffness, spring_damping, 0 };
-							springs.pushBack(spring);
-						}
-						if (j > 0)
-						{
-							PxParticleSpring spring = { id(i, j - 1, cloth_component->num_z), id(i, j, cloth_component->num_z), rest_offset, stretch_stiffness, spring_damping, 0 };
-							springs.pushBack(spring);
-						}
+			//			if (i > 0)
+			//			{
+			//				PxParticleSpring spring = { id(i - 1, j, cloth_component->num_z), id(i, j, cloth_component->num_z), rest_offset, stretch_stiffness, spring_damping, 0 };
+			//				springs.pushBack(spring);
+			//			}
+			//			if (j > 0)
+			//			{
+			//				PxParticleSpring spring = { id(i, j - 1, cloth_component->num_z), id(i, j, cloth_component->num_z), rest_offset, stretch_stiffness, spring_damping, 0 };
+			//				springs.pushBack(spring);
+			//			}
 
-						if (i > 0 && j > 0)
-						{
-							PxParticleSpring spring0 = { id(i - 1, j - 1, cloth_component->num_z), id(i, j, cloth_component->num_z), PxSqrt(2.0f) * rest_offset, shear_stiffness, spring_damping, 0 };
-							springs.pushBack(spring0);
-							PxParticleSpring spring1 = { id(i - 1, j, cloth_component->num_z), id(i, j - 1, cloth_component->num_z), PxSqrt(2.0f) * rest_offset, shear_stiffness, spring_damping, 0 };
-							springs.pushBack(spring1);
+			//			if (i > 0 && j > 0)
+			//			{
+			//				PxParticleSpring spring0 = { id(i - 1, j - 1, cloth_component->num_z), id(i, j, cloth_component->num_z), PxSqrt(2.0f) * rest_offset, shear_stiffness, spring_damping, 0 };
+			//				springs.pushBack(spring0);
+			//				PxParticleSpring spring1 = { id(i - 1, j, cloth_component->num_z), id(i, j - 1, cloth_component->num_z), PxSqrt(2.0f) * rest_offset, shear_stiffness, spring_damping, 0 };
+			//				springs.pushBack(spring1);
 
-							//Triangles are used to compute approximated aerodynamic forces for cloth falling down
-							triangles.pushBack(id(i - 1, j - 1, cloth_component->num_z));
-							triangles.pushBack(id(i - 1, j, cloth_component->num_z));
-							triangles.pushBack(id(i, j - 1, cloth_component->num_z));
+			//				//Triangles are used to compute approximated aerodynamic forces for cloth falling down
+			//				triangles.pushBack(id(i - 1, j - 1, cloth_component->num_z));
+			//				triangles.pushBack(id(i - 1, j, cloth_component->num_z));
+			//				triangles.pushBack(id(i, j - 1, cloth_component->num_z));
 
-							triangles.pushBack(id(i - 1, j, cloth_component->num_z));
-							triangles.pushBack(id(i, j - 1, cloth_component->num_z));
-							triangles.pushBack(id(i, j, cloth_component->num_z));
-						}
+			//				triangles.pushBack(id(i - 1, j, cloth_component->num_z));
+			//				triangles.pushBack(id(i, j - 1, cloth_component->num_z));
+			//				triangles.pushBack(id(i, j, cloth_component->num_z));
+			//			}
 
-						z += rest_offset;
-					}
-					z = position.z;
-					x += rest_offset;
-				}
+			//			z += rest_offset;
+			//		}
+			//		z = position.z;
+			//		x += rest_offset;
+			//	}
 
-				PX_ASSERT(num_springs == springs.size());
-				PX_ASSERT(num_triangles == triangles.size() / 3);
+			//	PX_ASSERT(num_springs == springs.size());
+			//	PX_ASSERT(num_triangles == triangles.size() / 3);
 
-				cloth_buffers->addCloth(0.0f, 0.0f, 0.0f, triangles.begin(), num_triangles, springs.begin(), num_springs, position_inv_mass, num_particles);
+			//	cloth_buffers->addCloth(0.0f, 0.0f, 0.0f, triangles.begin(), num_triangles, springs.begin(), num_springs, position_inv_mass, num_particles);
 
-				ExtGpu::PxParticleBufferDesc buffer_desc;
-				buffer_desc.maxParticles = num_particles;
-				buffer_desc.numActiveParticles = num_particles;
-				buffer_desc.positions = position_inv_mass;
-				buffer_desc.velocities = velocity;
-				buffer_desc.phases = phase;
+			//	ExtGpu::PxParticleBufferDesc buffer_desc;
+			//	buffer_desc.maxParticles = num_particles;
+			//	buffer_desc.numActiveParticles = num_particles;
+			//	buffer_desc.positions = position_inv_mass;
+			//	buffer_desc.velocities = velocity;
+			//	buffer_desc.phases = phase;
 
-				const PxParticleClothDesc& cloth_desc = cloth_buffers->getParticleClothDesc();
-				PxParticleClothPreProcessor* cloth_pre_processor = PxCreateParticleClothPreProcessor(cuda_context_manager);
+			//	const PxParticleClothDesc& cloth_desc = cloth_buffers->getParticleClothDesc();
+			//	PxParticleClothPreProcessor* cloth_pre_processor = PxCreateParticleClothPreProcessor(cuda_context_manager);
 
-				PxPartitionedParticleCloth output;
-				cloth_pre_processor->partitionSprings(cloth_desc, output);
-				cloth_pre_processor->release();
+			//	PxPartitionedParticleCloth output;
+			//	cloth_pre_processor->partitionSprings(cloth_desc, output);
+			//	cloth_pre_processor->release();
 
-				cloth_component->cloth_buffer = ExtGpu::PxCreateAndPopulateParticleClothBuffer(buffer_desc, cloth_desc, output, cuda_context_manager);
+			//	cloth_component->cloth_buffer = ExtGpu::PxCreateAndPopulateParticleClothBuffer(buffer_desc, cloth_desc, output, cuda_context_manager);
 
-				PhysicsEngine::execute_write([&]() {
-					cloth_component->particle_system->addParticleBuffer(cloth_component->cloth_buffer);
-					});
+			//	PhysicsEngine::execute_write([&]() {
+			//		cloth_component->particle_system->addParticleBuffer(cloth_component->cloth_buffer);
+			//		});
 
-				cloth_buffers->release();
+			//	cloth_buffers->release();
 
-				cuda_context_manager->freePinnedHostBuffer(position_inv_mass);
-				cuda_context_manager->freePinnedHostBuffer(velocity);
-				cuda_context_manager->freePinnedHostBuffer(phase);
+			//	cuda_context_manager->freePinnedHostBuffer(position_inv_mass);
+			//	cuda_context_manager->freePinnedHostBuffer(velocity);
+			//	cuda_context_manager->freePinnedHostBuffer(phase);
 
-				uint32 size = num_particles * sizeof(PxVec4);
-				cloth_component->allocator->initialize(0, (size + sizeof(PxVec4)) * 8.0f);
-				cloth_component->native_pos_buffer = cloth_component->allocator->allocate<PxVec4>(num_particles, true);
-				cloth_component->view_pos_buffer = cloth_component->allocator->allocate<vec3>(num_particles, true);
-			}
+			//	uint32 size = num_particles * sizeof(PxVec4);
+			//	cloth_component->allocator->initialize(0, (size + sizeof(PxVec4)) * 8.0f);
+			//	cloth_component->native_pos_buffer = cloth_component->allocator->allocate<PxVec4>(num_particles, true);
+			//	cloth_component->view_pos_buffer = cloth_component->allocator->allocate<vec3>(num_particles, true);
+			//}
 
 			iter = clothes_to_init.erase(iter);
 		}
@@ -277,15 +276,15 @@ namespace era_engine::physics
 
 		if (pbd_cloth_component != nullptr)
 		{
-			PhysicsEngine::execute_write([&]() {
-				PhysicsEngine::get_physics_core()->get_scene()->removeActor(*pbd_cloth_component->particle_system);
-				pbd_cloth_component->particle_system->removeParticleBuffer(pbd_cloth_component->cloth_buffer);
+			//PhysicsEngine::execute_write([&]() {
+			//	PhysicsEngine::get_physics_core()->get_scene()->removeActor(*pbd_cloth_component->particle_system);
+			//	pbd_cloth_component->particle_system->removeParticleBuffer(pbd_cloth_component->cloth_buffer);
 
-				PX_RELEASE(pbd_cloth_component->particle_system)
+			//	PX_RELEASE(pbd_cloth_component->particle_system)
 
-				PX_RELEASE(pbd_cloth_component->cloth_buffer)
-				PX_RELEASE(pbd_cloth_component->material)
-				});
+			//	PX_RELEASE(pbd_cloth_component->cloth_buffer)
+			//	PX_RELEASE(pbd_cloth_component->material)
+			//	});
 
 			pbd_cloth_component->allocator->reset(true);
 

@@ -9,7 +9,7 @@
 
 namespace era_engine::physics
 {
-	ERA_PHYSICS_API void connect_cube_to_soft_body(physx::PxRigidDynamic* cube, physx::PxReal cube_half_extent, const physx::PxVec3& cube_position, physx::PxSoftBody* soft_body, physx::PxU32 point_grid_resolution = 10);
+	//ERA_PHYSICS_API void connect_cube_to_soft_body(physx::PxRigidDynamic* cube, physx::PxReal cube_half_extent, const physx::PxVec3& cube_position, physx::PxSoftBody* soft_body, physx::PxU32 point_grid_resolution = 10);
 
 	class ERA_PHYSICS_API SoftBodyComponent : public Component
 	{
@@ -34,7 +34,7 @@ namespace era_engine::physics
 		void copy_deformed_vertices_from_gpu();
 
 		physx::PxVec4* positions_inv_mass = nullptr;
-		physx::PxSoftBody* soft_body = nullptr;
+		//physx::PxSoftBody* soft_body = nullptr;
 
 		friend class Physics;
 	};

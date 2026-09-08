@@ -119,16 +119,6 @@ namespace era_engine::physics
 		cuda_context_manager_desc.graphicsDevice = get_dx_context()->device.Get();
 
 		cuda_context_manager = PxCreateCudaContextManager(*foundation, cuda_context_manager_desc, &profiler_callback);
-
-#if PX_VEHICLE
-		if (!PxInitVehicleSDK(*physics))
-		{
-			LOG_ERROR("Physics> Failed to initialize PxVehicleSDK.");
-		}
-
-		PxVehicleSetBasisVectors(PxVec3(0, 1, 0), PxVec3(0, 0, 1));
-		PxVehicleSetUpdateMode(PxVehicleUpdateMode::eVELOCITY_CHANGE);
-#endif
 	}
 
 	Physics::~Physics()
@@ -313,10 +303,6 @@ namespace era_engine::physics
 		release_scene_locked();
 
 		ScopedSpinLock lock{ sync };
-
-#if PX_VEHICLE
-		physx::PxCloseVehicleSDK();
-#endif
 
 		PxCloseExtensions();
 

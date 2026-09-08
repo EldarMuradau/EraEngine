@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_BVH_H
 #define PX_BVH_H
-/** \addtogroup geomutils
-@{
-*/
 
 #include "common/PxBase.h"
 #include "foundation/PxTransform.h"
@@ -44,6 +41,7 @@ namespace physx
 #endif
 
 class PxGeometry;
+class PxPlane;
 
 /**
 \brief Class representing a bounding volume hierarchy.
@@ -57,7 +55,7 @@ local space.
 PxBVH can also be used as a standalone data-structure for arbitrary
 purposes, unrelated to PxScene / PxActor.
 
-@see PxScene::addActor
+\see PxScene::addActor
 */
 class PxBVH : public PxBase
 {
@@ -167,7 +165,7 @@ public:
 
 	\return Number of bounds in the BVH.
 
-	@see getBounds() getBoundsForModification()
+	\see getBounds() getBoundsForModification()
 	*/
 	virtual PxU32				getNbBounds() const = 0;
 	
@@ -176,7 +174,7 @@ public:
 
 	\note These are the user-defined bounds passed to the BVH builder, not the internal bounds around each BVH node.
 
-	@see PxBounds3 getNbBounds() getBoundsForModification()
+	\see PxBounds3 getNbBounds() getBoundsForModification()
 	*/
 	virtual const PxBounds3*	getBounds() const = 0;
 
@@ -187,7 +185,7 @@ public:
 
 	\note These are the user-defined bounds passed to the BVH builder, not the internal bounds around each BVH node.
 
-	@see PxBounds3 getNbBounds() getBounds() refit() updateBounds() partialRefit()
+	\see PxBounds3 getNbBounds() getBounds() refit() updateBounds() partialRefit()
 	*/
 	PX_FORCE_INLINE	PxBounds3*	getBoundsForModification()
 								{
@@ -208,7 +206,7 @@ public:
 	users (via getBoundsForModification()). If you only have a small number of bounds to update, it might be
 	more efficient to use setBounds() and partialRefit() instead.
 	
-	@see getNbBounds() getBoundsForModification() updateBounds() partialRefit()
+	\see getNbBounds() getBoundsForModification() updateBounds() partialRefit()
 	*/
 	virtual	void				refit()	= 0;
 
@@ -227,7 +225,7 @@ public:
 
 	\return true if success
 
-	@see getNbBounds() getBoundsForModification() refit() partialRefit()
+	\see getNbBounds() getBoundsForModification() refit() partialRefit()
 	*/
 	virtual	bool				updateBounds(PxU32 boundsIndex, const PxBounds3& newBounds)	= 0;
 
@@ -237,7 +235,7 @@ public:
 	This is an alternative to the refit() function, to be called after updateBounds() calls.
 	See updateBounds() for details.
 	
-	@see getNbBounds() getBoundsForModification() refit() updateBounds()
+	\see getNbBounds() getBoundsForModification() refit() updateBounds()
 	*/
 	virtual	void				partialRefit()	= 0;
 
@@ -252,13 +250,13 @@ public:
 	*/
 	virtual	bool				traverse(TraversalCallback& cb)	const	= 0;
 
-	virtual	const char*			getConcreteTypeName() const	{ return "PxBVH";	}
+	virtual	const char*			getConcreteTypeName() const	PX_OVERRIDE	PX_FINAL	{ return "PxBVH";	}
 protected:
 	PX_INLINE					PxBVH(PxType concreteType, PxBaseFlags baseFlags) : PxBase(concreteType, baseFlags)	{}
 	PX_INLINE					PxBVH(PxBaseFlags baseFlags) : PxBase(baseFlags)									{}
 	virtual						~PxBVH()																			{}
 
-	virtual	bool				isKindOf(const char* name) const { PX_IS_KIND_OF(name, "PxBVH", PxBase); }
+	virtual	bool				isKindOf(const char* name) const PX_OVERRIDE { PX_IS_KIND_OF(name, "PxBVH", PxBase); }
 };
 
 	struct PxGeomIndexPair;
@@ -273,7 +271,7 @@ protected:
 	\param[in] bvh1				Second bvh
 	\return true if an overlap has been detected
 
-	@see PxBVH PxReportCallback
+	\see PxBVH PxReportCallback
 	*/
 	PX_C_EXPORT PX_PHYSX_COMMON_API bool PX_CALL_CONV PxFindOverlap(PxReportCallback<PxGeomIndexPair>& callback, const PxBVH& bvh0, const PxBVH& bvh1);
 
@@ -281,5 +279,4 @@ protected:
 } // namespace physx
 #endif
 
-/** @} */
 #endif

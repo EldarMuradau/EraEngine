@@ -30,15 +30,15 @@ namespace era_engine::physics
 	protected:
 		ref<PhysicsMaterial> material;
 
-		snippetvehicle2::EngineDriveVehicle* vehicle = nullptr;
-		physx::vehicle2::PxVehiclePhysXSimulationContext* vehicle_simulation_context = nullptr;
+		snippetvehicle::EngineDriveVehicle* vehicle = nullptr;
+		physx::PxVehiclePhysXSimulationContext* vehicle_simulation_context = nullptr;
 
-		physx::vehicle2::PxVehiclePhysXMaterialFriction material_frictions[16];
+		physx::PxVehiclePhysXMaterialFriction material_frictions[16];
 
 		uint32 nb_material_frictions = 0;
 		float default_material_friction = 1.0f;
 
-		uint32 target_gear_command = physx::vehicle2::PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
+		uint32 target_gear_command = physx::PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
 
 		friend class VehicleSystem;
 	};

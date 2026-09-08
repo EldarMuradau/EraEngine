@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_D6_JOINT_H
 #define PX_D6_JOINT_H
-/** \addtogroup extensions
-  @{
-*/
 
 #include "extensions/PxJoint.h"
 #include "extensions/PxJointLimit.h"
@@ -52,14 +49,14 @@ class PxD6Joint;
  \param[in] actor1		An actor to which the joint is attached. NULL may be used to attach the joint to a specific point in the world frame
  \param[in] localFrame1	The position and orientation of the joint relative to actor1 
 
-@see PxD6Joint
+\see PxD6Joint
 */
 PxD6Joint*	PxD6JointCreate(PxPhysics& physics, PxRigidActor* actor0, const PxTransform& localFrame0, PxRigidActor* actor1, const PxTransform& localFrame1);
 
 /**
 \brief Used to specify one of the degrees of freedom of  a D6 joint.
 
-@see PxD6Joint
+\see PxD6Joint
 */
 struct PxD6Axis
 {
@@ -79,7 +76,7 @@ struct PxD6Axis
 /**
 \brief Used to specify the range of motions allowed for a degree of freedom in a D6 joint.
 
-@see PxD6Joint
+\see PxD6Joint
 */
 struct PxD6Motion
 {
@@ -88,6 +85,35 @@ struct PxD6Motion
 		eLOCKED,	//!< The DOF is locked, it does not allow relative motion.
 		eLIMITED,	//!< The DOF is limited, it only allows motion within a specific range.
 		eFREE		//!< The DOF is free and has its full range of motion.
+	};
+};
+
+
+/**
+\brief The configuration to use for driving to the angular component of a target pose or velocity.
+
+\see PxD6Joint::setAngularDriveConfig() PxD6Drive PxD6Joint::setDrive()
+*/
+struct PxD6AngularDriveConfig
+{
+	enum Enum
+	{
+		/**
+		\brief The joint tries to reach the angular drive target by separately driving along each angular degree of freedom.
+
+		Each angular degree of freedom can have its own set of drive parameters. The degrees of freedom are covered by a twist and two swing axes.
+		As a consequence, only the following options are available when setting the drive parameters: PxD6Drive::eSWING1, PxD6Drive::eSWING2, 
+		PxD6Drive::eTWIST (see #PxD6Joint::setDrive()).
+		*/
+		eSWING_TWIST,
+
+		/**
+		\brief The joint tries to reach the angular drive target by following a spherical linear interpolation (SLERP) based path.
+
+		A single set of drive parameters will be used for all angular degrees of freedom and PxD6Drive::eSLERP is the only valid option to set
+		those parameters (see #PxD6Joint::setDrive()).
+		*/
+		eSLERP
 	};
 };
 
@@ -103,34 +129,74 @@ Alternatively, the spring may be configured to generate a specified acceleration
 
 A linear axis is affected by drive only if the corresponding drive flag is set. There are two possible models
 for angular drive: swing/twist, which may be used to drive one or more angular degrees of freedom, or slerp,
-which may only be used to drive all three angular degrees simultaneously.
+which may only be used to drive all three angular degrees simultaneously. Please use #PxD6AngularDriveConfig
+to configure the angular drive model.
 
-@see PxD6Joint
+\see PxD6Joint PxD6AngularDriveConfig
 */
 struct PxD6Drive
 {
 	enum Enum
 	{
-		eX			= 0,	//!< drive along the X-axis
-		eY			= 1,	//!< drive along the Y-axis
-		eZ			= 2,	//!< drive along the Z-axis
-		eSWING		= 3,	//!< drive of displacement from the X-axis
-		eTWIST		= 4,	//!< drive of the displacement around the X-axis
-		eSLERP		= 5,	//!< drive of all three angular degrees along a SLERP-path
-		eCOUNT		= 6
+		eX						= 0,	//!< drive along the X-axis
+		eY						= 1,	//!< drive along the Y-axis
+		eZ						= 2,	//!< drive along the Z-axis
+
+		/**
+		\brief rotational drive around the X-axis
+
+		\note Only allowed if the angular drive configuration is set to PxD6AngularDriveConfig::eSWING_TWIST.
+		*/
+		eTWIST					= 3,
+
+		/**
+		\brief rotational drive around the Y-axis
+
+		\note Only allowed if the angular drive configuration is set to PxD6AngularDriveConfig::eSWING_TWIST.
+		*/
+		eSWING1					= 4,
+
+		/**
+		\brief rotational drive around the Z-axis
+
+		\note Only allowed if the angular drive configuration is set to PxD6AngularDriveConfig::eSWING_TWIST.
+		*/
+		eSWING2					= 5,
+
+		/**
+		\brief drive of all three angular degrees along a SLERP-path
+
+		\note Only allowed if the angular drive configuration is set to PxD6AngularDriveConfig::eSLERP.
+		*/
+		eSLERP					= 6,
+
+		eCOUNT					= 7
 	};
 };
 
 /** 
 \brief flags for configuring the drive model of a PxD6Joint
 
-@see PxD6JointDrive PxD6Joint
+\see PxD6JointDrive PxD6Joint
 */
 struct PxD6JointDriveFlag
 {
 	enum Enum
 	{
-		eACCELERATION	= 1	//!< drive spring is for the acceleration at the joint (rather than the force) 
+		eACCELERATION	= (1 << 0),	//!< drive spring is for the acceleration at the joint (rather than the force) 
+
+		/**
+		\brief Add drive force/torque to the joint force/torque total.
+
+		If this flag is raised, the force/torque value from this drive constraint will be accumulated
+		in the force/torque total that is reported for the underlying PxConstraint object. Note that
+		because the force/torque total changes, the joint break behavior will change too.
+
+		<b>Default:</b> False
+
+		\see PxConstraint::getForce()
+		*/
+		eOUTPUT_FORCE	= (1 << 1)
 	};
 };
 typedef PxFlags<PxD6JointDriveFlag::Enum, PxU32> PxD6JointDriveFlags;
@@ -139,7 +205,7 @@ PX_FLAGS_OPERATORS(PxD6JointDriveFlag::Enum, PxU32)
 /** 
 \brief parameters for configuring the drive model of a PxD6Joint
 
-@see PxD6Joint
+\see PxD6Joint
 */
 class PxD6JointDrive : public PxSpring
 {
@@ -211,7 +277,7 @@ public:
 
  If the twist degree of freedom is limited, is supports upper and lower limits. The two swing degrees
  of freedom are limited with a cone limit.
-@see PxD6JointCreate() PxJoint 
+\see PxD6JointCreate() PxJoint 
 */
 class PxD6Joint : public PxJoint
 {
@@ -228,14 +294,14 @@ public:
 
 	<b>Default:</b> all degrees of freedom are locked
 
-	@see getMotion() PxD6Axis PxD6Motion
+	\see getMotion() PxD6Axis PxD6Motion
 	*/
 	virtual void				setMotion(PxD6Axis::Enum axis, PxD6Motion::Enum type)	= 0;
 
 	/**
 	\brief Get the motion type around the specified axis.
 
-	@see setMotion() PxD6Axis PxD6Motion
+	\see setMotion() PxD6Axis PxD6Motion
 
 	\param[in] axis the degree of freedom around which the motion type is specified
 	\return the motion type around the specified axis
@@ -246,13 +312,6 @@ public:
 	\brief get the twist angle of the joint, in the range (-2*Pi, 2*Pi]
 	*/
 	virtual PxReal				getTwistAngle()	const	= 0;
-
-	/**
-	\brief get the twist angle of the joint
-
-	\deprecated Use getTwistAngle instead. Deprecated since PhysX version 4.0
-	*/
-	PX_DEPRECATED	PX_FORCE_INLINE PxReal				getTwist()	const	{ return getTwistAngle();	}
 
 	/**
 	\brief get the swing angle of the joint from the Y axis
@@ -273,7 +332,7 @@ public:
 
 	\param[in] limit the distance limit structure
 
-	@see getDistanceLimit() PxJointLinearLimit
+	\see getDistanceLimit() PxJointLinearLimit
 	*/
 	virtual	void				setDistanceLimit(const PxJointLinearLimit& limit)	= 0;
 
@@ -282,19 +341,9 @@ public:
 
 	\return the distance limit structure
 
-	@see setDistanceLimit() PxJointLinearLimit
+	\see setDistanceLimit() PxJointLinearLimit
 	*/
 	virtual	PxJointLinearLimit	getDistanceLimit()	const	= 0;
-
-	/**
-	\deprecated Use setDistanceLimit instead. Deprecated since PhysX version 4.0
-	*/
-	PX_DEPRECATED	PX_FORCE_INLINE	void				setLinearLimit(const PxJointLinearLimit& limit)	{ setDistanceLimit(limit);		}
-
-	/**
-	\deprecated Use getDistanceLimit instead. Deprecated since PhysX version 4.0
-	*/
-	PX_DEPRECATED	PX_FORCE_INLINE	PxJointLinearLimit	getLinearLimit()	const						{ return getDistanceLimit();	}
 
 	/**
 	\brief Set the linear limit for a given linear axis. 
@@ -309,7 +358,7 @@ public:
 	\param[in] axis		The limited linear axis (must be PxD6Axis::eX, PxD6Axis::eY or PxD6Axis::eZ)
 	\param[in] limit	The linear limit pair structure
 
-	@see getLinearLimit() 
+	\see getLinearLimit() 
 	*/
 	virtual void					setLinearLimit(PxD6Axis::Enum axis, const PxJointLinearLimitPair& limit)	= 0;
 
@@ -320,7 +369,7 @@ public:
 
 	\return the linear limit pair structure from desired axis
 
-	@see setLinearLimit() PxJointLinearLimit
+	\see setLinearLimit() PxJointLinearLimit
 	*/
 	virtual PxJointLinearLimitPair	getLinearLimit(PxD6Axis::Enum axis)	const	= 0;
 
@@ -333,7 +382,7 @@ public:
 
 	\param[in] limit the twist limit structure
 
-	@see getTwistLimit() PxJointAngularLimitPair
+	\see getTwistLimit() PxJointAngularLimitPair
 	*/
 	virtual	void				setTwistLimit(const PxJointAngularLimitPair& limit)	= 0;
 
@@ -342,7 +391,7 @@ public:
 
 	\return the twist limit structure
 
-	@see setTwistLimit() PxJointAngularLimitPair
+	\see setTwistLimit() PxJointAngularLimitPair
 	*/
 	virtual	PxJointAngularLimitPair	getTwistLimit()	const	= 0;
 
@@ -355,7 +404,7 @@ public:
 
 	\param[in] limit the cone limit structure
 
-	@see getLimitCone() PxJointLimitCone 
+	\see getLimitCone() PxJointLimitCone 
 	*/
 	virtual	void				setSwingLimit(const PxJointLimitCone& limit)	= 0;
 
@@ -364,7 +413,7 @@ public:
 
 	\return the swing limit structure
 
-	@see setLimitCone() PxJointLimitCone
+	\see setLimitCone() PxJointLimitCone
 	*/
 	virtual	PxJointLimitCone	getSwingLimit()	const	= 0;
 
@@ -379,7 +428,7 @@ public:
 
 	\param[in] limit the cone limit structure
 
-	@see getLimitCone() PxJointLimitPyramid 
+	\see getLimitCone() PxJointLimitPyramid 
 	*/
 	virtual	void				setPyramidSwingLimit(const PxJointLimitPyramid& limit)	= 0;
 
@@ -388,28 +437,60 @@ public:
 
 	\return the swing limit structure
 
-	@see setLimitCone() PxJointLimitPyramid
+	\see setLimitCone() PxJointLimitPyramid
 	*/
 	virtual	PxJointLimitPyramid	getPyramidSwingLimit()	const	= 0;
 
 	/**
+	\brief Set the angular drive model to apply.
+
+	\note The configuration will limit the allowed set of angular drive types (see #PxD6Drive) to use
+	      when calling #PxD6Joint::setDrive().
+
+	\note Changing the angular drive model, will reset all the parameters for the angular drives to
+	      their default values (see #PxD6Joint::setDrive() for information on the default values).
+
+	\param[in] config The angular drive model to apply.
+
+	\see PxD6AngularDriveConfig getAngularDriveConfig()
+
+	<b>Default</b> PxD6AngularDriveConfig::eSWING_TWIST
+	*/
+	virtual void setAngularDriveConfig(PxD6AngularDriveConfig::Enum config) = 0;
+
+	/**
+	\brief Get the angular drive model to apply.
+
+	\return The angular drive model to apply.
+
+	\see PxD6AngularDriveConfig setAngularDriveConfig()
+	*/
+	virtual PxD6AngularDriveConfig::Enum getAngularDriveConfig() const = 0;
+
+	/**
 	\brief Set the drive parameters for the specified drive type.
+
+	\note The angular drive configuration (see #PxD6AngularDriveConfig) defines what type of
+	      angular drives will be accepted.
 
 	\param[in] index the type of drive being specified
 	\param[in] drive the drive parameters
 
-	@see getDrive() PxD6JointDrive
+	\see getDrive() PxD6JointDrive PxD6AngularDriveConfig
 
-	<b>Default</b> The default drive spring and damping values are zero, the force limit is zero, and no flags are set.
+	<b>Default</b> The default drive spring and damping values are zero, the force limit is PX_MAX_F32, and no flags are set.
 	*/
 	virtual void				setDrive(PxD6Drive::Enum index, const PxD6JointDrive& drive)	= 0;
 
 	/**
 	\brief Get the drive parameters for the specified drive type. 
 
+	\note The angular drive configuration (see #PxD6AngularDriveConfig) defines what type of
+	      angular drives will be accepted.
+
 	\param[in] index the specified drive type
 
-	@see setDrive() PxD6JointDrive
+	\see setDrive() PxD6JointDrive PxD6AngularDriveConfig
 	*/
 	virtual PxD6JointDrive		getDrive(PxD6Drive::Enum index)	const	= 0;
 
@@ -424,14 +505,14 @@ public:
 	\param[in] autowake If true and the attached actors are in a scene, this call wakes them up and increases their
 	wake counters to #PxSceneDesc::wakeCounterResetValue if the counter value is below the reset value.
 
-	@see setDrivePosition()
+	\see setDrivePosition()
 	*/
 	virtual void				setDrivePosition(const PxTransform& pose, bool autowake = true)	= 0;
 
 	/**
 	\brief Get the drive goal pose.
 
-	@see getDrivePosition()
+	\see getDrivePosition()
 	*/
 	virtual PxTransform			getDrivePosition()	const	= 0;
 
@@ -445,7 +526,7 @@ public:
 	\param[in] autowake If true and the attached actors are in a scene, this call wakes them up and increases their
 	wake counters to #PxSceneDesc::wakeCounterResetValue if the counter value is below the reset value.
 
-	@see getDriveVelocity()
+	\see getDriveVelocity()
 	*/
 	virtual	void				setDriveVelocity(const PxVec3& linear, const PxVec3& angular, bool autowake = true)	= 0;
 
@@ -455,14 +536,27 @@ public:
 	\param[in] linear The goal velocity for linear drive
 	\param[in] angular The goal velocity for angular drive
 
-	@see setDriveVelocity()
+	\see setDriveVelocity()
 	*/
 	virtual void				getDriveVelocity(PxVec3& linear, PxVec3& angular)	const	= 0;
 
 	/**
+	\brief Returns the GPU D6 joint index.
+
+	\note Only use in combination with enabled GPU dynamics and enabled direct GPU API
+	      (see #PxSceneFlag::eENABLE_GPU_DYNAMICS, #PxSceneFlag::eENABLE_DIRECT_GPU_API,
+		  #PxBroadPhaseType::eGPU)
+
+	\return The GPU index, or PX_INVALID_D6_JOINT_GPU_INDEX if the joint is not part of a PxScene.
+
+	\see PxDirectGPUAPI::getD6JointData()
+	*/
+	virtual PxD6JointGPUIndex getGPUIndex() const = 0;
+
+	/**
 	\brief Returns string name of PxD6Joint, used for serialization
 	*/
-	virtual	const char*			getConcreteTypeName() const { return "PxD6Joint"; }
+	virtual	const char*			getConcreteTypeName() const	PX_OVERRIDE	{ return "PxD6Joint"; }
 
 protected:
 
@@ -481,14 +575,14 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/
-	virtual	bool				isKindOf(const char* name) const { PX_IS_KIND_OF(name, "PxD6Joint", PxJoint); }
+	virtual	bool				isKindOf(const char* name) const PX_OVERRIDE { PX_IS_KIND_OF(name, "PxD6Joint", PxJoint); }
 
 	//~serialization
+	
 };
 
 #if !PX_DOXYGEN
 } // namespace physx
 #endif
 
-/** @} */
 #endif

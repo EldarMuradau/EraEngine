@@ -8,3 +8,4 @@ asset_cache/
 resources/assets
 
 PhysXGpu_64.dll
+PhysXNarrowphaseGpu_static_64.lib

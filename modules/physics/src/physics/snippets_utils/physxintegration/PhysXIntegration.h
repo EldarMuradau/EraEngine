@@ -29,7 +29,7 @@
 #pragma once
 
 #include "PxScene.h"
-#include "vehicle2/PxVehicleAPI.h"
+#include "vehicle/PxVehicleAPI.h"
 #include "../base/Base.h"
 
 namespace era_engine
@@ -37,11 +37,10 @@ namespace era_engine
 	class World;
 }
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 using namespace physx;
-using namespace physx::vehicle2;
 
 struct PhysXIntegrationParams
 {
@@ -237,4 +236,4 @@ public:
 	PxVehicleCommandState mCommandState;
 };
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

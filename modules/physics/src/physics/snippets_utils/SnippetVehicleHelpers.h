@@ -32,7 +32,7 @@
 #include "PxPhysicsAPI.h"
 
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 physx::PxFilterFlags VehicleFilterShader(
@@ -44,4 +44,4 @@ physx::PxFilterFlags VehicleFilterShader(
 bool parseVehicleDataPath(int argc, const char *const* argv, const char* snippetName,
 	const char*& vehicleDataPath);
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

@@ -46,7 +46,7 @@ Wrapped PxShared Array that uses NvBlastGlobals AllocatorCalllback.
 template <class T>
 struct Array
 {
-	typedef physx::PxArray<T, Allocator> type;
+	typedef physx::PxArray<T> type;
 };
 
 

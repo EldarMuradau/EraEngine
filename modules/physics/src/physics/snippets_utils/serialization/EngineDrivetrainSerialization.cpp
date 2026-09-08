@@ -32,7 +32,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 bool readAutoboxParams(const rapidjson::Document& config, PxVehicleAutoboxParams& autoboxParams)
@@ -549,4 +549,4 @@ bool writeEngineDrivetrainParamsToJsonFile(const char* directory, const char* fi
 	return true;
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle

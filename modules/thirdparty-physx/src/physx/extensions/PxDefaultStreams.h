@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_DEFAULT_STREAMS_H
 #define PX_DEFAULT_STREAMS_H
-/** \addtogroup extensions
-  @{
-*/
 
 #include <stdio.h>
 #include "common/PxPhysXCommonConfig.h"
@@ -47,7 +44,7 @@ namespace physx
 /** 
 \brief default implementation of a memory write stream
 
-@see PxOutputStream
+\see PxOutputStream
 */
 
 class PxDefaultMemoryOutputStream: public PxOutputStream
@@ -56,9 +53,9 @@ public:
 						PxDefaultMemoryOutputStream(PxAllocatorCallback &allocator = *PxGetAllocatorCallback());
 	virtual				~PxDefaultMemoryOutputStream();
 
-	virtual	PxU32		write(const void* src, PxU32 count);
+	virtual	PxU64		write(const void* src, PxU64 count);
 
-	virtual	PxU32		getSize()	const	{	return mSize; }
+	virtual	PxU64		getSize()	const	{	return mSize; }
 	virtual	PxU8*		getData()	const	{	return mData; }
 
 private:
@@ -67,30 +64,30 @@ private:
 
 		PxAllocatorCallback&	mAllocator;
 		PxU8*					mData;
-		PxU32					mSize;
-		PxU32					mCapacity;
+		PxU64					mSize;
+		PxU64					mCapacity;
 };
 
 /** 
 \brief default implementation of a memory read stream
 
-@see PxInputData
+\see PxInputData
 */
 	
 class PxDefaultMemoryInputData: public PxInputData
 {
 public:
-						PxDefaultMemoryInputData(PxU8* data, PxU32 length);
+						PxDefaultMemoryInputData(const PxU8* data, PxU64 length);
 
-	virtual		PxU32	read(void* dest, PxU32 count);
-	virtual		PxU32	getLength() const;
-	virtual		void	seek(PxU32 pos);
-	virtual		PxU32	tell() const;
+	virtual		PxU64	read(void* dest, PxU64 count);
+	virtual		PxU64	getLength() const;
+	virtual		void	seek(PxU64 pos);
+	virtual		PxU64	tell() const;
 
 private:
-		PxU32		mSize;
+		PxU64		mSize;
 		const PxU8*	mData;
-		PxU32		mPos;
+		PxU64		mPos;
 };
 
 
@@ -98,7 +95,7 @@ private:
 /** 
 \brief default implementation of a file write stream
 
-@see PxOutputStream
+\see PxOutputStream
 */
 
 class PxDefaultFileOutputStream: public PxOutputStream
@@ -107,7 +104,7 @@ public:
 						PxDefaultFileOutputStream(const char* name);
 	virtual				~PxDefaultFileOutputStream();
 
-	virtual		PxU32	write(const void* src, PxU32 count);
+	virtual		PxU64	write(const void* src, PxU64 count);
 	virtual		bool	isValid();
 private:
 		PxFileHandle	mFile;
@@ -117,7 +114,7 @@ private:
 /** 
 \brief default implementation of a file read stream
 
-@see PxInputData
+\see PxInputData
 */
 
 class PxDefaultFileInputData: public PxInputData
@@ -126,22 +123,21 @@ public:
 						PxDefaultFileInputData(const char* name);
 	virtual				~PxDefaultFileInputData();
 
-	virtual		PxU32	read(void* dest, PxU32 count);
-	virtual		void	seek(PxU32 pos);
-	virtual		PxU32	tell() const;
-	virtual		PxU32	getLength() const;
+	virtual		PxU64	read(void* dest, PxU64 count);
+	virtual		void	seek(PxU64 pos);
+	virtual		PxU64	tell() const;
+	virtual		PxU64	getLength() const;
 				
 				bool	isValid() const;
 private:
 		PxFileHandle	mFile;
-		PxU32			mLength;
+		PxU64			mLength;
 };
 
 #if !PX_DOXYGEN
 }
 #endif
 
-/** @} */
 
 #endif
 

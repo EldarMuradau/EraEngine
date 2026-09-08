@@ -30,7 +30,8 @@
 #define NVBLASTEXTPXFAMILY_H
 
 #include "PxFiltering.h"
-
+#include "foundation/PxVec3.h"
+#include "foundation/PxTransform.h"
 
 // Forward declarations
 namespace physx

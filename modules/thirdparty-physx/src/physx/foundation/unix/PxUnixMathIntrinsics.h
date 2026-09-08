@@ -22,21 +22,20 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PXFOUNDATION_PXUNIXINTRINSICS_H
 #define PXFOUNDATION_PXUNIXINTRINSICS_H
 
-#include "foundation/Px.h"
 #include "foundation/PxAssert.h"
 
 #if !(PX_LINUX || PX_APPLE_FAMILY)
 #error "This file should only be included by Unix builds!!"
 #endif
 
-#if PX_LINUX && !defined(__CUDACC__) && !PX_EMSCRIPTEN
+#if PX_LINUX && !PX_CUDA_COMPILER && !PX_EMSCRIPTEN
     // Linux and CUDA compilation does not work with std::isfnite, as it is not marked as CUDA callable
     #include <cmath>
     #ifndef isfinite
@@ -143,7 +142,7 @@ PX_CUDA_CALLABLE PX_FORCE_INLINE bool isFinite(double a)
 /*!
 Sets \c count bytes starting at \c dst to zero.
 */
-PX_FORCE_INLINE void* memZero(void* dest, uint32_t count)
+PX_FORCE_INLINE void* memZero(void* dest, size_t count)
 {
 	return memset(dest, 0, count);
 }
@@ -151,7 +150,7 @@ PX_FORCE_INLINE void* memZero(void* dest, uint32_t count)
 /*!
 Sets \c count bytes starting at \c dst to \c c.
 */
-PX_FORCE_INLINE void* memSet(void* dest, int32_t c, uint32_t count)
+PX_FORCE_INLINE void* memSet(void* dest, int32_t c, size_t count)
 {
 	return memset(dest, c, count);
 }
@@ -159,7 +158,7 @@ PX_FORCE_INLINE void* memSet(void* dest, int32_t c, uint32_t count)
 /*!
 Copies \c count bytes from \c src to \c dst. User memMove if regions overlap.
 */
-PX_FORCE_INLINE void* memCopy(void* dest, const void* src, uint32_t count)
+PX_FORCE_INLINE void* memCopy(void* dest, const void* src, size_t count)
 {
 	return memcpy(dest, src, count);
 }
@@ -167,7 +166,7 @@ PX_FORCE_INLINE void* memCopy(void* dest, const void* src, uint32_t count)
 /*!
 Copies \c count bytes from \c src to \c dst. Supports overlapping regions.
 */
-PX_FORCE_INLINE void* memMove(void* dest, const void* src, uint32_t count)
+PX_FORCE_INLINE void* memMove(void* dest, const void* src, size_t count)
 {
 	return memmove(dest, src, count);
 }

@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
@@ -66,6 +66,7 @@ struct PxSolverBody
 	}
 };
 PX_COMPILE_TIME_ASSERT(sizeof(PxSolverBody) == 32);
+PX_COMPILE_TIME_ASSERT((PX_OFFSET_OF(PxSolverBody, angularState) & 15) == 0);
 
 /**
 \brief Struct that the solver uses to store the state and other properties of a body
@@ -81,7 +82,7 @@ struct PxSolverBodyData
 	PxU32			nodeIndex;				//!< 76 the node idx of this solverBodyData. Used by solver to reference between solver bodies and island bodies. Not required by immediate mode
 	PxReal			maxContactImpulse;		//!< 80 the max contact impulse
 	PxTransform		body2World;				//!< 108 the body's transform
-	PxU16			pad;					//!< 112 pad
+	PxU32			pad;					//!< 112 pad
 
 	PX_FORCE_INLINE PxReal projectVelocity(const PxVec3& lin, const PxVec3& ang)	const
 	{
@@ -89,6 +90,8 @@ struct PxSolverBodyData
 	}
 };
 PX_COMPILE_TIME_ASSERT(0 == (sizeof(PxSolverBodyData) & 15));
+// PT: ensure that sqrtInvInertia is not the last member of PxSolverBodyData, i.e. it is safe to load 4 bytes after sqrtInvInertia
+PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxSolverBodyData, sqrtInvInertia)+sizeof(PxSolverBodyData::sqrtInvInertia) + 4 <= sizeof(PxSolverBodyData));
 
 //----------------------------------
 /**
@@ -104,6 +107,7 @@ struct PxConstraintBatchHeader
 /**
 \brief Constraint descriptor used inside the solver
 */
+PX_ALIGN_PREFIX(16)
 struct PxSolverConstraintDesc
 {
 	static const PxU16 RIGID_BODY = 0xffff;
@@ -134,12 +138,18 @@ struct PxSolverConstraintDesc
 	PxU32	linkIndexB;				//!< Link index defining which link in Articulation B this constraint affects. If not an articulation, must be PxSolverConstraintDesc::RIGID_BODY
 	PxU8*	constraint;				//!< Pointer to the constraint rows to be solved
 	void*	writeBack;				//!< Pointer to the writeback structure results for this given constraint are to be written to
+	void*	writeBackFriction;		//!< Pointer to writeback contact friction impulses. Points to a PxVec3* buffer
 	
 	PxU16	progressA;				//!< Internal progress counter
 	PxU16	progressB;				//!< Internal progress counter
-	PxU16	constraintLengthOver16;	//!< constraintLength/16, max constraint length is 1MB
-	PxU8	padding[10];
-};
+
+	union
+	{
+		PxU16	constraintType;			//!< type of constraint. Union member active until constraint prepping, afterwards memory used for constraint length
+		PxU16	constraintLengthOver16;	//!< constraintLength/16, max constraint length is 1MB.
+	};
+}PX_ALIGN_SUFFIX(16);
+PX_COMPILE_TIME_ASSERT(sizeof(PxSolverConstraintDesc) % 16 == 0);
 
 /**
 \brief Data structure used for preparing constraints before solving them
@@ -167,9 +177,24 @@ struct PxSolverConstraintPrepDescBase
 	PxTransform bodyFrame0;					//!< In: The world-space transform of the first body.
 	PxTransform bodyFrame1;					//!< In: The world-space transform of the second body.
 
+	// PT: these two use 4 bytes each but we only need 4 bits (or even just 2 bits) for a type
 	BodyState bodyState0;					//!< In: Defines what kind of actor the first body is
 	BodyState bodyState1;					//!< In: Defines what kind of actor the second body is
+
+	// PT: the following pointers have been moved here from derived structures to fill padding bytes
+	union
+	{
+		// PT: moved from PxSolverConstraintPrepDesc
+		void* writeback;					//!< Pointer to constraint writeback structure. Reports back joint breaking. If not required, set to NULL.
+
+		// PT: moved from PxSolverContactDesc
+		void* shapeInteraction;				//!< Pointer to shape interaction. Used for force threshold reports in solver. Set to NULL if using immediate mode.
+	};
 };
+PX_COMPILE_TIME_ASSERT(sizeof(PxSolverConstraintPrepDescBase)<=128);
+// PT: ensure that we can safely read 4 bytes after the bodyFrames
+PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxSolverConstraintPrepDescBase, bodyFrame0)+sizeof(PxSolverConstraintPrepDescBase::bodyFrame0) + 4 <= sizeof(PxSolverConstraintPrepDescBase));
+PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxSolverConstraintPrepDescBase, bodyFrame1)+sizeof(PxSolverConstraintPrepDescBase::bodyFrame1) + 4 <= sizeof(PxSolverConstraintPrepDescBase));
 
 /**
 \brief Data structure used for preparing constraints before solving them
@@ -181,7 +206,6 @@ struct PxSolverConstraintPrepDesc : public PxSolverConstraintPrepDescBase
 
 	PxReal linBreakForce, angBreakForce;	//!< Break forces
 	PxReal minResponseThreshold;			//!< The minimum response threshold
-	void* writeback;						//!< Pointer to constraint writeback structure. Reports back joint breaking. If not required, set to NULL.
 	bool disablePreprocessing;				//!< Disable joint pre-processing. Pre-processing can improve stability but under certain circumstances, e.g. when some invInertia rows are zero/almost zero, can cause instabilities.	
 	bool improvedSlerp;						//!< Use improved slerp model
 	bool driveLimitsAreForces;				//!< Indicates whether drive limits are forces
@@ -196,19 +220,17 @@ struct PxSolverConstraintPrepDesc : public PxSolverConstraintPrepDescBase
 */
 struct PxSolverContactDesc : public PxSolverConstraintPrepDescBase
 {
-	void* shapeInteraction;					//!< Pointer to shape interaction. Used for force threshold reports in solver. Set to NULL if using immediate mode.
-	PxContactPoint* contacts;				//!< The start of the contacts for this pair
+	PxU8* frictionPtr;						//!< InOut: Friction patch correlation data. Set each frame by solver. Can be retained for improved behavior or discarded each frame.
+	const PxContactPoint* contacts;			//!< The start of the contacts for this pair
 	PxU32 numContacts;						//!< The total number of contacts this pair references.
 
+	PxU8 frictionCount;						//!< The total number of friction patches in this pair
 	bool hasMaxImpulse;						//!< Defines whether this pairs has maxImpulses clamping enabled
 	bool disableStrongFriction;				//!< Defines whether this pair disables strong friction (sticky friction correlation)
 	bool hasForceThresholds;				//!< Defines whether this pair requires force thresholds	
 
 	PxReal restDistance;					//!< A distance at which the solver should aim to hold the bodies separated. Default is 0
 	PxReal maxCCDSeparation;				//!< A distance used to configure speculative CCD behavior. Default is PX_MAX_F32. Set internally in PhysX for bodies with eENABLE_SPECULATIVE_CCD on. Do not set directly!
-
-	PxU8* frictionPtr;						//!< InOut: Friction patch correlation data. Set each frame by solver. Can be retained for improved behavior or discarded each frame.
-	PxU8 frictionCount;						//!< The total number of friction patches in this pair
 
 	PxReal* contactForces;					//!< Out: A buffer for the solver to write applied contact forces to.
 
@@ -220,7 +242,6 @@ struct PxSolverContactDesc : public PxSolverConstraintPrepDescBase
 	PxU16 axisConstraintCount;				//!< Axis constraint count. Defines how many constraint rows this pair has produced. Useful for statistical purposes.
 
 	PxReal offsetSlop;						//!< Slop value used to snap contact line of action back in-line with the COM.
-	//PxU8 pad[16 - sizeof(void*)];
 };
 
 class PxConstraintAllocator
@@ -244,8 +265,6 @@ public:
 	virtual ~PxConstraintAllocator() {}
 };
 
-/** \addtogroup physics
-@{ */
 struct PxArticulationAxis
 {
 	enum Enum
@@ -294,8 +313,7 @@ struct PxArticulationFlag
 	{
 		eFIX_BASE = (1 << 0),				//!< Set articulation base to be fixed.
 		eDRIVE_LIMITS_ARE_FORCES = (1<<1),	//!< Limits for drive effort are forces and torques rather than impulses, see PxArticulationDrive::maxForce.
-		eDISABLE_SELF_COLLISION = (1<<2),	//!< Disable collisions between the articulation's links (note that parent/child collisions are disabled internally in either case).
-		eCOMPUTE_JOINT_FORCES = (1<<3)		//!< @deprecated Enable in order to be able to query joint solver (i.e. constraint) forces using PxArticulationCache::jointSolverForces.
+		eDISABLE_SELF_COLLISION = (1<<2)	//!< Disable collisions between the articulation's links (note that parent/child collisions are disabled internally in either case).
 	};
 };
 
@@ -308,9 +326,7 @@ struct PxArticulationDriveType
 	{
 		eFORCE = 0,			//!< The output of the implicit spring drive controller is a force/torque.
 		eACCELERATION = 1,	//!< The output of the implicit spring drive controller is a joint acceleration (use this to get (spatial)-inertia-invariant behavior of the drive).
-		eTARGET = 2,		//!< Sets the drive gains internally to track a target position almost kinematically (i.e. with very high drive gains).
-		eVELOCITY = 3,		//!< Sets the drive gains internally to track a target velocity almost kinematically (i.e. with very high drive gains).
-		eNONE = 4
+		eNONE = 2
 	};
 };
 
@@ -321,7 +337,7 @@ struct PxArticulationDriveType
 and an appropriate offset in the parent/child joint frames.
 - The limit units are linear units (equivalent to scene units) for a translational axis, or radians for a rotational axis.
 
-@see PxArticulationJointReducedCoordinate::setLimitParams, PxArticulationReducedCoordinate
+\see PxArticulationJointReducedCoordinate::setLimitParams, PxArticulationReducedCoordinate
 */
 struct PxArticulationLimit
 {
@@ -351,20 +367,139 @@ struct PxArticulationLimit
 };
 
 /**
+\brief Data structure to enforce static model of a DC motor.
+
+Performance envelope is composed of 2 constraints:
+1. effort-velocity curve: |Effort| <= maxEffort - velDependentResistance * |jointVelocity|
+2. velocity-effort curve: |JointVelocity| <= maxActuatorVelocity - speedEffortGradient * |Effort|
+where Effort refers to the sum of the articulation cache effort to the joint and the drive effort.
+*/
+struct PxPerformanceEnvelope
+{
+	
+	// PX_SERIALIZATION
+	PxPerformanceEnvelope(const PxEMPTY&){}
+	// ~PX_SERIALIZATION
+
+	PxPerformanceEnvelope(
+        PxReal maxEffort_ = 0.0f,
+        PxReal maxActuatorVelocity_ = 0.0f,
+        PxReal velocityDependentResistance_ = 0.0f,
+        PxReal speedEffortGradient_ = 0.0f
+    ) : maxEffort(maxEffort_),
+        maxActuatorVelocity(maxActuatorVelocity_),
+        velocityDependentResistance(velocityDependentResistance_),
+        speedEffortGradient(speedEffortGradient_)
+    {}
+
+    /**
+     \brief Max effort the actuator can produce at zero velocity. For linear actuators, effort refers to force; for rotational actuators, effort refers to torque.
+     
+    <b>Range:</b> [0, PX_MAX_F32]
+    <b>Default:</b> 0.0f
+    */
+    PxReal maxEffort;
+
+    /**
+    \brief The maximum velocity of the actuator at zero effort.
+    
+    <b>Range:</b> [0, PX_MAX_F32]
+    <b>Default:</b> 0.0f
+    */
+    PxReal maxActuatorVelocity;
+
+    /**
+    \brief The rate at which available effort decreases as velocity increases.
+    
+    This represents the slope of the effort-velocity curve.
+    <b>Range:</b> [0, PX_MAX_F32]
+    <b>Default:</b> 0.0f
+    */
+    PxReal velocityDependentResistance;
+
+    /**
+    \brief The rate at which maximum velocity decreases as effort increases.
+    
+    This represents the inverse slope of the velocity-effort curve.
+    <b>Range:</b> [0, PX_MAX_F32]
+    <b>Default:</b> 0.0f
+    */
+    PxReal speedEffortGradient;
+};
+
+/**
+\brief Data structure to store friction parameters.
+
+\see PxArticulationJointReducedCoordinate::setFrictionParams, PxArticulationReducedCoordinate
+*/
+struct PxJointFrictionParams
+{
+	PxJointFrictionParams(){}
+
+	PxJointFrictionParams(const PxReal staticFrictionEffort_, const PxReal dynamicFrictionEffort_, const PxReal viscousFrictionCoefficient_)
+	: staticFrictionEffort(staticFrictionEffort_)
+	, dynamicFrictionEffort(dynamicFrictionEffort_)
+	, viscousFrictionCoefficient(viscousFrictionCoefficient_)
+	{
+	}
+
+	/**
+	\brief Coulomb static friction effort. For linear motion effort refers to force, for rotational - to torque.
+
+	<b>Range:</b> [0, PX_MAX_F32]<br>
+	<b>Default:</b> 0.0f<br>
+	*/
+	PxReal staticFrictionEffort;
+
+	/**
+	\brief Coulomb dynamic friction effort. For linear motion effort refers to force, for rotational - to torque.
+
+	<b>Range:</b> [0, PX_MAX_F32]<br>
+	<b>Default:</b> 0.0f<br>
+	*/
+	PxReal dynamicFrictionEffort;
+
+	/**
+	\brief Viscous friction coefficient. viscousFrictionForce(Torque) = -viscousFrictionCoefficient * speed. 
+
+	<b>Range:</b> [0, PX_MAX_F32]<br>
+	<b>Default:</b> 0.0f<br>
+	*/
+	PxReal viscousFrictionCoefficient;
+};
+
+/**
 \brief Data structure for articulation joint drive configuration.
 
-@see PxArticulationJointReducedCoordinate::setDriveParams, PxArticulationReducedCoordinate
+\see PxArticulationJointReducedCoordinate::setDriveParams, PxArticulationReducedCoordinate
 */
 struct PxArticulationDrive
 {
-	PxArticulationDrive(){}
+	// PX_SERIALIZATION
+	PxArticulationDrive(const PxEMPTY&): envelope(PxEmpty) {}
+	//~PX_SERIALIZATION
 
-	PxArticulationDrive(const PxReal stiffness_, const PxReal damping_, const PxReal maxForce_, PxArticulationDriveType::Enum driveType_=PxArticulationDriveType::eFORCE)
+	PxArticulationDrive() {}
+
+	PxArticulationDrive(const PxReal stiffness_, const PxReal damping_, const PxReal maxForce_,
+						PxArticulationDriveType::Enum driveType_ = PxArticulationDriveType::eFORCE)
 	{
 		stiffness = stiffness_;
 		damping = damping_;
 		maxForce = maxForce_;
 		driveType = driveType_;
+		envelope = PxPerformanceEnvelope(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
+	PxArticulationDrive(const PxReal stiffness_, const PxReal damping_,
+						const PxPerformanceEnvelope envelope_,
+						PxArticulationDriveType::Enum driveType_ = PxArticulationDriveType::eFORCE)
+	{
+		stiffness = stiffness_;
+		damping = damping_;
+		driveType = driveType_;
+		envelope = envelope_;
+		maxForce = 0.0f;
 	}
 	
 	/**
@@ -394,6 +529,7 @@ struct PxArticulationDrive
 	PxReal damping;
 	
 	/**
+	\deprecated Will be removed in a future version
 	\brief The drive force limit.
 
 	- The limit is enforced regardless of the drive type #PxArticulationDriveType.
@@ -402,24 +538,34 @@ struct PxArticulationDrive
 	<b>Range:</b> [0, PX_MAX_F32]<br>
 	<b>Default:</b> 0.0f<br>
 
-	@see PxArticulationFlag::eDRIVE_LIMITS_ARE_FORCES
+	\see PxArticulationFlag::eDRIVE_LIMITS_ARE_FORCES
 	*/
 	PxReal maxForce;
+
+	/**
+	\brief The performance envelope of a motor.
+	
+	When an envelope with a non-zero maxEffort is explicitly set (via constructor or otherwise), the envelope takes precedence over maxForce.
+ 	In such cases, the joint force is clamped according to the performance envelope. If the default envelope (with zero maxEffort) is used,
+	clamping is instead based on the maxForce parameter and the PxArticulationFlag::eDRIVE_LIMITS_ARE_FORCES flag.
+
+	\see PxPerformanceEnvelope
+	*/
+	PxPerformanceEnvelope envelope;
 	
 	/**
 	\brief The drive type.
 
-	@see PxArticulationDriveType
+	\see PxArticulationDriveType
 	*/
 	PxArticulationDriveType::Enum driveType;
 };
-/** @} */
 
 struct PxTGSSolverBodyVel
 {
 	PX_ALIGN(16, PxVec3) linearVelocity;	//12
-	PxU16			nbStaticInteractions;	//14 Used to accumulate the number of static interactions
-	PxU16			maxDynamicPartition;	//16 Used to accumulate the max partition of dynamic interactions
+	PxU16			maxDynamicPartition;	//14 Used to accumulate the max partition of dynamic interactions
+	PxU16			nbStaticInteractions;	//16 Used to accumulate the number of static interactions
 	PxVec3			angularVelocity;		//28
 	PxU32			partitionMask;			//32 Used in partitioning as a bit-field
 	PxVec3			deltaAngDt;				//44
@@ -436,11 +582,17 @@ struct PxTGSSolverBodyVel
 };
 
 //Needed only by prep, integration and 1D constraints
+//Solver body state at time = simulationTime + simStepDt*posIter/nbPosIters
 struct PxTGSSolverBodyTxInertia
 {
-	PxTransform deltaBody2World;
+	//Accumulated change to quaternion that has accumulated since solver started.
+	PxQuat deltaBody2WorldQ;
+	//Absolute body position at t
+	PxVec3 body2WorldP;
+	//RotMatrix * I0^(-1/2) * RotMatrixTranspose 
 	PxMat33 sqrtInvInertia;							//!< inverse inertia in world space
 };
+PX_COMPILE_TIME_ASSERT(0 == (sizeof(PxTGSSolverBodyTxInertia) & 15));
 
 struct PxTGSSolverBodyData
 {
@@ -478,9 +630,24 @@ struct PxTGSSolverConstraintPrepDescBase
 	PxTransform bodyFrame0;						//!< In: The world-space transform of the first body.
 	PxTransform bodyFrame1;						//!< In: The world-space transform of the second body.
 
+	// PT: these two use 4 bytes each but we only need 4 bits (or even just 2 bits) for a type
 	PxSolverContactDesc::BodyState bodyState0;	//!< In: Defines what kind of actor the first body is
 	PxSolverContactDesc::BodyState bodyState1;	//!< In: Defines what kind of actor the second body is
+
+	// PT: the following pointers have been moved here from derived structures to fill padding bytes
+	union
+	{
+		// PT: moved from PxTGSSolverConstraintPrepDesc
+		void* writeback;						//!< Pointer to constraint writeback structure. Reports back joint breaking. If not required, set to NULL.
+
+		// PT: moved from PxTGSSolverContactDesc
+		void* shapeInteraction;					//!< Pointer to shape interaction. Used for force threshold reports in solver. Set to NULL if using immediate mode.
+	};
 };
+
+// PT: ensure that we can safely read 4 bytes after the bodyFrames
+PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxTGSSolverConstraintPrepDescBase, bodyFrame0)+sizeof(PxTGSSolverConstraintPrepDescBase::bodyFrame0) + 4 <= sizeof(PxTGSSolverConstraintPrepDescBase));
+PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxTGSSolverConstraintPrepDescBase, bodyFrame1)+sizeof(PxTGSSolverConstraintPrepDescBase::bodyFrame1) + 4 <= sizeof(PxTGSSolverConstraintPrepDescBase));
 
 struct PxTGSSolverConstraintPrepDesc : public PxTGSSolverConstraintPrepDescBase
 {
@@ -489,7 +656,6 @@ struct PxTGSSolverConstraintPrepDesc : public PxTGSSolverConstraintPrepDescBase
 
 	PxReal linBreakForce, angBreakForce;	//!< Break forces
 	PxReal minResponseThreshold;			//!< The minimum response threshold
-	void* writeback;						//!< Pointer to constraint writeback structure. Reports back joint breaking. If not required, set to NULL.
 	bool disablePreprocessing;				//!< Disable joint pre-processing. Pre-processing can improve stability but under certain circumstances, e.g. when some invInertia rows are zero/almost zero, can cause instabilities.	
 	bool improvedSlerp;						//!< Use improved slerp model
 	bool driveLimitsAreForces;				//!< Indicates whether drive limits are forces
@@ -503,19 +669,17 @@ struct PxTGSSolverConstraintPrepDesc : public PxTGSSolverConstraintPrepDescBase
 
 struct PxTGSSolverContactDesc : public PxTGSSolverConstraintPrepDescBase
 {
-	void* shapeInteraction;					//!< Pointer to shape interaction. Used for force threshold reports in solver. Set to NULL if using immediate mode.
-	PxContactPoint* contacts;				//!< The start of the contacts for this pair
+	PxU8* frictionPtr;						//!< InOut: Friction patch correlation data. Set each frame by solver. Can be retained for improved behavior or discarded each frame.
+	const PxContactPoint* contacts;			//!< The start of the contacts for this pair
 	PxU32 numContacts;						//!< The total number of contacts this pair references.
 
+	PxU8 frictionCount;						//!< The total number of friction patches in this pair
 	bool hasMaxImpulse;						//!< Defines whether this pairs has maxImpulses clamping enabled
 	bool disableStrongFriction;				//!< Defines whether this pair disables strong friction (sticky friction correlation)
 	bool hasForceThresholds;				//!< Defines whether this pair requires force thresholds	
 
 	PxReal restDistance;					//!< A distance at which the solver should aim to hold the bodies separated. Default is 0
 	PxReal maxCCDSeparation;				//!< A distance used to configure speculative CCD behavior. Default is PX_MAX_F32. Set internally in PhysX for bodies with eENABLE_SPECULATIVE_CCD on. Do not set directly!
-
-	PxU8* frictionPtr;						//!< InOut: Friction patch correlation data. Set each frame by solver. Can be retained for improved behavior or discarded each frame.
-	PxU8 frictionCount;						//!< The total number of friction patches in this pair
 
 	PxReal* contactForces;					//!< Out: A buffer for the solver to write applied contact forces to.
 

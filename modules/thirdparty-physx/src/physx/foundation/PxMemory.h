@@ -22,18 +22,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
 #ifndef PX_MEMORY_H
 #define PX_MEMORY_H
 
-/** \addtogroup foundation
-@{
-*/
-
-#include "foundation/Px.h"
+#include "foundation/PxSimpleTypes.h"
 #include "foundation/PxMathIntrinsics.h"
 #include "foundation/PxSimpleTypes.h"
 
@@ -50,9 +46,10 @@ namespace physx
 
 	\return Pointer to memory block (same as input)
 	*/
-	PX_FORCE_INLINE void* PxMemZero(void* dest, PxU32 count)
+	PX_FORCE_INLINE void* PxMemZero(void* dest, size_t count)
 	{
-		return physx::intrinsics::memZero(dest, count);
+		// This is to avoid undefined behavior
+		return (count != 0) ? physx::intrinsics::memZero(dest, count) : NULL;
 	}
 
 	/**
@@ -64,9 +61,10 @@ namespace physx
 
 	\return Pointer to memory block (same as input)
 	*/
-	PX_FORCE_INLINE void* PxMemSet(void* dest, PxI32 c, PxU32 count)
+	PX_FORCE_INLINE void* PxMemSet(void* dest, PxI32 c, size_t count)
 	{
-		return physx::intrinsics::memSet(dest, c, count);
+		// This is to avoid undefined behavior
+		return (count != 0) ? physx::intrinsics::memSet(dest, c, count) : NULL;
 	}
 
 	/**
@@ -80,9 +78,10 @@ namespace physx
 
 	\return Pointer to destination memory block
 	*/
-	PX_FORCE_INLINE void* PxMemCopy(void* dest, const void* src, PxU32 count)
+	PX_FORCE_INLINE void* PxMemCopy(void* dest, const void* src, size_t count)
 	{
-		return physx::intrinsics::memCopy(dest, src, count);
+		// This is to avoid undefined behavior
+		return (count != 0) ? physx::intrinsics::memCopy(dest, src, count) : NULL;
 	}
 
 	/**
@@ -96,7 +95,7 @@ namespace physx
 
 	\return Pointer to destination memory block
 	*/
-	PX_FORCE_INLINE void* PxMemMove(void* dest, const void* src, PxU32 count)
+	PX_FORCE_INLINE void* PxMemMove(void* dest, const void* src, size_t count)
 	{
 		return physx::intrinsics::memMove(dest, src, count);
 	}
@@ -108,7 +107,7 @@ namespace physx
 	\param ptr		[out]	Pointer to block of memory to initialize.
 	\param byteSize	[in]	Number of bytes to initialize.
 	*/
-	PX_INLINE void PxMarkSerializedMemory(void* ptr, PxU32 byteSize)
+	PX_INLINE void PxMarkSerializedMemory(void* ptr, size_t byteSize)
 	{
 #if PX_CHECKED
 		PxMemSet(ptr, 0xcd, byteSize);
@@ -122,6 +121,5 @@ namespace physx
 } // namespace physx
 #endif
 
-/** @} */
 #endif
 

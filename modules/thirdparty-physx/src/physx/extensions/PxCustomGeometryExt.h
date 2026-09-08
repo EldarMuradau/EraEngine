@@ -22,18 +22,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_CUSTOM_GEOMETRY_EXT_H
 #define PX_CUSTOM_GEOMETRY_EXT_H
-/** \addtogroup extensions
-  @{
-*/
 
-#include <geometry/PxCustomGeometry.h>
-#include <geometry/PxGjkQuery.h>
+#include "geometry/PxCustomGeometry.h"
+#include "geometry/PxGjkQuery.h"
 
 #if !PX_DOXYGEN
 namespace physx
@@ -130,6 +127,8 @@ public:
 		// override PxGjkQuery::Support
 		virtual PxVec3 supportLocal(const PxVec3& dir) const;
 
+		virtual PxBounds3 getLocalBounds(const PxGeometry& geometry) const;
+
 	protected:
 
 		// Cylinder height
@@ -221,5 +220,4 @@ typedef PxCustomGeometryExt::ConeCallbacks PxCustomGeometryExtConeCallbacks;
 }
 #endif
 
-/** @} */
 #endif

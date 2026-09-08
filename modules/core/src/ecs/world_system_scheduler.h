@@ -50,18 +50,34 @@ namespace era_engine
 		std::vector<std::string> dependents;
 	};
 
-	// One update group, fully resolved at graph build time. waves[i] may run in parallel, waves[i + 1] starts only after waves[i] finished.
-	struct GroupSchedule
+	// One task inside a stage, with its intra-stage dependencies already resolved.
+	struct StageNode
+	{
+		ref<Task> task;
+
+		std::vector<uint32> successors;
+
+		// How many tasks of the same stage must finish before this one may start.
+		uint32 predecessor_count = 0;
+	};
+
+	struct StageSchedule
 	{
 		std::string name;
-		bool serial = false; // Run in order on the calling thread.
-		std::vector<std::vector<ref<Task>>> waves;
+		std::vector<std::string> group_names;
+		bool serial = false;
+
+		// Topologically ordered, which is also the order used when the stage runs inline.
+		std::vector<StageNode> nodes;
+
+		// Nodes with predecessor_count == 0: the tasks dispatched when the stage starts.
+		std::vector<uint32> roots;
 	};
 
 	// Immutable snapshot of a whole update pass.
 	struct UpdateSchedule
 	{
-		std::vector<GroupSchedule> groups;
+		std::vector<StageSchedule> stages;
 		size_t task_count = 0;
 	};
 
@@ -81,6 +97,9 @@ namespace era_engine
 	class ERA_CORE_API WorldSystemScheduler
 	{
 	public:
+		// `normal_threads` and `fixed_threads` are summed into a *single* shared pool. Two
+		// independent pools oversubscribe the machine and let fixed work preempt the frame.
+		// 0 (default) sizes the pool from hardware_concurrency.
 		WorldSystemScheduler(World* _world, size_t normal_threads = 0, size_t fixed_threads = 0);
 
 		~WorldSystemScheduler();
@@ -91,6 +110,7 @@ namespace era_engine
 		void stop();
 		bool is_running() const;
 
+		// `rate_hz` is a frequency (30.0 == 30 steps per second).
 		void set_fixed_update_rate(double rate_hz);
 		double get_fixed_update_rate() const;
 
@@ -105,9 +125,20 @@ namespace era_engine
 
 		void refresh_graph();
 
+		// Removes the barrier between `group_name` and the group that precedes it in the update
+		// order: both run as a single stage and only real After/Before dependencies between their
+		// tasks are enforced.
+		void set_group_overlap(const std::string& group_name, bool may_overlap_previous);
+
+		void set_overlapping_groups(const std::vector<std::string>& group_names);
+
+		bool get_group_overlap(const std::string& group_name) const;
+
 		void update_normal(float dt);
 
 		void update_fixed(float dt);
+
+		std::string describe_schedule(UpdateType type) const;
 
 		struct Stats
 		{
@@ -129,10 +160,20 @@ namespace era_engine
 			QUEUE_COUNT = 2
 		};
 
+		// Live state of one stage execution.
+		struct StageRun
+		{
+			const StageSchedule* stage = nullptr;
+			std::vector<uint32> remaining;
+			float dt = 0.0f;
+			uint32 completed = 0;
+			uint32 total = 0;
+		};
+
 		struct TaskItem
 		{
-			ref<Task> task;
-			float dt = 0.0f;
+			StageRun* run = nullptr;
+			uint32 node = 0;
 		};
 
 		void worker_loop();
@@ -141,12 +182,16 @@ namespace era_engine
 
 		void run_schedule(const UpdateScheduleRef& schedule, float dt, size_t kind);
 
-		void run_wave(const std::vector<ref<Task>>& wave, float dt, size_t kind);
+		// Dispatches the stage as a dataflow graph and keeps executing its tasks on the calling
+		// thread until the stage is done, instead of parking on a barrier.
+		void run_stage(const StageSchedule& stage, float dt, size_t kind);
+
+		// Invokes one node, then releases the successors it was blocking.
+		void execute_node(const TaskItem& item, size_t kind);
 
 		bool has_pending_locked() const;
 		bool pop_any_locked(TaskItem& out_item, size_t& out_kind);
 		bool pop_from_locked(size_t kind, TaskItem& out_item);
-		void on_task_finished(size_t kind);
 
 		void add_task(ref<Task> task, UpdateType type);
 
@@ -160,16 +205,12 @@ namespace era_engine
 	protected:
 		World* world = nullptr;
 
-		// Single shared pool with one queue per update type. Workers alternate between the two
-		// queues, so neither the normal frame nor the fixed step can starve the other.
 		std::vector<std::thread> workers;
 		std::deque<TaskItem> queues[QUEUE_COUNT];
-		int32 in_flight[QUEUE_COUNT] = { 0, 0 };
 		bool prefer_fixed = false;
 
 		mutable std::mutex work_mutex;
 		std::condition_variable work_available;
-		std::condition_variable queue_idle;
 		std::atomic<bool> running = false;
 
 		std::thread fixed_timer_thread;
@@ -201,6 +242,8 @@ namespace era_engine
 
 		std::unordered_map<std::string, ref<Task>> tasks;
 		std::unordered_map<std::string, ref<Task>> fixed_tasks;
+
+		std::set<std::string> overlapping_groups;
 
 		bool inited = false;
 		bool systems_initialized = false;

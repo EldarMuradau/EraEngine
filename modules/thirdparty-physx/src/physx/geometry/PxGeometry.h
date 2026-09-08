@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_GEOMETRY_H
 #define PX_GEOMETRY_H
-/** \addtogroup geomutils
-@{
-*/
 
 #include "common/PxPhysXCommonConfig.h"
 #include "foundation/PxFlags.h"
@@ -54,12 +51,12 @@ struct PxGeometryType
 		ePLANE,
 		eCAPSULE,
 		eBOX,
+		eCONVEXCORE,
 		eCONVEXMESH,
 		ePARTICLESYSTEM,
 		eTETRAHEDRONMESH,
 		eTRIANGLEMESH,
 		eHEIGHTFIELD,
-		eHAIRSYSTEM,
 		eCUSTOM,
 		
 		eGEOMETRY_COUNT,	//!< internal use only!
@@ -82,7 +79,7 @@ public:
 	\brief Returns the type of the geometry.
 	\return The type of the object.
 	*/
-	PX_CUDA_CALLABLE PX_FORCE_INLINE PxGeometryType::Enum getType() const	{ return mType; }	
+	PX_CUDA_CALLABLE PX_FORCE_INLINE PxGeometryType::Enum getType() const	{ return mType; }
 
 	/**
 	\brief Assignment operator
@@ -106,5 +103,4 @@ public:
 } // namespace physx
 #endif
 
-/** @} */
 #endif

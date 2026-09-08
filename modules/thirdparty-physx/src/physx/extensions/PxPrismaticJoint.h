@@ -22,15 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2023 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2026 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PX_PRISMATIC_JOINT_H
 #define PX_PRISMATIC_JOINT_H
-/** \addtogroup extensions
-  @{
-*/
 
 #include "extensions/PxJoint.h"
 #include "extensions/PxJointLimit.h"
@@ -51,7 +48,7 @@ class PxPrismaticJoint;
  \param[in] actor1		An actor to which the joint is attached. NULL may be used to attach the joint to a specific point in the world frame
  \param[in] localFrame1	The position and orientation of the joint relative to actor1 
 
-@see PxPrismaticJoint
+\see PxPrismaticJoint
 */
 PxPrismaticJoint*	PxPrismaticJointCreate(PxPhysics& physics, PxRigidActor* actor0, const PxTransform& localFrame0, PxRigidActor* actor1, const PxTransform& localFrame1);
 
@@ -59,7 +56,7 @@ PxPrismaticJoint*	PxPrismaticJointCreate(PxPhysics& physics, PxRigidActor* actor
 /**
 \brief Flags specific to the prismatic joint.
 
-@see PxPrismaticJoint
+\see PxPrismaticJoint
 */
 struct PxPrismaticJointFlag
 {
@@ -76,12 +73,12 @@ PX_FLAGS_OPERATORS(PxPrismaticJointFlag::Enum, PxU16)
  \brief A prismatic joint permits relative translational movement between two bodies along
  an axis, but no relative rotational movement.
 
- the axis on each body is defined as the line containing the origin of the joint frame and
- extending along the x-axis of that frame
+ The axis on each body is defined as the line containing the origin of the joint frame and
+ extending along the x-axis of that frame.
 
  \image html prismJoint.png
 
- @see PxPrismaticJointCreate() PxJoint
+ \see PxPrismaticJointCreate() PxJoint
 */
 class PxPrismaticJoint : public PxJoint
 {
@@ -103,14 +100,14 @@ public:
 	The limit range is [-PX_MAX_F32, PX_MAX_F32], but note that the width of the limit (upper-lower) must also be
 	a valid float.
 
-	@see PxJointLinearLimitPair getLimit()
+	\see PxJointLinearLimitPair getLimit()
 	*/
 	virtual void			setLimit(const PxJointLinearLimitPair&)		= 0;
 
 	/**
 	\brief gets the joint limit  parameters.
 
-	@see PxJointLinearLimit getLimit()
+	\see PxJointLinearLimit getLimit()
 	*/
 	virtual PxJointLinearLimitPair getLimit()	const	= 0;
 
@@ -121,7 +118,7 @@ public:
 
 	\param[in] flags The joint flags.
 
-	@see PxPrismaticJointFlag setFlag() getFlags()
+	\see PxPrismaticJointFlag setFlag() getFlags()
 	*/
 	virtual void					setPrismaticJointFlags(PxPrismaticJointFlags flags) = 0;
 
@@ -131,7 +128,7 @@ public:
 	\param[in] flag		The flag to set or clear.
 	\param[in] value	The value to which to set the flag
 
-	@see PxPrismaticJointFlag, getFlags() setFlags()
+	\see PxPrismaticJointFlag, getFlags() setFlags()
 	*/
 	virtual void					setPrismaticJointFlag(PxPrismaticJointFlag::Enum flag, bool value) = 0;
 
@@ -140,14 +137,14 @@ public:
 
 	\return the joint flags
 
-	@see PxPrismaticJoint::flags, PxPrismaticJointFlag setFlag() setFlags()
+	\see PxPrismaticJoint::flags, PxPrismaticJointFlag setFlag() setFlags()
 	*/
 	virtual PxPrismaticJointFlags	getPrismaticJointFlags()	const	= 0;
 
 	/**
 	\brief Returns string name of PxPrismaticJoint, used for serialization
 	*/
-	virtual	const char*		getConcreteTypeName() const { return "PxPrismaticJoint"; }
+	virtual	const char*		getConcreteTypeName() const	PX_OVERRIDE	{ return "PxPrismaticJoint"; }
 
 protected:
 	//serialization
@@ -165,7 +162,7 @@ protected:
 	/**
 	\brief Returns whether a given type name matches with the type of this instance
 	*/
-	virtual	bool			isKindOf(const char* name) const {	PX_IS_KIND_OF(name, "PxPrismaticJoint", PxJoint); }
+	virtual	bool			isKindOf(const char* name) const PX_OVERRIDE {	PX_IS_KIND_OF(name, "PxPrismaticJoint", PxJoint); }
 	
 	//~serialization
 };
@@ -174,5 +171,4 @@ protected:
 } // namespace physx
 #endif
 
-/** @} */
 #endif

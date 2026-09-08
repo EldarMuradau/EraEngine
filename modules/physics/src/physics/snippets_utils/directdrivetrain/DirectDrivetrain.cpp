@@ -29,7 +29,7 @@
 #include "DirectDrivetrain.h"
 #include "../base/Base.h"
 
-namespace snippetvehicle2
+namespace snippetvehicle
 {
 
 DirectDrivetrainParams DirectDrivetrainParams::transformAndScale(
@@ -132,4 +132,4 @@ void DirectDriveVehicle::initComponentSequence(bool addPhysXBeginEndComponents)
 		mComponentSequence.add(static_cast<PxVehiclePhysXActorEndComponent*>(this));
 }
 
-}//namespace snippetvehicle2
+}//namespace snippetvehicle
