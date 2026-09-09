@@ -138,7 +138,7 @@ namespace era_engine::physics
 			if (dynamic_body.max_depenetration_velocity.is_changed())
 			{
 				body->setMaxDepenetrationVelocity(dynamic_body.max_depenetration_velocity);
-				dynamic_body.max_contact_impulse.sync_changes();
+				dynamic_body.max_depenetration_velocity.sync_changes();
 			}
 
 			if (dynamic_body.max_contact_impulse.is_changed())

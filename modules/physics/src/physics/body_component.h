@@ -114,7 +114,7 @@ namespace era_engine::physics
 
 		ObservableMember<bool> simulated = false;
 
-		ObservableMember<uint8> constraints;
+		ObservableMember<uint8> constraints = 0;
 
 		ObservableMember<float> mass = 1.0f;
 
@@ -139,7 +139,7 @@ namespace era_engine::physics
 
 		ObservableMember<vec3> mass_space_inertia_tensor = vec3::zero;
 
-		ObservableMember<bool> enable_gyroscopic_forces;
+		ObservableMember<bool> enable_gyroscopic_forces = false;
 
 		std::vector<Force> forces;
 		std::vector<Torque> torques;

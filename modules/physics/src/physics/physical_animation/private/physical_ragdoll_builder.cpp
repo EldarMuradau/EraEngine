@@ -69,7 +69,7 @@ namespace era_engine::physics
 		bool is_physically_animated,
 		Entity& entity,
 		const float mass,
-		const float max_contact_impulse = 400.0f,
+		const float max_contact_impulse = 200.0f,
 		const float max_angular_velocity = 35.0f,
 		const float max_linear_velocity = 50.0f)
 	{
@@ -79,13 +79,14 @@ namespace era_engine::physics
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->enable_gyroscopic_forces.get_for_write() = true;
-		dynamic_body_component->linear_damping.get_for_write() = 0.05f;
-		dynamic_body_component->angular_damping.get_for_write() = 0.05f;
-		dynamic_body_component->stabilization_threshold.get_for_write() = 0.01f;
-		dynamic_body_component->sleep_threshold.get_for_write() = 0.02f;
+		dynamic_body_component->linear_damping.get_for_write() = 0.02f;
+		dynamic_body_component->angular_damping.get_for_write() = 0.02f;
+		dynamic_body_component->stabilization_threshold.get_for_write() = 0.0f;
+		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
 		dynamic_body_component->max_linear_velocity.get_for_write() = max_linear_velocity;
+		dynamic_body_component->kinematic_motion_type.get_for_write() = KinematicMotionType::VELOCITY;
 
 		const bool is_tgs = PhysicsEngine::get_physics_core()->get_descriptor().enable_tgs_solver;
 		const bool is_gpu = PhysicsEngine::get_physics_core()->is_gpu();

@@ -148,14 +148,14 @@ namespace era_engine::physics
 
 		bool perform_slerp_drive = false;
 
-		ObservableMember<float> swing_y_limit;
-		ObservableMember<float> swing_z_limit;
+		ObservableMember<float> swing_y_limit = 0.0f;
+		ObservableMember<float> swing_z_limit = 0.0f;
 
-		ObservableMember<float> twist_min_limit;
-		ObservableMember<float> twist_max_limit;
+		ObservableMember<float> twist_min_limit = 0.0f;
+		ObservableMember<float> twist_max_limit = 0.0f;
 
-		ObservableMember<float> linear_limit;
-		ObservableMember<float> distance_limit;
+		ObservableMember<float> linear_limit = 0.0f;
+		ObservableMember<float> distance_limit = 0.0f;
 
 		ObservableMember<Motion> linear_x_motion_type = Motion::FREE;
 		ObservableMember<Motion> linear_y_motion_type = Motion::FREE;
@@ -180,7 +180,7 @@ namespace era_engine::physics
 
 		ObservableMember<bool> drive_limits_are_forces = false;
 
-		ObservableMember<bool> improved_slerp;
+		ObservableMember<bool> improved_slerp = false;
 
 		ObservableMember<float> slerp_drive_stiffness = 0.0f;
 		ObservableMember<float> swing_drive_stiffness = 0.0f;
@@ -197,10 +197,10 @@ namespace era_engine::physics
 		ObservableMember<bool> twist_drive_accelerated = false;
 		ObservableMember<bool> linear_drive_accelerated = false;
 
-		ObservableMember<vec3> angular_drive_velocity;
-		ObservableMember<vec3> linear_drive_velocity;
+		ObservableMember<vec3> angular_drive_velocity = vec3::zero;
+		ObservableMember<vec3> linear_drive_velocity = vec3::zero;
 
-		ObservableMember<trs> drive_transform;
+		ObservableMember<trs> drive_transform = trs::identity;
 
 		ERA_VIRTUAL_REFLECT(JointComponent)
 	};

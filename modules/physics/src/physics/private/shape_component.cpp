@@ -119,6 +119,11 @@ namespace era_engine::physics
         shape = physics->get_physics()->createShape(PxBoxGeometry(half_extents.x, half_extents.y, half_extents.z), 
             *used_material, true);
         shape->userData = this;
+
+        PhysicsEngine::execute_write([&]() {
+            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+            });
+
         return shape;
     }
 
@@ -145,6 +150,10 @@ namespace era_engine::physics
             *used_material, true);
         shape->userData = this;
 
+        PhysicsEngine::execute_write([&]() {
+            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+            });
+
         return shape;
     }
 
@@ -164,12 +173,16 @@ namespace era_engine::physics
         ref<Physics> physics = PhysicsEngine::get_physics_core();
 
         PxMaterial* used_material = material == nullptr
-            ? physics->get_default_material()->get_native_material()
-            : material->get_native_material();
+			? physics->get_default_material()->get_native_material()
+			: material->get_native_material();
 
-        shape = physics->get_physics()->createShape(PxCapsuleGeometry(radius, half_height), 
-            *used_material, true);
-        shape->userData = this;
+		shape = physics->get_physics()->createShape(PxCapsuleGeometry(radius, half_height),
+			*used_material, true);
+		shape->userData = this;
+
+		PhysicsEngine::execute_write([&]() {
+			shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+			});
 
         return shape;
     }
@@ -199,6 +212,7 @@ namespace era_engine::physics
 
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
+            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
             });
 
         return shape;
@@ -229,6 +243,7 @@ namespace era_engine::physics
 
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
+            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
             });
 
         return shape;

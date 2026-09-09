@@ -191,13 +191,13 @@ namespace era_engine::physics
 
 #if defined(VISUALIZE_PHYSICS)
 
-		{
+		/*{
 			PxSceneWriteLock lock{*scene};
 			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eCONTACT_POINT, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_FNORMALS, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
-		}
+		}*/
 
 		if (descriptor.enable_pvd)
 		{
