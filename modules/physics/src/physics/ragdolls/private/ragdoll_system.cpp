@@ -41,6 +41,7 @@ namespace era_engine::physics
 	{
 		entt::registry& registry = world->get_registry();
 		registry.on_construct<RagdollComponent>().connect<&RagdollSystem::on_ragdoll_created>(this);
+		registry.on_destroy<RagdollComponent>().connect<&RagdollSystem::on_ragdoll_removed>(this);
 
 		ragdolls_group = world->group(components_group<TransformComponent, RagdollComponent, animation::SkeletonComponent>);
 	}
@@ -293,4 +294,21 @@ namespace era_engine::physics
 		ragdolls_to_init.push_back(static_cast<Entity::Handle>(entity_handle));
 	}
 
+	void RagdollSystem::on_ragdoll_removed(entt::registry& registry, entt::entity entity_handle)
+	{
+		Entity entity = world->get_entity(entity_handle);
+		RagdollComponent* ragdoll_component = entity.get_component<RagdollComponent>();
+
+		if (!ragdoll_component->loaded)
+		{
+			return;
+		}
+
+		for (const EntityPtr& limb_ptr : ragdoll_component->limbs)
+		{
+			Entity limb = limb_ptr.get();
+
+			world->destroy_entity(limb);
+		}
+	}
 }

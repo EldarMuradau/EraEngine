@@ -55,17 +55,17 @@ namespace era_engine::physics
     public:
         struct MassSettings
         {
-            float head_mass_percentage = 0.056f;
-            float neck_mass_percentage = 0.0125f;
-            float body_upper_mass_percentage = 0.07f;
-            float body_middle_mass_percentage = 0.16f;
-            float body_lower_mass_percentage = 0.07f;
-            float clavicle_mass_percentage = 0.0125f;
-            float arm_mass_percentage = 0.016f;
-            float forearm_mass_percentage = 0.0135f;
+            float head_mass_percentage = 0.029f;
+            float neck_mass_percentage = 0.0055f;
+            float body_upper_mass_percentage = 0.066f;
+            float body_middle_mass_percentage = 0.163f;
+            float body_lower_mass_percentage = 0.112f;
+            float clavicle_mass_percentage = 0.007f;
+            float arm_mass_percentage = 0.0135f;
+            float forearm_mass_percentage = 0.008f;
             float hand_mass_percentage = 0.003f;
-            float leg_mass_percentage = 0.05f;
-            float calf_mass_percentage = 0.023f;
+            float leg_mass_percentage = 0.071f;
+            float calf_mass_percentage = 0.0215f;
             float foot_mass_percentage = 0.007f;
         };
 
@@ -259,7 +259,7 @@ namespace era_engine::physics
         RagdollSettings settings;
         RagdollJointIds joint_init_ids;
 
-        float mass = 100.0f; // Set before creation.
+        float mass = 80.0f; // Set before creation.
 
         float elapsed_blend_time = 0.0f;
         bool reached_physics_pose = false;

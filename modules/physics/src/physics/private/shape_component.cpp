@@ -120,9 +120,9 @@ namespace era_engine::physics
             *used_material, true);
         shape->userData = this;
 
-        PhysicsEngine::execute_write([&]() {
-            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
-            });
+        //PhysicsEngine::execute_write([&]() {
+        //    shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+        //    });
 
         return shape;
     }
@@ -150,9 +150,9 @@ namespace era_engine::physics
             *used_material, true);
         shape->userData = this;
 
-        PhysicsEngine::execute_write([&]() {
-            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
-            });
+        //PhysicsEngine::execute_write([&]() {
+        //    shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+        //    });
 
         return shape;
     }
@@ -180,9 +180,9 @@ namespace era_engine::physics
 			*used_material, true);
 		shape->userData = this;
 
-		PhysicsEngine::execute_write([&]() {
-			shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
-			});
+		//PhysicsEngine::execute_write([&]() {
+		//	shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+		//	});
 
         return shape;
     }
@@ -212,7 +212,7 @@ namespace era_engine::physics
 
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
-            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+            //shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
             });
 
         return shape;
@@ -243,7 +243,7 @@ namespace era_engine::physics
 
         PhysicsEngine::execute_write([&]() {
             shape->setRestOffset(-0.005f);
-            shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
+            //shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, false);
             });
 
         return shape;

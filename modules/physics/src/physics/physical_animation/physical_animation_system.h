@@ -62,6 +62,7 @@ namespace era_engine::physics
 		void process_added_pacs();
 
 		void on_pac_created(entt::registry& registry, entt::entity entity_handle);
+		void on_pac_removed(entt::registry& registry, entt::entity entity_handle);
 
 		ERA_VIRTUAL_REFLECT(System)
 

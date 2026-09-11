@@ -25,6 +25,7 @@ namespace era_engine::physics
 		void process_added_ragdolls();
 
 		void on_ragdoll_created(entt::registry& registry, entt::entity entity_handle);
+		void on_ragdoll_removed(entt::registry& registry, entt::entity entity_handle);
 
 		ERA_VIRTUAL_REFLECT(System)
 

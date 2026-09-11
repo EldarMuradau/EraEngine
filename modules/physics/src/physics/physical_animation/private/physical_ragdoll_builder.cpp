@@ -71,7 +71,7 @@ namespace era_engine::physics
 		const float mass,
 		const float max_contact_impulse = 200.0f,
 		const float max_angular_velocity = 35.0f,
-		const float max_linear_velocity = 50.0f)
+		const float max_linear_velocity = 500.0f)
 	{
 		DynamicBodyComponent* dynamic_body_component = entity.add_component<DynamicBodyComponent>();
 		dynamic_body_component->mass.get_for_write() = mass;
@@ -79,10 +79,10 @@ namespace era_engine::physics
 		dynamic_body_component->use_gravity.get_for_write() = !is_physically_animated;
 		dynamic_body_component->simulated.get_for_write() = false;
 		dynamic_body_component->enable_gyroscopic_forces.get_for_write() = true;
-		dynamic_body_component->linear_damping.get_for_write() = 0.02f;
-		dynamic_body_component->angular_damping.get_for_write() = 0.02f;
+		dynamic_body_component->linear_damping.get_for_write() = 0.05f;
+		dynamic_body_component->angular_damping.get_for_write() = 0.05f;
 		dynamic_body_component->stabilization_threshold.get_for_write() = 0.0f;
-		dynamic_body_component->sleep_threshold.get_for_write() = 0.01f;
+		dynamic_body_component->sleep_threshold.get_for_write() = 0.02f;
 		dynamic_body_component->max_contact_impulse.get_for_write() = max_contact_impulse;
 		dynamic_body_component->max_angular_velocity.get_for_write() = max_angular_velocity;
 		dynamic_body_component->max_linear_velocity.get_for_write() = max_linear_velocity;
@@ -94,7 +94,7 @@ namespace era_engine::physics
 		if (is_tgs)
 		{
 			dynamic_body_component->solver_velocity_iterations_count.get_for_write() = is_gpu ? 1 : 1;
-			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 16 : 6;
+			dynamic_body_component->solver_position_iterations_count.get_for_write() = is_gpu ? 10 : 6;
 		}
 		else
 		{
@@ -204,8 +204,8 @@ namespace era_engine::physics
 			joint_component->twist_min_limit.get_for_write() = twist_min_deg;
 			joint_component->twist_max_limit.get_for_write() = twist_max_deg;
 
-			joint_component->twist_limit_damping.get_for_write() = 75.0f;
-			joint_component->twist_limit_stiffness.get_for_write() = 750.0f;
+			joint_component->twist_limit_damping.get_for_write() = 40.0f;
+			joint_component->twist_limit_stiffness.get_for_write() = 400.0f;
 			joint_component->twist_limit_restitution.get_for_write() = 0.0f;
 		}
 
@@ -243,8 +243,8 @@ namespace era_engine::physics
 
 		if (any_moving_swing)
 		{
-			joint_component->swing_limit_damping.get_for_write() = 75.0f;
-			joint_component->swing_limit_stiffness.get_for_write() = 750.0f;
+			joint_component->swing_limit_damping.get_for_write() = 40.0f;
+			joint_component->swing_limit_stiffness.get_for_write() = 400.0f;
 			joint_component->swing_limit_restitution.get_for_write() = 0.0f;
 		}
 	}
@@ -281,7 +281,7 @@ namespace era_engine::physics
 
 		joint_component->enable_collision.get_for_write() = false;
 		joint_component->drive_limits_are_forces.get_for_write() = true;
-		joint_component->disable_preprocessing.get_for_write() = true;
+		//joint_component->disable_preprocessing.get_for_write() = true;
 
 		joint_component->linear_x_motion_type.get_for_write() = D6JointComponent::Motion::FREE;
 		joint_component->linear_y_motion_type.get_for_write() = D6JointComponent::Motion::FREE;

@@ -15,10 +15,12 @@ namespace era_engine::physics
 {
     enum class SkeletonUpdateType : uint8
     {
-        ROTATION = 0,
-        TRANSLATION,
-        TRANSFORM
+        NONE = 0,
+        ROTATION = 1 << 0,
+        TRANSLATION = 1 << 1,
+        TRANSFORM = ROTATION | TRANSLATION
     };
+    DEFINE_BITWISE_OPERATORS_FOR_ENUM(SkeletonUpdateType);
 
     enum class PhysicalLimbBlendType : uint8
     {
@@ -48,8 +50,8 @@ namespace era_engine::physics
 
         MotorDriveDetails& operator=(const MotorDriveDetails& other) = default;
 
-        float angular_drive_stiffness = 100.0f;
-        float linear_drive_stiffness = 100.0f;
+        float angular_drive_stiffness = 600.0f;
+        float linear_drive_stiffness = 600.0f;
 
         vec2 angular_range = vec2(deg2rad(3.0f), deg2rad(30.0f));
         vec2 angular_damping_range = vec2(60.0f, 10.0f);
@@ -82,8 +84,8 @@ namespace era_engine::physics
     {
         float default_strength_coeff = 1.0f;
 
-        float soft_strength_coeff = 0.3f;
-        float hard_strength_coeff = 5.0f;
+        float soft_strength_coeff = 0.5f;
+        float hard_strength_coeff = 1.5f;
     };
 
     class ERA_PHYSICS_API PhysicalLimbDetails final

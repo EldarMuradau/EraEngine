@@ -157,10 +157,14 @@ namespace era_engine::physics
 
 		scene_desc.frictionType = PxFrictionType::ePATCH;
 		scene_desc.bounceThresholdVelocity = 2.0f;
+		scene_desc.cudaContextManager = cuda_context_manager;
 
 		if (descriptor.broad_phase == PxBroadPhaseType::eGPU)
 		{
-			scene_desc.cudaContextManager = cuda_context_manager;
+			if (descriptor.enable_tgs_solver)
+			{
+				scene_desc.flags |= PxSceneFlag::eENABLE_EXTERNAL_FORCES_EVERY_ITERATION_TGS;
+			}
 			scene_desc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
 			scene_desc.gpuMaxNumPartitions = 8;
 			scene_desc.gpuDynamicsConfig.foundLostPairsCapacity *= 8;
@@ -191,13 +195,13 @@ namespace era_engine::physics
 
 #if defined(VISUALIZE_PHYSICS)
 
-		/*{
+		{
 			PxSceneWriteLock lock{*scene};
 			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eCONTACT_POINT, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_FNORMALS, 1.0f);
 			scene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0f);
-		}*/
+		}
 
 		if (descriptor.enable_pvd)
 		{
@@ -559,7 +563,7 @@ namespace era_engine::physics
 			}
 		}
 
-		if (is_gpu())
+		/*if (is_gpu())
 		{
 			for (auto&& [name, world] : get_worlds())
 			{
@@ -568,7 +572,7 @@ namespace era_engine::physics
 					soft_body.copy_deformed_vertices_from_gpu_async(0);
 				}
 			}
-		}
+		}*/
 	}
 
 	void Physics::process_simulation_event_callbacks()

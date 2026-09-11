@@ -85,7 +85,6 @@ namespace era_engine::physics
 #ifndef VISUALIZE_PHYSICS
 		actor->setActorFlag(PxActorFlag::eVISUALIZATION, false);
 #endif
-		actor->setActorFlag(PxActorFlag::eVISUALIZATION, false);
 		actor->userData = user_data;
 
 		return actor;
@@ -101,7 +100,7 @@ namespace era_engine::physics
 #ifndef VISUALIZE_PHYSICS
 		actor->setActorFlag(PxActorFlag::eVISUALIZATION, false);
 #endif
-		actor->setActorFlag(PxActorFlag::eVISUALIZATION, false);
+		//actor->setActorFlag(PxActorFlag::eVISUALIZATION, false);
 		actor->userData = user_data;
 
 		return actor;
