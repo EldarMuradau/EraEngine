@@ -65,6 +65,8 @@ namespace era_engine::physics
 
         const RagdollProfilesAsset* get_profiles_asset(const PhysicalAnimationComponent* physical_animation_component) const;
 
+        LimbDeviation compute_limb_deviation(const PhysicalAnimationLimbComponent* limb_component, const trs& limb_world_pose) const;
+
         void process_added_pacs();
 
         void on_pac_created(entt::registry& registry, entt::entity entity_handle);

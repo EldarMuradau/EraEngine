@@ -1604,6 +1604,8 @@ inline uint32 max_element_index(vec4 a)
                                       : ((a.z > a.w) ? 2 : 3));
 }
 
+ERA_CORE_API vec3 get_shortest_angular_velocity(const quat& delta_rotation, float dt);
+
 ERA_CORE_API float map_value(float value, float in_range_a, float in_range_b, float out_range_a, float out_range_b);
 
 inline vec2 remap(vec2 v, vec2 old_l, vec2 old_u, vec2 new_l, vec2 new_u)

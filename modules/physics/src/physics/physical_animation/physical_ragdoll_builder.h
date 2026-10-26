@@ -92,7 +92,7 @@ namespace era_engine::physics
     private:
         static bool are_bodies_created(const RagdollComponent* ragdoll_component);
         static void apply_constraint_limits(const RagdollComponent* ragdoll_component);
-        static void apply_pelvis_attachment(const RagdollComponent* ragdoll_component);
+        static void apply_pelvis_attachment(RagdollComponent* ragdoll_component);
 
         static bool prepare_structure(const RuntimeContext& ctx);
         static bool build_bodies(const RuntimeContext& ctx);

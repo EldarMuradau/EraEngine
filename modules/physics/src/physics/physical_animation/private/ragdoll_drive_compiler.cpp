@@ -17,19 +17,11 @@ namespace era_engine::physics
         return body_component != nullptr ? body_component->get_rigid_dynamic() : nullptr;
     }
 
-    static vec2 make_error_range(vec2 range)
-    {
-        range.x = std::max(range.x, 0.0f);
-        range.y = std::max(range.y, range.x + 1e-4f);
-        return range;
-    }
-
     CompiledDriveValues CompiledDriveValues::lerp(const CompiledDriveValues& from, const CompiledDriveValues& to, float t)
     {
         CompiledDriveValues result;
         result.stiffness = ::lerp(from.stiffness, to.stiffness, t);
-        result.damping_range = ::lerp(from.damping_range, to.damping_range, t);
-        result.error_range = ::lerp(from.error_range, to.error_range, t);
+        result.damping = ::lerp(from.damping, to.damping, t);
         result.force_limit = ::lerp(from.force_limit, to.force_limit, t);
         result.accelerated = to.accelerated;
         return result;
@@ -46,10 +38,12 @@ namespace era_engine::physics
         result.angular_damping_ratio = ::lerp(from.angular_damping_ratio, to.angular_damping_ratio, t);
         result.torque_stiffness = ::lerp(from.torque_stiffness, to.torque_stiffness, t);
         result.max_torque = ::lerp(from.max_torque, to.max_torque, t);
+        result.saturation_angle = ::lerp(from.saturation_angle, to.saturation_angle, t);
 
         result.linear_frequency = ::lerp(from.linear_frequency, to.linear_frequency, t);
         result.linear_damping_ratio = ::lerp(from.linear_damping_ratio, to.linear_damping_ratio, t);
         result.max_force = ::lerp(from.max_force, to.max_force, t);
+        result.saturation_distance = ::lerp(from.saturation_distance, to.saturation_distance, t);
 
         return result;
     }
@@ -121,6 +115,7 @@ namespace era_engine::physics
                 }
 
                 result.mass = mass;
+                result.center_of_mass = create_vec3(cmass_pose.p);
                 result.linear_effective_mass = effective_mass_sum / 3.0f;
                 result.valid = true;
             });
@@ -137,53 +132,91 @@ namespace era_engine::physics
             return result;
         }
 
-        // Strength scales stiffness, damping scales with sqrt(strength), so damping ratios stay the same.
-        const float strength_coeff = std::max(strength, 0.0f);
-        const float sqrt_strength_coeff = std::sqrt(strength_coeff);
+        // Strength scales stiffness.
+        const float sqrt_strength_coeff = std::sqrt(strength);
 
         // Angular drive.
         {
             const AngularDriveSettings& angular = settings.angular;
 
-            const float omega = TWO_PI * std::max(angular.frequency, 0.0f);
+            const float omega = TWO_PI * angular.frequency;
             const float torque_stiffness = mass_properties.inertia_pivot * omega * omega;
             const float inertia_ratio = mass_properties.get_inertia_ratio();
 
-            result.angular.stiffness = torque_stiffness / mass_properties.inertia_cm * strength_coeff;
-            result.angular.damping_range = vec2(angular.damping_ratio, angular.far_damping_ratio) * (2.0f * omega * inertia_ratio * sqrt_strength_coeff);
-            result.angular.error_range = make_error_range(vec2(deg2rad(angular.error_range_deg.x), deg2rad(angular.error_range_deg.y)));
+            result.angular.stiffness = torque_stiffness / mass_properties.inertia_cm * strength;
+            result.angular.damping = angular.damping_ratio * 2.0f * omega * inertia_ratio * sqrt_strength_coeff;
 
-            result.torque_stiffness = torque_stiffness * strength_coeff;
-            result.max_torque = result.torque_stiffness * deg2rad(angular.saturation_angle_deg);
+            result.torque_stiffness = torque_stiffness * strength;
+            result.max_torque = mass_properties.inertia_pivot * angular.max_acceleration * strength;
+            result.saturation_angle = result.torque_stiffness > 0.0f ? result.max_torque / result.torque_stiffness : 0.0f;
 
             // Slerp rows use half-length axes (PxD6Joint slerp Jacobian): the solver applies 0.5 * limit as torque per axis.
             result.angular.force_limit = 2.0f * result.max_torque;
             result.angular.accelerated = true;
 
             result.angular_frequency = omega * sqrt_strength_coeff / TWO_PI;
-            result.angular_damping_ratio = vec2(angular.damping_ratio, angular.far_damping_ratio);
+            result.angular_damping_ratio = angular.damping_ratio;
         }
 
         // Linear X/Y/Z drives at the anchor, designed for the limb mass.
         {
             const LinearDriveSettings& linear = settings.linear;
 
-            const float omega = TWO_PI * std::max(linear.frequency, 0.0f);
+            const float omega = TWO_PI * linear.frequency;
             const float mass_ratio = mass_properties.get_linear_mass_ratio();
 
-            result.linear.stiffness = omega * omega * mass_ratio * strength_coeff;
-            result.linear.damping_range = vec2(linear.damping_ratio, linear.far_damping_ratio) * (2.0f * omega * mass_ratio * sqrt_strength_coeff);
-            result.linear.error_range = make_error_range(linear.error_range);
+            result.linear.stiffness = omega * omega * mass_ratio * strength;
+            result.linear.damping = linear.damping_ratio * 2.0f * omega * mass_ratio * sqrt_strength_coeff;
 
             // Force at the anchor is m_eff * k * x = m * w^2 * x.
-            result.max_force = mass_properties.mass * omega * omega * strength_coeff * linear.saturation_distance;
+            result.max_force = mass_properties.mass * linear.max_acceleration * strength;
+            result.saturation_distance = omega > 0.0f ? linear.max_acceleration / (omega * omega) : 0.0f;
             result.linear.force_limit = result.max_force;
             result.linear.accelerated = true;
 
             result.linear_frequency = omega * sqrt_strength_coeff / TWO_PI;
-            result.linear_damping_ratio = vec2(linear.damping_ratio, linear.far_damping_ratio);
+            result.linear_damping_ratio = linear.damping_ratio;
         }
 
+        return result;
+    }
+
+    float RagdollDriveCompiler::compute_hit_strength(const ContactResponseSettings& settings, float velocity_change)
+    {
+        const vec2& range = settings.velocity_change_range;
+        if (velocity_change <= range.x)
+        {
+            return 1.0f;
+        }
+
+        const float t = range.y > range.x ? clamp((velocity_change - range.x) / (range.y - range.x), 0.0f, 1.0f) : 1.0f;
+        return ::lerp(1.0f, settings.min_strength, t);
+    }
+
+    float RagdollDriveCompiler::get_contact_softness(const ContactResponseSettings& settings, float strength)
+    {
+        return settings.min_strength < 1.0f ? clamp((1.0f - strength) / (1.0f - settings.min_strength), 0.0f, 1.0f) : 0.0f;
+    }
+
+    CompiledLimbDrive RagdollDriveCompiler::apply_contact_strength(const CompiledLimbDrive& drive, const ContactResponseSettings& settings, float strength)
+    {
+        const float clamped_strength = clamp(strength, 0.0f, 1.0f);
+        const float sqrt_strength = std::sqrt(clamped_strength);
+        const float softness = get_contact_softness(settings, clamped_strength);
+
+        auto apply = [&](CompiledDriveValues& values, float damping_ratio)
+        {
+            const float hit_damping_ratio = ::lerp(damping_ratio, settings.hit_damping_ratio, softness);
+            const float damping_ratio_scale = damping_ratio > 0.0f ? hit_damping_ratio / damping_ratio : 1.0f;
+
+            values.stiffness *= clamped_strength;
+            values.damping *= sqrt_strength * damping_ratio_scale;
+            values.force_limit *= clamped_strength;
+        };
+
+        CompiledLimbDrive result = drive;
+        apply(result.angular, drive.angular_damping_ratio);
+        apply(result.linear, drive.linear_damping_ratio);
         return result;
     }
 }

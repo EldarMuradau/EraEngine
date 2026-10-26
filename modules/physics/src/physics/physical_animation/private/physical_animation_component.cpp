@@ -16,12 +16,15 @@
 #include "physics/physical_animation/limb_states/ragdoll_limb_state.h"
 #include "physics/physical_animation/dismemberment/dismembered_limb_state.h"
 
+#include <core/debug/debug_var.h>
+
 #include <rttr/registration>
 
 #include <algorithm>
 
 namespace era_engine::physics
 {
+    static DebugVar<bool> enable_contact_response = DebugVar<bool>("physics.physical_animation.enable_contact_response", true);
 
     RTTR_REGISTRATION
     {
@@ -73,28 +76,6 @@ namespace era_engine::physics
         return false;
     }
 
-    float PhysicalAnimationLimbComponent::calculate_desired_angular_damping(float delta_angle, float strength_multiplier /*= 1.0f*/) const
-    {
-        const float angular_damping_value = map_value(delta_angle,
-            drive.angular.error_range.x,
-            drive.angular.error_range.y,
-            drive.angular.damping_range.x,
-            drive.angular.damping_range.y);
-
-        return angular_damping_value * strength_multiplier;
-    }
-
-    float PhysicalAnimationLimbComponent::calculate_desired_linear_damping(float delta_position, float strength_multiplier /*= 1.0f*/) const
-    {
-        const float linear_damping_value = map_value(delta_position,
-            drive.linear.error_range.x,
-            drive.linear.error_range.y,
-            drive.linear.damping_range.x,
-            drive.linear.damping_range.y);
-
-        return linear_damping_value * strength_multiplier;
-    }
-
     void PhysicalAnimationLimbComponent::apply_impulse(const vec3& impulse, const vec3& local_point /* = vec3::zero*/)
     {
         DynamicBodyComponent* dynamic_body_component = get_entity().get_component<DynamicBodyComponent>();
@@ -110,6 +91,7 @@ namespace era_engine::physics
     {
         was_in_collision = false;
         is_colliding = false;
+        touching_dynamic = false;
         collision_time = 0.0f;
         impulse = vec3::zero;
     }
@@ -277,7 +259,9 @@ namespace era_engine::physics
         }
 
         drive_transition_elapsed = std::min(drive_transition_elapsed + dt, drive_transition_duration);
-        const float blend = drive_transition_duration > 0.0f ? drive_transition_elapsed / drive_transition_duration : 1.0f;
+        const float blend_dt = drive_transition_duration > 0.0f ? drive_transition_elapsed / drive_transition_duration : 1.0f;
+
+        update_contact_strengths(dt);
 
         for (const EntityPtr& limb_ptr : limbs)
         {
@@ -289,15 +273,129 @@ namespace era_engine::physics
                 continue;
             }
 
-            limb_component->drive = CompiledLimbDrive::lerp(limb_component->drive_transition_from, limb_component->drive_transition_to, blend);
+            limb_component->drive = CompiledLimbDrive::lerp(limb_component->drive_transition_from, limb_component->drive_transition_to, blend_dt);
 
-            joint_component->slerp_drive_stiffness = limb_component->drive.angular.stiffness;
-            joint_component->slerp_drive_force_limit = limb_component->drive.angular.force_limit;
-            joint_component->slerp_drive_accelerated = limb_component->drive.angular.accelerated;
+            const std::optional<ContactResponseSettings>& contact_response = current_profile->get_limb_details_by_type(limb_component->type).contact_response;
+            const CompiledLimbDrive applied_drive = contact_response.has_value()
+                                                        ? RagdollDriveCompiler::apply_contact_strength(limb_component->drive, contact_response.value(), limb_component->contact_strength)
+                                                        : limb_component->drive;
 
-            joint_component->linear_drive_stiffness = limb_component->drive.linear.stiffness;
-            joint_component->linear_drive_force_limit = limb_component->drive.linear.force_limit;
-            joint_component->linear_drive_accelerated = limb_component->drive.linear.accelerated;
+            joint_component->slerp_drive_stiffness = applied_drive.angular.stiffness;
+            joint_component->slerp_drive_damping = applied_drive.angular.damping;
+            joint_component->slerp_drive_force_limit = applied_drive.angular.force_limit;
+            joint_component->slerp_drive_accelerated = applied_drive.angular.accelerated;
+
+            joint_component->linear_drive_stiffness = applied_drive.linear.stiffness;
+            joint_component->linear_drive_damping = applied_drive.linear.damping;
+            joint_component->linear_drive_force_limit = applied_drive.linear.force_limit;
+            joint_component->linear_drive_accelerated = applied_drive.linear.accelerated;
+        }
+    }
+
+    void PhysicalAnimationComponent::update_contact_strengths(float dt)
+    {
+        for (const EntityPtr& limb_ptr : limbs)
+        {
+            PhysicalAnimationLimbComponent* limb_component = limb_ptr.get().get_component<PhysicalAnimationLimbComponent>();
+
+            const std::optional<ContactResponseSettings>& contact_response = current_profile->get_limb_details_by_type(limb_component->type).contact_response;
+            if (!contact_response.has_value() || !enable_contact_response.get() || contact_response->contact_recovery_time <= 0.0f)
+            {
+                limb_component->contact_strength = 1.0f;
+                continue;
+            }
+
+            const float recovery_speed = (1.0f - contact_response->min_strength) / contact_response->contact_recovery_time;
+            limb_component->contact_strength = std::min(limb_component->contact_strength + recovery_speed * dt, 1.0f);
+        }
+
+        if (!enable_contact_response.get())
+        {
+            return;
+        }
+
+        if (limb_parent_indices.size() != limbs.size())
+        {
+            limb_parent_indices.assign(limbs.size(), -1);
+            for (size_t index = 0; index < limbs.size(); ++index)
+            {
+                const PhysicalAnimationLimbComponent* limb_component = limbs[index].get().get_component<PhysicalAnimationLimbComponent>();
+                const JointComponent* parent_joint = dynamic_cast<const JointComponent*>(limb_component->parent_joint_component.get());
+                if (parent_joint == nullptr)
+                {
+                    continue;
+                }
+
+                const Entity::Handle parent_handle = parent_joint->get_first_entity_ptr().get().get_handle();
+                for (size_t parent_index = 0; parent_index < limbs.size(); ++parent_index)
+                {
+                    if (limbs[parent_index].get().get_handle() == parent_handle)
+                    {
+                        limb_parent_indices[index] = static_cast<int32>(parent_index);
+                        break;
+                    }
+                }
+            }
+        }
+
+        auto get_limb_distance = [this](int32 first, int32 second)
+        {
+            int32 first_distance = 0;
+            for (int32 first_ancestor = first; first_ancestor != -1; first_ancestor = limb_parent_indices[first_ancestor], ++first_distance)
+            {
+                int32 second_distance = 0;
+                for (int32 second_ancestor = second; second_ancestor != -1; second_ancestor = limb_parent_indices[second_ancestor], ++second_distance)
+                {
+                    if (first_ancestor == second_ancestor)
+                    {
+                        return first_distance + second_distance;
+                    }
+                }
+            }
+            return -1;
+        };
+
+        for (size_t hit_index = 0; hit_index < limbs.size(); ++hit_index)
+        {
+            const PhysicalAnimationLimbComponent* hit_limb = limbs[hit_index].get().get_component<PhysicalAnimationLimbComponent>();
+
+            const std::optional<ContactResponseSettings>& contact_response = current_profile->get_limb_details_by_type(hit_limb->type).contact_response;
+            if (!contact_response.has_value() || !contact_response->respond_to_own_hits || hit_limb->mass_properties.mass <= 0.0f)
+            {
+                continue;
+            }
+
+            const float velocity_change = length(hit_limb->collision.impulse) / hit_limb->mass_properties.mass;
+            float hit_strength = RagdollDriveCompiler::compute_hit_strength(contact_response.value(), velocity_change);
+            if (hit_limb->collision.touching_dynamic)
+            {
+                hit_strength = std::min(hit_strength, contact_response->touch_strength);
+            }
+
+            if (hit_strength >= 1.0f)
+            {
+                continue;
+            }
+
+            for (size_t index = 0; index < limbs.size(); ++index)
+            {
+                const int32 distance = get_limb_distance(static_cast<int32>(hit_index), static_cast<int32>(index));
+                if (distance < 0)
+                {
+                    continue;
+                }
+
+                PhysicalAnimationLimbComponent* limb_component = limbs[index].get().get_component<PhysicalAnimationLimbComponent>();
+
+                const std::optional<ContactResponseSettings>& limb_contact_response = current_profile->get_limb_details_by_type(limb_component->type).contact_response;
+                if (!limb_contact_response.has_value())
+                {
+                    continue;
+                }
+
+                const float falloff_coeff = std::pow(limb_contact_response->chain_falloff_coeff, static_cast<float>(distance));
+                limb_component->contact_strength = std::min(limb_component->contact_strength, ::lerp(1.0f, hit_strength, falloff_coeff));
+            }
         }
     }
 
@@ -511,6 +609,58 @@ namespace era_engine::physics
         }
 
         return nullptr;
+    }
+
+    const PhysicalAnimationLimbComponent* PhysicalAnimationComponent::get_limb(RagdollLimbType type, RagdollLimbSide side) const
+    {
+        for (const EntityPtr& limb_ptr : limbs)
+        {
+            const PhysicalAnimationLimbComponent* limb_component = limb_ptr.get().get_component<PhysicalAnimationLimbComponent>();
+            if (limb_component->type == type && limb_component->side == side)
+            {
+                return limb_component;
+            }
+        }
+        return nullptr;
+    }
+
+    const PhysicalAnimationLimbComponent* PhysicalAnimationComponent::get_limb_by_joint_id(uint32 joint_id) const
+    {
+        auto iter = simulated_joints.find(joint_id);
+        if (iter == simulated_joints.end())
+        {
+            return nullptr;
+        }
+        return iter->second.get().get_component<PhysicalAnimationLimbComponent>();
+    }
+
+    LimbDeviation PhysicalAnimationComponent::get_limb_deviation(RagdollLimbType type, RagdollLimbSide side) const
+    {
+        const PhysicalAnimationLimbComponent* limb_component = get_limb(type, side);
+        if (limb_component == nullptr || current_state_type == SimulationStateType::DISABLED)
+        {
+            return LimbDeviation{};
+        }
+        return limb_component->deviation;
+    }
+
+    LimbDeviation PhysicalAnimationComponent::get_max_deviation() const
+    {
+        LimbDeviation result;
+        if (current_state_type == SimulationStateType::DISABLED)
+        {
+            return result;
+        }
+
+        for (const EntityPtr& limb_ptr : limbs)
+        {
+            const LimbDeviation& deviation = limb_ptr.get().get_component<PhysicalAnimationLimbComponent>()->deviation;
+            result.angle = std::max(result.angle, deviation.angle);
+            result.distance = std::max(result.distance, deviation.distance);
+            result.normalized_angle = std::max(result.normalized_angle, deviation.normalized_angle);
+            result.normalized_distance = std::max(result.normalized_distance, deviation.normalized_distance);
+        }
+        return result;
     }
 
 }

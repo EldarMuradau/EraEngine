@@ -70,15 +70,16 @@ namespace era_engine::physics
             .property("foot_mass_percentage", &RagdollSettings::MassSettings::foot_mass_percentage);
 
         registration::class_<RagdollSettings::ContactImpulseSettings>("RagdollContactImpulseSettings")
-            .property("max_head_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_head_contact_impulse)
-            .property("max_neck_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_neck_contact_impulse)
-            .property("max_hand_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_hand_contact_impulse)
-            .property("max_forearm_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_forearm_contact_impulse)
-            .property("max_arm_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_arm_contact_impulse)
-            .property("max_body_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_body_contact_impulse)
-            .property("max_leg_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_leg_contact_impulse)
-            .property("max_calf_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_calf_contact_impulse)
-            .property("max_foot_contact_impulse", &RagdollSettings::ContactImpulseSettings::max_foot_contact_impulse);
+            .property("max_velocity_change", &RagdollSettings::ContactImpulseSettings::max_velocity_change);
+
+        registration::class_<RagdollSettings::ContactMaterialSettings>("RagdollContactMaterialSettings")
+            .property("restitution", &RagdollSettings::ContactMaterialSettings::restitution)
+            .property("static_friction", &RagdollSettings::ContactMaterialSettings::static_friction)
+            .property("dynamic_friction", &RagdollSettings::ContactMaterialSettings::dynamic_friction)
+            .property("foot_static_friction", &RagdollSettings::ContactMaterialSettings::foot_static_friction)
+            .property("foot_dynamic_friction", &RagdollSettings::ContactMaterialSettings::foot_dynamic_friction)
+            .property("hand_static_friction", &RagdollSettings::ContactMaterialSettings::hand_static_friction)
+            .property("hand_dynamic_friction", &RagdollSettings::ContactMaterialSettings::hand_dynamic_friction);
 
         registration::class_<RagdollSettings::BaseShapesSettings>("RagdollBaseShapesSettings")
             .property("clavicle_radius", &RagdollSettings::BaseShapesSettings::clavicle_radius)
@@ -192,6 +193,7 @@ namespace era_engine::physics
             .property("constraint_limit_settings", &RagdollSettings::constraint_limit_settings)
             .property("pelvis_attachment_settings", &RagdollSettings::pelvis_attachment_settings)
             .property("impulse_settings", &RagdollSettings::impulse_settings)
+            .property("material_settings", &RagdollSettings::material_settings)
             .property("shapes_settings", &RagdollSettings::shapes_settings)
             .property("local_shape_settings", &RagdollSettings::local_shape_settings)
             .property("object_space_settings", &RagdollSettings::object_space_settings)

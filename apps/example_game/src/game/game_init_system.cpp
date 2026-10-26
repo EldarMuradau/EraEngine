@@ -73,7 +73,7 @@ namespace era_engine
             .method("update", &GameInitSystem::update)(metadata("update_group", update_types::GAMEPLAY_NORMAL));
     }
 
-    static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 15000.0f);
+    static DebugVar<float> sphere_speed = DebugVar<float>("test.sphere_speed", 1500.0f);
 
     GameInitSystem::GameInitSystem(World* _world)
         : System(_world)
@@ -272,14 +272,14 @@ namespace era_engine
                 ref<MultiMesh> mesh = provider.load_game_asset_from_file<MultiMesh>(get_asset_path("/resources/assets/test_character/Character.emesh"), true, {}, MESH_CREATION_FLAGS_ANIMATED);
 
                 character = world->create_entity("Character");
-                // camera_entity = character;
+                camera_entity = character;
 
                 character.add_component<MeshComponent>(mesh);
-                // character.add_component<GameplayTppCameraComponent>();
-                // CameraHolderComponent* camera_holder_component = character.add_component<CameraHolderComponent>();
-                // camera_holder_component->set_camera_type(CameraHolderComponent::USER_DEFINED);
-                // camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
-                // character.add_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
+                character.add_component<GameplayTppCameraComponent>();
+                CameraHolderComponent* camera_holder_component = character.add_component<CameraHolderComponent>();
+                camera_holder_component->set_camera_type(CameraHolderComponent::USER_DEFINED);
+                camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
+                character.add_component<InputSenderComponent>()->add_reciever(character.add_component<InputReceiverComponent>());
 
                 TransformComponent* transform_component = character.get_component<TransformComponent>();
                 transform_component->set_world_transform(trs{vec3(0.0f, 1.0f, 2.0f), quat::identity, vec3(1.0f)});
@@ -311,17 +311,17 @@ namespace era_engine
                 CharacterControllerComponent* cct_component = character.add_component<CharacterControllerComponent>();
                 cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
                 cct_component->height = 1.2f;
-                cct_component->radius = 0.3f;
+                cct_component->radius = 0.23f;
                 cct_component->step_offset = 0.05f;
                 cct_component->handle_non_cct_contacts = false;
 
-                // character.add_component<MotionComponent>();
-                // TrajectoryComponent* trajectory_component = character.add_component<TrajectoryComponent>();
-                // trajectory_component->time_offsets[0] = 0.0f;
-                // trajectory_component->time_offsets[1] = 0.12f;
-                // trajectory_component->time_offsets[2] = 0.32f;
-                // trajectory_component->time_offsets[3] = 0.54f;
-                // trajectory_component->time_offsets[4] = 0.76f;
+                character.add_component<MotionComponent>();
+                TrajectoryComponent* trajectory_component = character.add_component<TrajectoryComponent>();
+                trajectory_component->time_offsets[0] = 0.0f;
+                trajectory_component->time_offsets[1] = 0.12f;
+                trajectory_component->time_offsets[2] = 0.32f;
+                trajectory_component->time_offsets[3] = 0.54f;
+                trajectory_component->time_offsets[4] = 0.76f;
 
                 RagdollJointIds joint_init_ids;
                 joint_init_ids.head_end_idx = skeleton->name_to_joint_id.at("mixamorig:HeadTop_End");
@@ -782,10 +782,10 @@ namespace era_engine
 
                 animation_component->enable_root_motion = false;
 
-                /*              character.add_component<MotionDataComponent>();
-                              character.add_component<CharacterLocomotionComponent>();
+                character.add_component<MotionDataComponent>();
+                character.add_component<CharacterLocomotionComponent>();
 
-                              character.add_component<MotionMatchingComponent>();*/
+                character.add_component<MotionMatchingComponent>();
 
                 RagdollSettings settings;
                 settings.shapes_settings.head_radius = 0.1f;
@@ -816,10 +816,10 @@ namespace era_engine
                 settings.scaler_settings.middle_body_radius_modifier = 0.82f;
                 settings.scaler_settings.lower_body_height_modifier = 0.95f;
                 settings.scaler_settings.lower_body_radius_modifier = 0.9f;
-                settings.scaler_settings.clavicle_height_modifier = 1.5f;
-                settings.scaler_settings.arm_height_modifier = 1.6f;
-                settings.scaler_settings.forearm_height_modifier = 1.3f;
-                settings.scaler_settings.neck_height_modifier = 1.3f;
+                settings.scaler_settings.clavicle_height_modifier = 1.0f;
+                settings.scaler_settings.arm_height_modifier = 1.0f;
+                settings.scaler_settings.forearm_height_modifier = 1.1f;
+                settings.scaler_settings.neck_height_modifier = 1.0f;
 
                 // RagdollComponent* ragdoll_component = character.add_component<RagdollComponent>();
                 // ragdoll_component->simulated = true;
@@ -927,6 +927,38 @@ namespace era_engine
 
                     full_body_ik->init();
                 }
+
+                if (true)
+                {
+                    Entity idle_character = world->create_entity("IdleCharacter");
+                    idle_character.add_component<MeshComponent>(mesh);
+                    idle_character.get_component<TransformComponent>()->set_world_transform(trs{vec3(1.5f, -5.0f, 4.0f), quat::identity, vec3(1.0f)});
+
+                    SkeletonComponent* idle_skeleton_component = idle_character.add_component<SkeletonComponent>();
+                    idle_skeleton_component->skeleton = skeleton;
+                    idle_skeleton_component->apply_pose(skeleton->get_default_pose());
+
+                    AnimationComponent* idle_animation_component = idle_character.add_component<AnimationComponent>();
+                    idle_animation_component->play = true;
+                    idle_animation_component->loop = true;
+                    idle_animation_component->enable_root_motion = false;
+
+                    ref<AnimationAssetClip> idle_clip = provider.load_game_asset_from_file<AnimationAssetClip>(get_asset_path("/resources/assets/test_character/animations/Unarmed Idle_mixamo.com_clip0.eanm"));
+                    idle_clip->load_job.wait_for_completion();
+                    idle_animation_component->current_animation = idle_clip;
+                    idle_animation_component->current_anim_position = 0.0f;
+
+                    PhysicalAnimationComponent* idle_ragdoll_component = idle_character.add_component<PhysicalAnimationComponent>();
+                    idle_ragdoll_component->joint_init_ids = joint_init_ids;
+                    idle_ragdoll_component->settings = settings;
+
+                    CharacterControllerComponent* idle_cct_component = idle_character.add_component<CharacterControllerComponent>();
+                    idle_cct_component->collision_type = static_cast<CollisionType>(GameCollisionType::CCT);
+                    idle_cct_component->height = 1.2f;
+                    idle_cct_component->radius = 0.18f;
+                    idle_cct_component->step_offset = 0.05f;
+                    idle_cct_component->handle_non_cct_contacts = false;
+                }
             }
         }
 
@@ -1001,9 +1033,9 @@ namespace era_engine
 
             if (vehicle.is_valid())
             {
-                vehicle.get_component<TransformComponent>()->set_world_position(vec3(0.0f, -4.7f, 0.0f));
+                vehicle.get_component<TransformComponent>()->set_world_position(vec3(-8.0f, -4.7f, 0.0f));
 
-                camera_entity = vehicle;
+                // camera_entity = vehicle;
 
                 GameplayTppCameraComponent* tpp_camera_component = vehicle.add_component<GameplayTppCameraComponent>();
                 tpp_camera_component->follow_target_heading = true;
@@ -1015,19 +1047,20 @@ namespace era_engine
                 CameraHolderComponent* camera_holder_component = vehicle.add_component<CameraHolderComponent>();
                 camera_holder_component->set_camera_type(CameraHolderComponent::USER_DEFINED);
                 camera_holder_component->set_render_camera(&renderer_holder_rc->camera);
-                vehicle.add_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
+                // vehicle.add_component<InputSenderComponent>()->add_reciever(vehicle.add_component<InputReceiverComponent>());
             }
         }
 
-        // Entity plane = world->create_entity("Platform");
-        // plane.add_component<MeshComponent>(ground_mesh);
-        // plane.get_component<TransformComponent>()->set_world_transform(trs{vec3(10.0f, -9.0f, 0.0f), quat(vec3(1.0f, 0.0f, 0.0f), deg2rad(0.0f)), vec3(5.0f, 1.0f, 5.0f)});
-        // plane.add_component<PlaneShapeComponent>()->local_position = vec3(0.0f, 4.0f, 0.0f);
-        // plane.add_component<StaticBodyComponent>()->simulated = true;
+        Entity plane = world->create_entity("Platform");
+        plane.add_component<MeshComponent>(ground_mesh);
+        plane.get_component<TransformComponent>()->set_world_transform(trs{vec3(10.0f, -9.0f, 0.0f), quat(vec3(1.0f, 0.0f, 0.0f), deg2rad(0.0f)), vec3(5.0f, 1.0f, 5.0f)});
+        plane.add_component<PlaneShapeComponent>()->local_position = vec3(0.0f, 4.0f, 0.0f);
+        plane.add_component<StaticBodyComponent>()->simulated = true;
 
         ground_mesh->load_state = AssetLoadState::LOADED;
         ground_mesh->mesh = builder.create_dx_mesh();
 
+        if (false)
         {
             ref<PhysicsMaterial> terrain_material = PhysicsEngine::get_physics_core()->create_material(0.1f, 0.5f, 0.5f);
 
@@ -1108,7 +1141,7 @@ namespace era_engine
 
             DynamicBodyComponent* dynamic_body_component = sphere.add_component<DynamicBodyComponent>();
             dynamic_body_component->ccd.get_for_write() = true;
-            dynamic_body_component->mass.get_for_write() = 50.0f;
+            dynamic_body_component->mass.get_for_write() = 10.0f;
             dynamic_body_component->simulated.get_for_write() = true;
             dynamic_body_component->use_gravity.get_for_write() = true;
             dynamic_body_component->sleep_threshold.get_for_write() = 0.05f;

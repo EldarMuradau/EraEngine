@@ -6,6 +6,15 @@
 
 namespace era_engine::physics
 {
+    // A contact uses the larger mode of the two materials: AVERAGE < MIN < MULTIPLY < MAX.
+    enum class PhysicsMaterialCombineMode : uint8
+    {
+        AVERAGE = 0,
+        MIN,
+        MULTIPLY,
+        MAX
+    };
+
     class ERA_PHYSICS_API PhysicsMaterial final
     {
     public:
@@ -17,6 +26,9 @@ namespace era_engine::physics
         ~PhysicsMaterial();
 
         void release();
+
+        void set_friction_combine_mode(PhysicsMaterialCombineMode mode);
+        void set_restitution_combine_mode(PhysicsMaterialCombineMode mode);
 
         physx::PxMaterial* get_native_material() const;
 

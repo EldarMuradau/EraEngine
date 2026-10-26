@@ -74,7 +74,8 @@ namespace era_engine
     {
         return internal_data != nullptr &&
                internal_data->entity_handle != Entity::null_handle &&
-               internal_data->world != nullptr;
+               internal_data->world != nullptr &&
+               internal_data->world->is_entity_valid(internal_data->entity_handle);
     }
 
     weakref<Entity::EcsData> Entity::get_data_weakref() const

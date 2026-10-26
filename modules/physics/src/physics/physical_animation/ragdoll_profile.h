@@ -34,26 +34,28 @@ namespace era_engine::physics
 
     struct ERA_PHYSICS_API AngularDriveSettings final
     {
-        float frequency = 6.0f; // Hz
-
-        float damping_ratio = 0.85f; // 1 = critical
-        float far_damping_ratio = 0.4f;
-
-        vec2 error_range_deg = vec2(3.0f, 30.0f); // [damping_ratio, far_damping_ratio].
-
-        float saturation_angle_deg = 60.0f;
+        float frequency = 6.0f;          // Hz
+        float damping_ratio = 0.85f;     // 1 = critical
+        float max_acceleration = 150.0f; // rad/s^2, the torque limit is I_pivot * max_acceleration.
     };
 
     struct ERA_PHYSICS_API LinearDriveSettings final
     {
-        float frequency = 4.0f; // Hz
+        float frequency = 4.0f;         // Hz
+        float damping_ratio = 1.0f;     // 1 = critical
+        float max_acceleration = 10.0f; // m/s^2, the force limit is mass * max_acceleration.
+    };
 
-        float damping_ratio = 1.0f; // 1 = critical
-        float far_damping_ratio = 0.5f;
-
-        vec2 error_range = vec2(0.05f, 0.5f); // [damping_ratio, far_damping_ratio]
-
-        float saturation_distance = 0.3f;
+    struct ERA_PHYSICS_API ContactResponseSettings final
+    {
+        float min_strength = 0.3f;
+        float touch_strength = 0.5f;
+        float hit_damping_ratio = 1.0f;
+        vec2 velocity_change_range = vec2(0.5f, 4.0f); // m/s
+        float contact_recovery_time = 0.6f;
+        float chain_falloff_coeff = 0.5f;  // Softening from hits on other limbs, per limb tree step.
+        float parent_follow_factor = 1.0f; // How much the target follows the physics pose of a softened parent.
+        bool respond_to_own_hits = true;
     };
 
     struct ERA_PHYSICS_API MotorDriveSettings final
@@ -89,6 +91,7 @@ namespace era_engine::physics
     public:
         std::optional<MotorDriveSettings> motor_drive;
         std::optional<DragForceDetails> drag_force;
+        std::optional<ContactResponseSettings> contact_response;
 
         LimbStrengthDetails strength_details;
 
@@ -102,6 +105,7 @@ namespace era_engine::physics
         SPRINT,
         CLIMBING,
         RAGDOLL,
+        DRAG,
 
         COUNT,
 

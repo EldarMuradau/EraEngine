@@ -80,15 +80,18 @@ namespace era_engine::physics
 
         struct ContactImpulseSettings
         {
-            float max_head_contact_impulse = 200.0f;
-            float max_neck_contact_impulse = 180.0f;
-            float max_hand_contact_impulse = 60.0f;
-            float max_forearm_contact_impulse = 60.0f;
-            float max_arm_contact_impulse = 100.0f;
-            float max_body_contact_impulse = 200.0f;
-            float max_leg_contact_impulse = 150.0f;
-            float max_calf_contact_impulse = 150.0f;
-            float max_foot_contact_impulse = 40.0f;
+            float max_velocity_change = 15.0f; // m/s
+        };
+
+        struct ContactMaterialSettings
+        {
+            float restitution = 0.0f;
+            float static_friction = 0.6f;
+            float dynamic_friction = 0.5f;
+            float foot_static_friction = 1.0f;
+            float foot_dynamic_friction = 0.9f;
+            float hand_static_friction = 0.8f;
+            float hand_dynamic_friction = 0.7f;
         };
 
         struct BaseShapesSettings
@@ -209,7 +212,7 @@ namespace era_engine::physics
 
         struct BodySettings
         {
-            float max_depenetration_velocity = 5.0f;
+            float max_depenetration_velocity = 3.0f;
             float linear_damping = 0.1f;
             float angular_damping = 0.15f;
             float max_linear_velocity = 500.0f;
@@ -219,14 +222,14 @@ namespace era_engine::physics
 
         struct ConstraintLimitSettings
         {
-            float frequency = 8.0f; // k = I * w^2, c = 2 * zeta * sqrt(k * I).
+            float frequency = 6.0f; // k = I * w^2, c = 2 * zeta * sqrt(k * I).
             float damping_ratio = 1.0f;
         };
 
-        // Spring between the kinematic pelvis attachment and the pelvis limb: k = m_pelvis * w^2, c = 2 * zeta * sqrt(k * m_pelvis).
         struct PelvisAttachmentSettings
         {
-            float frequency = 1.5f;
+            // k = m_pelvis * w^2, c = 2 * zeta * sqrt(k * m_pelvis).
+            float frequency = 2.5f;
             float damping_ratio = 0.8f;
             float max_distance = 0.05f;
         };
@@ -236,6 +239,7 @@ namespace era_engine::physics
         ConstraintLimitSettings constraint_limit_settings;
         PelvisAttachmentSettings pelvis_attachment_settings;
         ContactImpulseSettings impulse_settings;
+        ContactMaterialSettings material_settings;
         BaseShapesSettings shapes_settings;
         LocalShapePositionsSettings local_shape_settings;
         ObjectSpaceJointsSettings object_space_settings;

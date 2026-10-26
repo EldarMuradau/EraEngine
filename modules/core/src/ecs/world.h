@@ -74,6 +74,8 @@ namespace era_engine
         Entity create_entity(Entity::Handle _handle);
         Entity create_entity(Entity::Handle _handle, const char* _name);
 
+        bool is_entity_valid(Entity::Handle _handle) const;
+
         uint64 get_fixed_frame_id() const;
         float get_fixed_update_dt() const;
 

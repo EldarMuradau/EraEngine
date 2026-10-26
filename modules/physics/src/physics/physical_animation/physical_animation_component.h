@@ -16,6 +16,23 @@
 
 namespace era_engine::physics
 {
+    enum class RagdollLimbSide : uint8
+    {
+        CENTER = 0,
+        LEFT,
+        RIGHT
+    };
+
+    struct ERA_PHYSICS_API LimbDeviation final
+    {
+        float angle = 0.0f;
+        float distance = 0.0f;
+
+        // Normalized values are relative to the drive saturation.
+        float normalized_angle = 0.0f;
+        float normalized_distance = 0.0f;
+    };
+
     class ERA_PHYSICS_API PhysicsLimbChain final
     {
     public:
@@ -44,9 +61,6 @@ namespace era_engine::physics
 
         void update_states(float dt, PhysicalLimbStateType desired_state);
 
-        float calculate_desired_angular_damping(float delta_angle, float strength_multiplier = 1.0f) const;
-        float calculate_desired_linear_damping(float delta_position, float strength_multiplier = 1.0f) const;
-
         void apply_impulse(const vec3& impulse, const vec3& local_point = vec3::zero);
 
     public:
@@ -57,6 +71,7 @@ namespace era_engine::physics
 
             bool was_in_collision = false;
             bool is_colliding = false;
+            bool touching_dynamic = false;
             float collision_time = 0.0f;
 
             vec3 impulse = vec3::zero;
@@ -66,8 +81,11 @@ namespace era_engine::physics
 
         CollisionData collision;
 
-        // Joint local space transfrom from animation.
+        // Drive target in ragdoll space.
         trs target_pose = trs::identity;
+
+        // Raw animation pose in ragdoll space.
+        trs animation_pose = trs::identity;
 
         LimbMassProperties mass_properties;
 
@@ -75,6 +93,12 @@ namespace era_engine::physics
         CompiledLimbDrive drive;
         CompiledLimbDrive drive_transition_from;
         CompiledLimbDrive drive_transition_to;
+
+        float contact_strength = 1.0f;
+
+        LimbDeviation deviation;
+
+        RagdollLimbSide side = RagdollLimbSide::CENTER;
 
         float transition_time = 0.6f;
 
@@ -139,6 +163,12 @@ namespace era_engine::physics
 
         const PhysicsLimbChain* get_chain_by_joint_id(uint32 joint_id) const;
 
+        const PhysicalAnimationLimbComponent* get_limb(RagdollLimbType type, RagdollLimbSide side = RagdollLimbSide::CENTER) const;
+        const PhysicalAnimationLimbComponent* get_limb_by_joint_id(uint32 joint_id) const;
+
+        LimbDeviation get_limb_deviation(RagdollLimbType type, RagdollLimbSide side = RagdollLimbSide::CENTER) const;
+        LimbDeviation get_max_deviation() const;
+
     public:
         constexpr static float MAX_RAGDOLL_PROFILE_TRANSITION_TIME = 0.3f;
 
@@ -166,14 +196,23 @@ namespace era_engine::physics
 
         EntityPtr attachment_body;
 
+        float pelvis_attachment_stiffness = 0.0f;
+        float pelvis_attachment_damping = 0.0f;
+
         ref<RagdollProfilesAsset> profiles_asset;
 
         ERA_VIRTUAL_REFLECT(RagdollComponent)
 
     private:
+        void update_contact_strengths(float dt);
+
         ref<RagdollProfile> current_profile = nullptr;
 
         std::unordered_map<uint32, trs> local_joint_poses_for_target_calculation;
+        std::unordered_map<uint32, trs> physics_follow_joint_poses;
+        std::unordered_map<uint32, trs> animation_joint_poses;
+
+        std::vector<int32> limb_parent_indices;
 
         SimulationStateType current_state_type = SimulationStateType::DISABLED;
         SkeletonUpdateType mesh_update_type = SkeletonUpdateType::TRANSFORM;

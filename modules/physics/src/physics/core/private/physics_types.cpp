@@ -122,6 +122,7 @@ namespace era_engine::physics
     {
         new_collisions.clear();
         removed_collisions.clear();
+        touching_pairs.clear();
 
         cct_collisions.clear();
 
@@ -206,9 +207,34 @@ namespace era_engine::physics
 
         PxContactPairExtraDataIterator iter(pair_header.extraDataStream, pair_header.extraDataStreamSize);
 
+        auto is_dynamic_actor = [](const PxRigidActor* actor)
+        {
+            const PxRigidDynamic* rigid_dynamic = actor != nullptr ? actor->is<PxRigidDynamic>() : nullptr;
+            return rigid_dynamic != nullptr && !rigid_dynamic->getRigidBodyFlags().isSet(PxRigidBodyFlag::eKINEMATIC);
+        };
+
         for (PxU32 i = 0; i < nb_pairs; i++)
         {
             const PxContactPair& cp = pairs[i];
+
+            if (cp.events & (PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_PERSISTS))
+            {
+                PxRigidActor* first_rigid_actor = pair_header.actors[0]->is<PxRigidActor>();
+                PxRigidActor* second_rigid_actor = pair_header.actors[1]->is<PxRigidActor>();
+
+                const auto& actors_map = PhysicsEngine::get_physics_core()->actors_map;
+                const auto first_iter = actors_map.find(first_rigid_actor);
+                const auto second_iter = actors_map.find(second_rigid_actor);
+
+                if (first_iter != actors_map.end() && second_iter != actors_map.end())
+                {
+                    touching_pairs.pushBack(TouchingPair{first_iter->second,
+                        second_iter->second,
+                        is_dynamic_actor(first_rigid_actor),
+                        is_dynamic_actor(second_rigid_actor)});
+                }
+            }
+
             const PxU32 nb_contacts = cp.extractContacts(contacts, buffer_size);
 
             const bool has_post_velocities = !cp.flags.isSet(PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH);

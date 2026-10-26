@@ -176,6 +176,15 @@ namespace era_engine::physics
         ContactPoint contacts[PX_CONTACT_BUFFER_SIZE];
     };
 
+    struct ERA_PHYSICS_API TouchingPair final
+    {
+        Component* first_actor = nullptr;
+        Component* second_actor = nullptr;
+
+        bool first_dynamic = false;
+        bool second_dynamic = false;
+    };
+
     struct ERA_PHYSICS_API CharacterControllerCollision final
     {
         CharacterControllerComponent* character_controller = nullptr;
@@ -240,6 +249,8 @@ namespace era_engine::physics
         physx::PxArray<JointComponent*> broken_joints;
 
         physx::PxArray<Collision> removed_collisions;
+
+        physx::PxArray<TouchingPair> touching_pairs;
 
         physx::PxArray<CollidersPair> new_trigger_pairs;
 

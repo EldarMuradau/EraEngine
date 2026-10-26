@@ -166,6 +166,20 @@ half& operator/=(half& a, half b)
     return a;
 }
 
+vec3 get_shortest_angular_velocity(const quat& delta_rotation, float dt)
+{
+    const float sign = delta_rotation.w < 0.0f ? -1.0f : 1.0f;
+    const vec3 v = delta_rotation.v * sign;
+    const float sin_half_angle = length(v);
+    if (sin_half_angle < 1e-6f)
+    {
+        return vec3::zero;
+    }
+
+    const float angle = 2.0f * atan2(sin_half_angle, delta_rotation.w * sign);
+    return v * (angle / (sin_half_angle * dt));
+}
+
 float map_value(float value, float in_range_a, float in_range_b, float out_range_a, float out_range_b)
 {
     float value_clamped = clamp(value, in_range_a, in_range_b);

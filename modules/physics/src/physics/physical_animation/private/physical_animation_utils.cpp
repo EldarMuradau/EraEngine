@@ -67,9 +67,6 @@ namespace era_engine::physics
 
         drive_joint_component->linear_drive_velocity = vec3::zero;
         drive_joint_component->angular_drive_velocity = vec3::zero;
-
-        drive_joint_component->linear_drive_damping = limb_component->drive.linear.damping_range.x;
-        drive_joint_component->slerp_drive_damping = limb_component->drive.angular.damping_range.x;
     }
 
     void PhysicalAnimationUtils::set_limb_kinematic(PhysicalAnimationLimbComponent* limb_component, bool is_kinematic)

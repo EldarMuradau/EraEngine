@@ -125,35 +125,31 @@ TEST(Physics_Ragdoll, CompileLimbDrive)
     MotorDriveSettings settings;
     settings.angular.frequency = 2.0f;
     settings.angular.damping_ratio = 1.0f;
-    settings.angular.far_damping_ratio = 0.5f;
-    settings.angular.saturation_angle_deg = 90.0f;
+    settings.angular.max_acceleration = 100.0f;
     settings.linear.frequency = 1.0f;
     settings.linear.damping_ratio = 0.8f;
-    settings.linear.far_damping_ratio = 0.4f;
-    settings.linear.saturation_distance = 0.5f;
+    settings.linear.max_acceleration = 5.0f;
 
-    const LimbMassProperties mass_properties = make_mass_properties(4.0f, 0.1f, 0.4f, 2.0f);
+    LimbMassProperties mass_properties = make_mass_properties(4.0f, 0.1f, 0.4f, 2.0f);
     const CompiledLimbDrive drive = RagdollDriveCompiler::compile_limb_drive(settings, mass_properties, 1.0f);
 
     const float angular_omega = 2.0f * M_PI * settings.angular.frequency;
     EXPECT_NEAR(drive.angular.stiffness, angular_omega * angular_omega * 4.0f, 1e-2f);
-    EXPECT_NEAR(drive.angular.damping_range.x, 2.0f * angular_omega * 4.0f * 1.0f, 1e-3f);
-    EXPECT_NEAR(drive.angular.damping_range.y, 2.0f * angular_omega * 4.0f * 0.5f, 1e-3f);
+    EXPECT_NEAR(drive.angular.damping, 2.0f * angular_omega * 4.0f * 1.0f, 1e-3f);
     EXPECT_NEAR(drive.torque_stiffness, 0.4f * angular_omega * angular_omega, 1e-3f);
-    EXPECT_NEAR(drive.max_torque, drive.torque_stiffness * M_PI_OVER_2, 1e-3f);
+    EXPECT_NEAR(drive.max_torque, 0.4f * 100.0f, 1e-3f);
+    EXPECT_NEAR(drive.saturation_angle, drive.max_torque / drive.torque_stiffness, 1e-5f);
     EXPECT_NEAR(drive.angular.force_limit, 2.0f * drive.max_torque, 1e-3f);
     EXPECT_NEAR(drive.angular_frequency, 2.0f, 1e-4f);
     EXPECT_TRUE(drive.angular.accelerated);
 
     const float linear_omega = 2.0f * M_PI * settings.linear.frequency;
     EXPECT_NEAR(drive.linear.stiffness, linear_omega * linear_omega * 2.0f, 1e-3f);
-    EXPECT_NEAR(drive.linear.damping_range.x, 2.0f * linear_omega * 2.0f * 0.8f, 1e-3f);
-    EXPECT_NEAR(drive.max_force, 4.0f * linear_omega * linear_omega * 0.5f, 1e-2f);
+    EXPECT_NEAR(drive.linear.damping, 2.0f * linear_omega * 2.0f * 0.8f, 1e-3f);
+    EXPECT_NEAR(drive.max_force, 4.0f * 5.0f, 1e-3f);
     EXPECT_NEAR(drive.linear.force_limit, drive.max_force, 1e-3f);
     EXPECT_NEAR(drive.linear_frequency, 1.0f, 1e-4f);
-
-    EXPECT_NEAR(drive.angular.error_range.x, deg2rad(settings.angular.error_range_deg.x), 1e-5f);
-    EXPECT_NEAR(drive.angular.error_range.y, deg2rad(settings.angular.error_range_deg.y), 1e-5f);
+    EXPECT_NEAR(drive.saturation_distance, 5.0f / (linear_omega * linear_omega), 1e-5f);
 }
 
 TEST(Physics_Ragdoll, DriveStrengthKeepsDampingRatio)
@@ -165,7 +161,7 @@ TEST(Physics_Ragdoll, DriveStrengthKeepsDampingRatio)
     const CompiledLimbDrive strong = RagdollDriveCompiler::compile_limb_drive(settings, mass_properties, 4.0f);
 
     EXPECT_NEAR(strong.angular.stiffness, normal.angular.stiffness * 4.0f, 1e-2f);
-    EXPECT_NEAR(strong.angular.damping_range.x, normal.angular.damping_range.x * 2.0f, 1e-3f);
+    EXPECT_NEAR(strong.angular.damping, normal.angular.damping * 2.0f, 1e-3f);
     EXPECT_NEAR(strong.linear.stiffness, normal.linear.stiffness * 4.0f, 1e-2f);
     EXPECT_NEAR(strong.max_torque, normal.max_torque * 4.0f, 1e-2f);
     EXPECT_NEAR(strong.angular_frequency, normal.angular_frequency * 2.0f, 1e-4f);
@@ -205,6 +201,52 @@ TEST(Physics_Ragdoll, CompiledDriveLerp)
     EXPECT_NEAR(middle.linear.force_limit, 0.5f * (from.linear.force_limit + to.linear.force_limit), 1e-3f);
 }
 
+TEST(Physics_Ragdoll, ContactHitStrength)
+{
+    ContactResponseSettings settings;
+    settings.min_strength = 0.25f;
+    settings.velocity_change_range = vec2(1.0f, 3.0f);
+
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::compute_hit_strength(settings, 0.0f), 1.0f);
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::compute_hit_strength(settings, 1.0f), 1.0f);
+    EXPECT_NEAR(RagdollDriveCompiler::compute_hit_strength(settings, 2.0f), 0.625f, 1e-5f);
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::compute_hit_strength(settings, 3.0f), 0.25f);
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::compute_hit_strength(settings, 100.0f), 0.25f);
+
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::get_contact_softness(settings, 1.0f), 0.0f);
+    EXPECT_NEAR(RagdollDriveCompiler::get_contact_softness(settings, 0.625f), 0.5f, 1e-5f);
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::get_contact_softness(settings, 0.25f), 1.0f);
+    EXPECT_FLOAT_EQ(RagdollDriveCompiler::get_contact_softness(settings, 0.0f), 1.0f);
+}
+
+TEST(Physics_Ragdoll, ApplyContactStrength)
+{
+    MotorDriveSettings drive_settings;
+    drive_settings.angular.damping_ratio = 0.5f;
+    drive_settings.linear.damping_ratio = 1.0f;
+
+    const LimbMassProperties mass_properties = make_mass_properties(2.0f, 0.1f, 0.3f, 1.0f);
+    const CompiledLimbDrive drive = RagdollDriveCompiler::compile_limb_drive(drive_settings, mass_properties, 1.0f);
+
+    ContactResponseSettings settings;
+    settings.min_strength = 0.25f;
+    settings.hit_damping_ratio = 1.0f;
+
+    const CompiledLimbDrive unchanged = RagdollDriveCompiler::apply_contact_strength(drive, settings, 1.0f);
+    EXPECT_FLOAT_EQ(unchanged.angular.stiffness, drive.angular.stiffness);
+    EXPECT_FLOAT_EQ(unchanged.angular.damping, drive.angular.damping);
+    EXPECT_FLOAT_EQ(unchanged.linear.force_limit, drive.linear.force_limit);
+
+    const CompiledLimbDrive soft = RagdollDriveCompiler::apply_contact_strength(drive, settings, 0.25f);
+    EXPECT_NEAR(soft.angular.stiffness, drive.angular.stiffness * 0.25f, 1e-2f);
+    EXPECT_NEAR(soft.angular.damping, drive.angular.damping * 0.5f * 2.0f, 1e-3f);
+    EXPECT_NEAR(soft.angular.force_limit, drive.angular.force_limit * 0.25f, 1e-3f);
+    EXPECT_NEAR(soft.linear.damping, drive.linear.damping * 0.5f, 1e-3f);
+
+    const float omega = std::sqrt(soft.angular.stiffness / mass_properties.get_inertia_ratio());
+    EXPECT_NEAR(soft.angular.damping / (2.0f * omega * mass_properties.get_inertia_ratio()), settings.hit_damping_ratio, 1e-3f);
+}
+
 TEST(Physics_Ragdoll, ProfileStrength)
 {
     RagdollProfile profile;
@@ -225,12 +267,25 @@ TEST(Physics_Ragdoll, DefaultProfilesAsset)
     const ref<RagdollProfilesAsset> asset = RagdollProfilesAsset::create_default();
     ASSERT_NE(asset, nullptr);
 
-    for (RagdollProfileType type : {RagdollProfileType::IDLE, RagdollProfileType::RUNNING, RagdollProfileType::SPRINT, RagdollProfileType::RAGDOLL})
+    for (RagdollProfileType type : {RagdollProfileType::IDLE, RagdollProfileType::RUNNING, RagdollProfileType::SPRINT, RagdollProfileType::RAGDOLL, RagdollProfileType::DRAG})
     {
         const ref<RagdollProfile> profile = asset->get_profile(type);
         ASSERT_NE(profile, nullptr);
         EXPECT_EQ(profile->type, type);
     }
+
+    const ref<RagdollProfile> idle = asset->get_profile(RagdollProfileType::IDLE);
+    ASSERT_TRUE(idle->leg_limb_details.contact_response.has_value());
+    EXPECT_FALSE(idle->foot_limb_details.contact_response->respond_to_own_hits);
+    EXPECT_TRUE(idle->hand_limb_details.contact_response->respond_to_own_hits);
+    EXPECT_FALSE(asset->get_profile(RagdollProfileType::RAGDOLL)->hand_limb_details.contact_response.has_value());
+
+    const ref<RagdollProfile> drag = asset->get_profile(RagdollProfileType::DRAG);
+    EXPECT_FALSE(drag->body_upper_limb_details.drag_force.has_value());
+    EXPECT_FLOAT_EQ(drag->body_upper_limb_details.motor_drive->angular.frequency, idle->body_upper_limb_details.motor_drive->angular.frequency);
+    ASSERT_TRUE(drag->arm_limb_details.drag_force.has_value());
+    ASSERT_TRUE(drag->arm_limb_details.motor_drive.has_value());
+    EXPECT_LT(drag->arm_limb_details.motor_drive->angular.frequency, idle->arm_limb_details.motor_drive->angular.frequency);
 
     EXPECT_LT(asset->selection_settings.running_speed, asset->selection_settings.sprint_speed);
 }
@@ -248,6 +303,15 @@ TEST(Physics_Ragdoll, ProfilesAssetSerialization)
     }
     arm.motor_drive->angular.frequency = 7.5f;
     arm.strength_details.hard_strength_coeff = 2.25f;
+    arm.contact_response = ContactResponseSettings();
+    arm.contact_response->min_strength = 0.4f;
+    arm.contact_response->velocity_change_range = vec2(0.75f, 5.0f);
+    arm.contact_response->parent_follow = 0.6f;
+    arm.contact_response->touch_strength = 0.35f;
+    arm.contact_response->respond_to_own_hits = false;
+    arm.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE | PhysicalLimbBlendType::PURE_PHYSICS;
+    arm.drag_force = DragForceDetails();
+    arm.drag_force->acceleration_gain = 0.05f;
 
     std::stringstream stream;
     ASSERT_TRUE(source->serialize(stream));
@@ -267,6 +331,20 @@ TEST(Physics_Ragdoll, ProfilesAssetSerialization)
     EXPECT_FLOAT_EQ(result_arm.motor_drive->angular.frequency, 7.5f);
     EXPECT_FLOAT_EQ(result_arm.strength_details.hard_strength_coeff, 2.25f);
     EXPECT_EQ(result_arm.blend_type, arm.blend_type);
+    ASSERT_TRUE(result_arm.contact_response.has_value());
+    EXPECT_FLOAT_EQ(result_arm.contact_response->min_strength, 0.4f);
+    EXPECT_EQ(result_arm.contact_response->velocity_change_range, vec2(0.75f, 5.0f));
+    EXPECT_FLOAT_EQ(result_arm.contact_response->parent_follow, 0.6f);
+    EXPECT_FLOAT_EQ(result_arm.contact_response->touch_strength, 0.35f);
+    EXPECT_FALSE(result_arm.contact_response->respond_to_own_hits);
+    ASSERT_TRUE(result_arm.drag_force.has_value());
+    EXPECT_FLOAT_EQ(result_arm.drag_force->acceleration_gain, 0.05f);
+
+    const ref<RagdollProfile> ragdoll = result.get_profile(RagdollProfileType::RAGDOLL);
+    ASSERT_NE(ragdoll, nullptr);
+    EXPECT_FALSE(ragdoll->arm_limb_details.motor_drive.has_value());
+    EXPECT_FALSE(ragdoll->arm_limb_details.contact_response.has_value());
+    EXPECT_EQ(result.get_profile(RagdollProfileType::CLIMBING), nullptr);
 
     std::stringstream broken("not: [valid");
     RagdollProfilesAsset broken_result;

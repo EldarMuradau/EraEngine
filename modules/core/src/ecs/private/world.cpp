@@ -89,6 +89,11 @@ namespace era_engine
         return created_entity;
     }
 
+    bool World::is_entity_valid(Entity::Handle _handle) const
+    {
+        return world_data->registry.valid(_handle);
+    }
+
     uint64 World::get_fixed_frame_id() const
     {
         return fixed_frame_id;

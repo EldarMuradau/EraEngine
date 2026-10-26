@@ -79,7 +79,7 @@ namespace era_engine::physics
                 {
                     return;
                 }
-                PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, true);
+                PhysicalAnimationUtils::set_simulation_for_limb(limb_component, true, false);
                 PhysicalAnimationUtils::force_sync_limb_to_skeleton(limb_component, skeleton_component, ragdoll_transform);
             };
 

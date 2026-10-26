@@ -106,6 +106,8 @@ namespace era_engine::physics
                 limb_data_component->joint_id);
             limb_object_space_pose.scale = vec3(1.0f);
 
+            PhysicalAnimationUtils::set_simulation_for_limb(limb_data_component, true, false);
+
             if (limb_data_component->drive_joint_component.get() != nullptr)
             {
                 D6JointComponent* drive_joint = dynamic_cast<D6JointComponent*>(limb_data_component->drive_joint_component.get_for_write());

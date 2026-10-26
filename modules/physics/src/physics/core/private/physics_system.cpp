@@ -571,6 +571,10 @@ namespace era_engine::physics
             desc.slopeLimit = std::cosf(cct_component->slope_limit);
             desc.reportCallback = static_cast<CharacterControllerHitReportCallback*>(cct_hit_report_callback.get());
             desc.contactOffset = cct_component->contact_offset;
+            desc.stepOffset = cct_component->step_offset;
+            desc.climbingMode = cct_component->climbing_mode == CharacterControllerComponent::ClimbingMode::STEP_OFFSET
+                                    ? PxCapsuleClimbingMode::eCONSTRAINED
+                                    : PxCapsuleClimbingMode::eEASY;
             desc.volumeGrowth = cct_component->volume_growth;
             desc.position = pospx;
 
