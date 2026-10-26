@@ -653,7 +653,16 @@ namespace era_engine::physics
                             {
                                 if (const physx::PxD6Joint* d6_joint = native_joint->is<physx::PxD6Joint>())
                                 {
+                                    // getTwistAngle does not pick the shortest rotation like the solver does, the result is in (-2pi, 2pi).
                                     twist = d6_joint->getTwistAngle();
+                                    if (twist > M_PI)
+                                    {
+                                        twist -= 2.0f * M_PI;
+                                    }
+                                    else if (twist < -M_PI)
+                                    {
+                                        twist += 2.0f * M_PI;
+                                    }
                                     swing_y = d6_joint->getSwingYAngle();
                                     swing_z = d6_joint->getSwingZAngle();
                                 }
