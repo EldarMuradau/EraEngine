@@ -86,7 +86,7 @@ namespace era_engine
         Setter s;
         s.cb.camera_position = common.camera_position;
         s.cb.emit_position = position;
-        s.cb.frame_index = (uint32)dx_context.frame_id;
+        s.cb.frame_index = (uint32)dx_context.get_frame_id();
 
         update_internal(cl, emit_rate * dt, dt, emit_pipeline, simulate_pipeline, &s);
     }

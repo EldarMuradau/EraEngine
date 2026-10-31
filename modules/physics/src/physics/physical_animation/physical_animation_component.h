@@ -28,7 +28,7 @@ namespace era_engine::physics
         float angle = 0.0f;
         float distance = 0.0f;
 
-        // Normalized values are relative to the drive saturation.
+        // Normalized values relative to the drive saturation.
         float normalized_angle = 0.0f;
         float normalized_distance = 0.0f;
     };
@@ -95,6 +95,9 @@ namespace era_engine::physics
         CompiledLimbDrive drive_transition_to;
 
         float contact_strength = 1.0f;
+
+        // Weight of the physics pose on the mesh.
+        float mesh_physics_weight = 0.0f;
 
         LimbDeviation deviation;
 

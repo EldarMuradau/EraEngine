@@ -37,5 +37,8 @@ namespace era_engine
         HANDLE process_thread_handle;
 
         std::mutex command_list_mutex;
+
+        // ExecuteCommandLists + Signal as one step, so fence values must reach the queue in increasing order.
+        std::recursive_mutex submission_mutex;
     };
 }

@@ -54,6 +54,9 @@ namespace era_engine
         static Engine* instance_object;
     };
 
+    // Waits until the in-flight frame execution (command recording, present) is done. Main thread only.
+    ERA_CORE_API void wait_for_frame_execution();
+
     template <typename Object>
     inline Object* get_object(std::vector<rttr::argument> args = std::vector<rttr::argument>())
     {

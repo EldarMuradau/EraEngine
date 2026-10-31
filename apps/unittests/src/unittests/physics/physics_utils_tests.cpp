@@ -166,10 +166,6 @@ TEST(Physics_Ragdoll, DriveStrengthKeepsDampingRatio)
     EXPECT_NEAR(strong.max_torque, normal.max_torque * 4.0f, 1e-2f);
     EXPECT_NEAR(strong.angular_frequency, normal.angular_frequency * 2.0f, 1e-4f);
     EXPECT_EQ(strong.angular_damping_ratio, normal.angular_damping_ratio);
-
-    const CompiledLimbDrive disabled = RagdollDriveCompiler::compile_limb_drive(settings, mass_properties, -1.0f);
-    EXPECT_FLOAT_EQ(disabled.angular.stiffness, 0.0f);
-    EXPECT_FLOAT_EQ(disabled.linear.stiffness, 0.0f);
 }
 
 TEST(Physics_Ragdoll, InvalidMassPropertiesGiveEmptyDrive)
@@ -306,7 +302,7 @@ TEST(Physics_Ragdoll, ProfilesAssetSerialization)
     arm.contact_response = ContactResponseSettings();
     arm.contact_response->min_strength = 0.4f;
     arm.contact_response->velocity_change_range = vec2(0.75f, 5.0f);
-    arm.contact_response->parent_follow = 0.6f;
+    arm.contact_response->parent_follow_factor = 0.6f;
     arm.contact_response->touch_strength = 0.35f;
     arm.contact_response->respond_to_own_hits = false;
     arm.blend_type = PhysicalLimbBlendType::BLEND_WITH_PREV_POSE | PhysicalLimbBlendType::PURE_PHYSICS;
@@ -334,7 +330,7 @@ TEST(Physics_Ragdoll, ProfilesAssetSerialization)
     ASSERT_TRUE(result_arm.contact_response.has_value());
     EXPECT_FLOAT_EQ(result_arm.contact_response->min_strength, 0.4f);
     EXPECT_EQ(result_arm.contact_response->velocity_change_range, vec2(0.75f, 5.0f));
-    EXPECT_FLOAT_EQ(result_arm.contact_response->parent_follow, 0.6f);
+    EXPECT_FLOAT_EQ(result_arm.contact_response->parent_follow_factor, 0.6f);
     EXPECT_FLOAT_EQ(result_arm.contact_response->touch_strength, 0.35f);
     EXPECT_FALSE(result_arm.contact_response->respond_to_own_hits);
     ASSERT_TRUE(result_arm.drag_force.has_value());

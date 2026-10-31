@@ -985,7 +985,7 @@ namespace era_engine
             raycast_settings.max_stride = settings.max_stride;
             raycast_settings.dimensions = vec2((float)raycast_width, (float)raycast_height);
             raycast_settings.inv_dimensions = vec2(1.f / raycast_width, 1.f / raycast_height);
-            raycast_settings.frame_index = (uint32)dx_context.frame_id;
+            raycast_settings.frame_index = (uint32)dx_context.get_frame_id();
 
             cl->set_compute_32bit_constants(SSR_RAYCAST_RS_CB, raycast_settings);
             cl->set_compute_dynamic_constant_buffer(SSR_RAYCAST_RS_CAMERA, camera_cbv);
@@ -1260,7 +1260,7 @@ namespace era_engine
             cb.max_num_steps_per_ray = settings.max_num_steps_per_ray;
             cb.strength = settings.strength;
             cb.radius = settings.radius;
-            cb.seed = (float)(dx_context.frame_id & 0xFFFFFFFF);
+            cb.seed = (float)(dx_context.get_frame_id() & 0xFFFFFFFF);
 
             float alpha = M_TAU / settings.num_rays;
             cb.ray_delta_rotation = vec2(cos(alpha), sin(alpha));
@@ -1313,7 +1313,7 @@ namespace era_engine
             cb.max_distance_from_camera = settings.max_distance_from_camera;
             cb.distance_fadeout_range = settings.distance_fadeout_range;
             cb.inv_border_fadeout = 1.f / settings.border_fadeout;
-            cb.seed = (float)(dx_context.frame_id & 0xFFFFFFFF);
+            cb.seed = (float)(dx_context.get_frame_id() & 0xFFFFFFFF);
 
             cl->set_compute_32bit_constants(SSS_RS_CB, cb);
             cl->set_compute_dynamic_constant_buffer(SSS_RS_CAMERA, camera_cbv);

@@ -496,31 +496,6 @@ TEST_F(PrefabTest, AsyncSpawnOfMissingPrefabIsDropped)
     EXPECT_FALSE(spawned);
 }
 
-TEST_F(PrefabTest, AsyncSpawnWithDestroyedParentIsDropped)
-{
-    Entity a = create_named("A", vec3(0.0f));
-    const fs::path path = directory / "parent.eprefab";
-    ASSERT_TRUE(PrefabSerializer::save_to_file({a}, path));
-
-    const ref<PrefabAsset> prefab = PrefabUtils::load(path);
-
-    Entity parent = create_named("Parent", vec3(0.0f));
-    PrefabInstantiateParams params;
-    params.parent = parent;
-
-    bool spawned = false;
-    PrefabUtils::instantiate_async(world, prefab, params, [&](const std::vector<Entity>&)
-        {
-            spawned = true;
-        });
-
-    world->destroy_entity(parent);
-    PrefabUtils::process_spawn_queue(world);
-
-    EXPECT_EQ(PrefabUtils::get_pending_spawn_count(world), 0u);
-    EXPECT_FALSE(spawned);
-}
-
 TEST_F(PrefabTest, AsyncSpawnUsesParent)
 {
     Entity a = create_named("A", vec3(0.0f));

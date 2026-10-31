@@ -145,28 +145,67 @@ namespace era_engine
         ImGui::NewFrame();
     }
 
+    namespace
+    {
+        // ImGui draw data lives only until the next NewFrame, while the frame may be executed later.
+        struct FrameDrawData
+        {
+            ImDrawData draw_data;
+            ImVector<ImDrawList*> cmd_lists;
+            bool valid = false;
+        };
+
+        FrameDrawData frame_draw_data[NUM_BUFFERED_FRAMES];
+
+        void release_frame_draw_data(FrameDrawData& frame)
+        {
+            for (ImDrawList* cmd_list : frame.cmd_lists)
+            {
+                IM_DELETE(cmd_list);
+            }
+            frame.cmd_lists.clear();
+            frame.valid = false;
+        }
+    }
+
+    void end_imgui_frame()
+    {
+        ImGui::Render();
+
+        FrameDrawData& frame = frame_draw_data[dx_context.get_buffered_frame_id()];
+        release_frame_draw_data(frame);
+
+        const ImDrawData* source = ImGui::GetDrawData();
+        frame.draw_data = *source;
+        frame.cmd_lists.resize(source->CmdListsCount);
+        for (int i = 0; i < source->CmdListsCount; ++i)
+        {
+            frame.cmd_lists[i] = source->CmdLists[i]->CloneOutput();
+        }
+        frame.draw_data.CmdLists = frame.cmd_lists.Data;
+        frame.valid = true;
+
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
+
+        num_images_this_frame = 0;
+    }
+
     void render_imgui(DXCommandList* cl)
     {
         DX_PROFILE_BLOCK(cl, "ImGui");
 
-        ImGui::Render();
-        if (cl)
+        FrameDrawData& frame = frame_draw_data[dx_context.get_buffered_frame_id()];
+        if (!frame.valid)
         {
-            cl->set_descriptor_heap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, imgui_descriptor_heap);
-            ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cl->command_list.Get());
+            return;
         }
 
-        auto& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            ImGui::UpdatePlatformWindows();
-            if (cl)
-            {
-                ImGui::RenderPlatformWindowsDefault(0, cl->command_list.Get());
-            }
-        }
-
-        num_images_this_frame = 0;
+        cl->set_descriptor_heap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, imgui_descriptor_heap);
+        ImGui_ImplDX12_RenderDrawData(&frame.draw_data, cl->command_list.Get());
     }
 
     LRESULT handle_imgui_input(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
@@ -177,8 +216,8 @@ namespace era_engine
 
 static ImTextureID push_texture(era_engine::DXCPUDescriptorHandle handle)
 {
-    CD3DX12_CPU_DESCRIPTOR_HANDLE cpu_handle(start_cpu_descriptor, 2 + era_engine::dx_context.buffered_frame_id * MAX_NUM_IMGUI_IMAGES_PER_FRAME + num_images_this_frame, descriptor_handle_increment_size);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_handle(start_gpu_descriptor, 2 + era_engine::dx_context.buffered_frame_id * MAX_NUM_IMGUI_IMAGES_PER_FRAME + num_images_this_frame, descriptor_handle_increment_size);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cpu_handle(start_cpu_descriptor, 2 + era_engine::dx_context.get_buffered_frame_id() * MAX_NUM_IMGUI_IMAGES_PER_FRAME + num_images_this_frame, descriptor_handle_increment_size);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_handle(start_gpu_descriptor, 2 + era_engine::dx_context.get_buffered_frame_id() * MAX_NUM_IMGUI_IMAGES_PER_FRAME + num_images_this_frame, descriptor_handle_increment_size);
 
     era_engine::dx_context.device->CopyDescriptorsSimple(1, cpu_handle, handle.cpu_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 

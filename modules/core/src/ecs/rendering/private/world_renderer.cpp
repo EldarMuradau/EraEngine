@@ -410,7 +410,7 @@ namespace era_engine
             const trs& world_transform = transform.get_world_transform();
 
             transforms[index] = trs_to_mat4(world_transform);
-            prev_frame_transforms[index] = mesh.update_frame_transform(transforms[index], dx_context.frame_id);
+            prev_frame_transforms[index] = mesh.update_frame_transform(transforms[index], dx_context.get_frame_id());
             object_ids[index] = (uint32)entity_handle;
 
             ++oc.count;
@@ -605,7 +605,7 @@ namespace era_engine
 
             const trs& world_transform = transform.get_world_transform();
             transforms[index] = trs_to_mat4(world_transform);
-            prev_frame_transforms[index] = mesh.update_frame_transform(transforms[index], dx_context.frame_id);
+            prev_frame_transforms[index] = mesh.update_frame_transform(transforms[index], dx_context.get_frame_id());
             object_ids[index] = (uint32)entity_handle;
 
             D3D12_GPU_VIRTUAL_ADDRESS base_m = transforms_address + (index * sizeof(mat4));

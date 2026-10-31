@@ -38,14 +38,25 @@ namespace era_engine
     };
 
     static Allocator arena;
+    static bool arena_initialized = false;
     static std::vector<LogMessage> messages;
     static std::mutex mutex;
+
+    static void ensure_arena()
+    {
+        if (!arena_initialized)
+        {
+            arena.initialize(0, mb(128));
+            arena_initialized = true;
+        }
+    }
 
     static inline bool set_scroll_to_bottom = false;
 
     void log_message_internal(MessageType type, const char* file, const char* function, uint32 line, const char* format, ...)
     {
         std::lock_guard lock{mutex};
+        ensure_arena();
         arena.ensure_free_size(1024);
 
         char* buffer = (char*)arena.get_current();
@@ -66,6 +77,7 @@ namespace era_engine
     void log_message(MessageType type, const char* format, ...)
     {
         std::lock_guard lock{mutex};
+        ensure_arena();
         arena.ensure_free_size(kb(1));
 
         char* buffer = (char*)arena.get_current();
@@ -95,7 +107,6 @@ namespace era_engine
     LogSystem::LogSystem(World* _world)
         : System(_world)
     {
-        arena.initialize(0, mb(128));
     }
 
     LogSystem::~LogSystem()
@@ -109,6 +120,9 @@ namespace era_engine
     void LogSystem::update(float dt)
     {
         dt = min(dt, 1.0f); // If the app hangs, we don't want all the messages to go missing.
+
+        // Jobs may log while the console is drawn.
+        std::lock_guard lock{mutex};
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.f);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.1f));

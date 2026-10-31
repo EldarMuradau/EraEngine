@@ -8,6 +8,7 @@
 
 #include "core/cpu_profiling.h"
 #include "core/event_queue.h"
+#include "core/jobs/jobs.h"
 
 #include "ecs/base_components/transform_component.h"
 #include "ecs/world.h"
@@ -155,7 +156,16 @@ namespace era_engine::physics
             ASSERT(result);
         }
 
-        dispatcher = PxDefaultCpuDispatcherCreate(nb_cpu_dispatcher_threads);
+        if (JobSystem::is_initialized())
+        {
+            job_dispatcher = std::make_unique<JobCpuDispatcher>();
+            dispatcher = job_dispatcher.get();
+        }
+        else
+        {
+            default_dispatcher = PxDefaultCpuDispatcherCreate(nb_cpu_dispatcher_threads);
+            dispatcher = default_dispatcher;
+        }
 
         blast_core = make_ref<BlastCore>(*this);
         materials.reserve(64);
@@ -345,7 +355,9 @@ namespace era_engine::physics
         blast_core.reset();
 
         PX_RELEASE(physics)
-        PX_RELEASE(dispatcher)
+        dispatcher = nullptr;
+        job_dispatcher.reset();
+        PX_RELEASE(default_dispatcher)
 
         PX_RELEASE(pvd)
         PX_RELEASE(omni_pvd)
@@ -378,16 +390,29 @@ namespace era_engine::physics
     {
         using namespace physx;
 
-        PxSceneWriteLock write_lock(*scene);
+        JobCounter simulation_counter;
+        JobSystem::increment_counter(&simulation_counter);
+        simulation_completion_task.counter = &simulation_counter;
 
         {
             ZoneScopedN("Physics::simulate");
-            bool status = scene->simulate(dt, nullptr, scratch_mem_block, scratch_mem_block_size);
+            PxSceneWriteLock write_lock(*scene);
+
+            simulation_completion_task.setContinuation(*scene->getTaskManager(), nullptr);
+            const bool status = scene->simulate(dt, &simulation_completion_task, scratch_mem_block, scratch_mem_block_size);
             ASSERT(status);
+
+            simulation_completion_task.removeReference();
+        }
+
+        {
+            ZoneScopedN("Physics::wait_for_simulation");
+            JobSystem::wait_for_counter(&simulation_counter);
         }
 
         {
             ZoneScopedN("Physics::fetchResults");
+            PxSceneWriteLock write_lock(*scene);
             scene->fetchResults(true);
         }
     }

@@ -3,6 +3,9 @@
 #include "window/dx_window.h"
 
 #include "dx/dx_context.h"
+#include "core/cpu_profiling.h"
+
+#include "engine/engine.h"
 
 #include <core/debug/debug_var.h>
 
@@ -315,6 +318,9 @@ namespace era_engine
     {
         if (initialized)
         {
+            // The executing frame may be recording into or presenting the back buffers.
+            wait_for_frame_execution();
+
             // Flush the GPU queue to make sure the swap chain's back buffers
             // are not being referenced by an in-flight command list.
             dx_context.flush_application();
@@ -364,6 +370,8 @@ namespace era_engine
 
     void DXWindow::swap_buffers()
     {
+        ZoneScopedN("DXWindow::present");
+
         if (initialized)
         {
             uint32 sync_interval = v_sync ? 1 : 0;

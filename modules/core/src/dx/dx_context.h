@@ -103,8 +103,9 @@ namespace era_engine
 
         DXFeatureSupport feature_support;
 
-        uint64 frame_id;
-        uint32 buffered_frame_id;
+        // Frame of the calling code, otherwise the last started frame.
+        uint64 get_frame_id() const;
+        uint32 get_buffered_frame_id() const;
 
         DXDescriptorHeap srv_uav_allocator;
         DXDescriptorHeap srv_uav_allocator_shader_visible; // Used for resources, which can be UAV cleared.
@@ -116,7 +117,7 @@ namespace era_engine
         volatile uint32 timestampQueryIndex[NUM_BUFFERED_FRAMES];
 #endif
 
-        DXUploadBuffer frame_upload_buffer;
+        DXUploadBuffer frame_upload_buffers[NUM_BUFFERED_FRAMES];
 
         DXFrameDescriptorAllocator frame_descriptor_allocator;
 
@@ -140,8 +141,13 @@ namespace era_engine
 #endif
 
         DXPagePool page_pools[NUM_BUFFERED_FRAMES];
+        std::mutex upload_mutexes[NUM_BUFFERED_FRAMES];
 
         std::mutex mutex;
+
+        // Last started frame.
+        uint64 frame_id = 0;
+        uint32 buffered_frame_id = 0;
 
         std::vector<struct TextureGrave> texture_graveyard[NUM_BUFFERED_FRAMES];
         std::vector<struct BufferGrave> buffer_graveyard[NUM_BUFFERED_FRAMES];

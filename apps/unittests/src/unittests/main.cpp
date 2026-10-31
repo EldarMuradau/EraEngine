@@ -10,5 +10,9 @@ int main(int argc, char** argv)
 
     era_engine::initialize_job_system();
 
-    return RUN_ALL_TESTS();
+    const int result = RUN_ALL_TESTS();
+
+    era_engine::shutdown_job_system();
+
+    return result;
 }

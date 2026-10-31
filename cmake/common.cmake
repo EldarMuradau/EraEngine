@@ -19,7 +19,7 @@
 include_guard(GLOBAL)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /arch:AVX2 /Zi /Gy /GF /EHsc")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /arch:AVX2 /Zi /Gy /GF /EHsc /GT")
 
 set(ERA_THIRDPARTY_CONFIG "$<IF:$<CONFIG:Debug>,Debug,Release>")
 
@@ -148,6 +148,7 @@ target_compile_definitions(era_common INTERFACE
     TRACY_NO_CALLSTACK
     TRACY_NO_CODE_TRANSFER
     TRACY_NO_SAMPLING
+    TRACY_FIBERS
     VISUALIZE_PHYSICS=1
 )
 

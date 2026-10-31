@@ -164,7 +164,7 @@ namespace era_engine
 
             RTReflectionsCB cb;
             cb.sample_sky_from_texture = !common.procedural_sky;
-            cb.frame_index = (uint32)dx_context.frame_id;
+            cb.frame_index = (uint32)dx_context.get_frame_id();
 
             // Set up pipeline
             cl->set_descriptor_heap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, descriptor_heap.descriptor_heap);

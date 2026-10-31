@@ -1,4 +1,5 @@
 #include "animation/animation_system.h"
+#include "core/jobs/jobs.h"
 #include "animation/animation.h"
 #include "animation/skinning.h"
 #include "animation/animation_pose_sampler.h"
@@ -52,13 +53,31 @@ namespace era_engine::animation
     {
         ZoneScopedN("AnimationSystem::update");
 
+        struct AnimatedEntity
+        {
+            AnimationComponent* animation = nullptr;
+            SkeletonComponent* skeleton = nullptr;
+        };
+
+        std::vector<AnimatedEntity> entities;
         for (auto [entity_handle, animation_component, mesh_component, skeleton_component, transform_component] :
             world->group(components_group<AnimationComponent, MeshComponent, SkeletonComponent, TransformComponent>).each())
         {
-            if (animation_component.current_animation != nullptr &&
-                animation_component.current_animation->is_valid() &&
-                animation_component.play)
+            entities.push_back({&animation_component, &skeleton_component});
+        }
+
+        JobSystem::parallel_for(0, (uint32)entities.size(), 1, [&entities, dt](uint32 index)
             {
+                AnimationComponent& animation_component = *entities[index].animation;
+                SkeletonComponent& skeleton_component = *entities[index].skeleton;
+
+                if (animation_component.current_animation == nullptr ||
+                    !animation_component.current_animation->is_valid() ||
+                    !animation_component.play)
+                {
+                    return;
+                }
+
                 const float anim_duration = animation_component.current_animation->get_duration();
 
                 if (animation_component.current_anim_position < anim_duration)
@@ -103,41 +122,48 @@ namespace era_engine::animation
                         animation_component.current_anim_position = anim_duration;
                     }
                 }
-            }
-        }
+            });
     }
 
     void AnimationSystem::update_mesh(float dt)
     {
         ZoneScopedN("AnimationSystem::update_mesh");
 
-        MemoryMarker marker = allocator->get_marker();
+        struct SkinnedEntity
+        {
+            AnimationComponent* animation = nullptr;
+            const MeshComponent* mesh = nullptr;
+            const SkeletonComponent* skeleton = nullptr;
+        };
+
+        std::vector<SkinnedEntity> entities;
         for (auto [entity_handle, animation_component, mesh_component, skeleton_component, transform_component] :
             world->group(components_group<AnimationComponent, MeshComponent, SkeletonComponent, TransformComponent>).each())
         {
             const DXMesh& dx_mesh = mesh_component.mesh->mesh;
-
             if (dx_mesh.vertex_buffer.positions == nullptr ||
                 dx_mesh.vertex_buffer.positions->element_count == 0)
             {
                 continue;
             }
 
-            ref<Skeleton> skeleton = skeleton_component.skeleton;
-
-            animation_component.current_global_transforms = nullptr;
-
-            auto [vb, skinning_matrices] = skin_object(dx_mesh.vertex_buffer, dx_mesh.vertex_buffer.positions->element_count, (uint32)skeleton->joints.size());
-
-            animation_component.prev_frame_vertex_buffer = animation_component.current_vertex_buffer;
-            animation_component.current_vertex_buffer = vb;
-
-            trs* global_transforms = allocator->allocate<trs>((uint32)skeleton->joints.size());
-
-            skeleton_component.get_skinning_matrices_from_local_transforms(global_transforms, skinning_matrices, trs::identity);
-
-            animation_component.current_global_transforms = global_transforms;
+            entities.push_back({&animation_component, &mesh_component, &skeleton_component});
         }
-        allocator->reset_to_marker(marker);
+
+        // skin_object reserves its ranges atomically and each entity writes only its own matrices.
+        JobSystem::parallel_for(0, (uint32)entities.size(), 1, [&entities](uint32 index)
+            {
+                const SkinnedEntity& entity = entities[index];
+                const DXMesh& dx_mesh = entity.mesh->mesh->mesh;
+                const uint32 num_joints = (uint32)entity.skeleton->skeleton->joints.size();
+
+                auto [vb, skinning_matrices] = skin_object(dx_mesh.vertex_buffer, dx_mesh.vertex_buffer.positions->element_count, num_joints);
+
+                entity.animation->prev_frame_vertex_buffer = entity.animation->current_vertex_buffer;
+                entity.animation->current_vertex_buffer = vb;
+
+                trs* global_transforms = (trs*)alloca(sizeof(trs) * num_joints);
+                entity.skeleton->get_skinning_matrices_from_local_transforms(global_transforms, skinning_matrices, trs::identity);
+            });
     }
 }

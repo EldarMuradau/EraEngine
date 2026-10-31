@@ -14,7 +14,7 @@ namespace era_engine
     {
         world_data = new WorldData();
         world_data->name = _name;
-        world_data->scheduler = new WorldSystemScheduler(this, 1, 1);
+        world_data->scheduler = new WorldSystemScheduler(this);
 
         worlds.emplace(_name, this);
     }
@@ -102,6 +102,11 @@ namespace era_engine
     float World::get_fixed_update_dt() const
     {
         return fixed_update_dt;
+    }
+
+    float World::get_elapsed_fixed_update_share() const
+    {
+        return fixed_update_elapsed_share;
     }
 
     void World::destroy_entity(const Entity& _entity)

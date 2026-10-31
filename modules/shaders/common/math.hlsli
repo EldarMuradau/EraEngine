@@ -68,29 +68,6 @@ static float2 screen_space_velocity(float3 ndc, float3 prev_frame_ndc, float2 ji
 	return motion;
 }
 
-// prev_frame_motion is last frame's velocity at uv + motion. If it differs, that pixel showed another surface (e.g. one that has just uncovered this one).
-static bool is_disoccluded(float2 motion, float2 prev_frame_motion, float2 dimensions)
-{
-	const float2 motion_pixels = motion * dimensions;
-	const float2 prev_frame_motion_pixels = prev_frame_motion * dimensions;
-	const float max_speed = max(length(motion_pixels), length(prev_frame_motion_pixels));
-	return length(motion_pixels - prev_frame_motion_pixels) > 2.f + 0.5f * max_speed;
-}
-
-// Where last frame's G-buffer shows the surface at uv. False if the surface was hidden.
-static bool find_prev_frame_surface(Texture2D<float2> prev_frame_motion, SamplerState point_sampler, float2 uv, float2 motion, float2 dimensions, out float2 prev_uv)
-{
-	prev_uv = uv + motion;
-	if (!is_disoccluded(motion, prev_frame_motion.SampleLevel(point_sampler, prev_uv, 0), dimensions))
-	{
-		return true;
-	}
-
-	// Just uncovered by a moving object. If the camera follows that object, the same kind of surface was at the same screen position.
-	prev_uv = uv;
-	return !is_disoccluded(motion, prev_frame_motion.SampleLevel(point_sampler, prev_uv, 0), dimensions);
-}
-
 static float2 quad_from_vertex_id(uint vertex_id)
 {
 	return float2((vertex_id << 1) & 2, vertex_id & 2) - 1.f;

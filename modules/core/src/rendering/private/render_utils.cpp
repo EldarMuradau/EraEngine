@@ -78,7 +78,7 @@ namespace era_engine
     {
         if (camera_jitter_strength > 0.f)
         {
-            vec2 jitter = halton_sequence[dx_context.frame_id % arraysize(halton_sequence)] / vec2((float)camera.width, (float)camera.height) * camera_jitter_strength;
+            vec2 jitter = halton_sequence[dx_context.get_frame_id() % arraysize(halton_sequence)] / vec2((float)camera.width, (float)camera.height) * camera_jitter_strength;
             build_camera_constant_buffer(camera.get_jittered_version(jitter), jitter, out_cb);
         }
         else

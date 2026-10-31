@@ -14,7 +14,6 @@ Texture2D<float> linear_depth_buffer	    : register(t1);
 Texture2D<float3> world_normals_roughness	: register(t2);
 Texture2D<float2> noise     		    : register(t3);
 Texture2D<float2> motion			    : register(t4);
-Texture2D<float2> prev_frame_motion	    : register(t5);
 
 RWTexture2D<float4> output			    : register(u0);
 
@@ -184,14 +183,7 @@ void main(CSInput IN)
     }
 
     const float2 uv_m = motion.SampleLevel(point_sampler, uv, 0);
-    float2 prev_frame_uv;
-    if (!find_prev_frame_surface(prev_frame_motion, point_sampler, uv, uv_m, cb.dimensions, prev_frame_uv))
-    {
-        output[IN.dispatch_thread_id.xy] = float4(0.f, 0.f, -1.f, 0.f);
-        return;
-    }
-
-    const float3 normal_and_roughness = world_normals_roughness.SampleLevel(point_sampler, prev_frame_uv, 0);
+    const float3 normal_and_roughness = world_normals_roughness.SampleLevel(point_sampler, uv + uv_m, 0);
 
 	if (all(normal_and_roughness.xy == float2(0.f, 0.f)))
 	{

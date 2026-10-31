@@ -70,7 +70,7 @@ namespace era_engine
         SmokeSimulationCB cb;
         cb.camera_position = common.camera_position;
         cb.emit_position = position;
-        cb.frame_index = (uint32)dx_context.frame_id;
+        cb.frame_index = (uint32)dx_context.get_frame_id();
         cb.life_scale_from_distance = settings.life_scale_from_distance;
 
         Setter s;

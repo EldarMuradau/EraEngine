@@ -4,6 +4,7 @@
 #include "physics/core/physics_types.h"
 #include "physics/material.h"
 #include "physics/destructions/blast_core.h"
+#include "physics/core/job_cpu_dispatcher.h"
 
 #include <core/memory.h>
 #include <core/math.h>
@@ -117,7 +118,13 @@ namespace era_engine::physics
 
         physx::PxFoundation* foundation = nullptr;
 
-        physx::PxDefaultCpuDispatcher* dispatcher = nullptr;
+        physx::PxCpuDispatcher* dispatcher = nullptr;
+        std::unique_ptr<JobCpuDispatcher> job_dispatcher;
+
+        // Used only when JobSystem is not running.
+        physx::PxDefaultCpuDispatcher* default_dispatcher = nullptr;
+
+        SimulationCompletionTask simulation_completion_task;
 
         physx::PxCudaContextManager* cuda_context_manager = nullptr;
 

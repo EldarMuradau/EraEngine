@@ -10,7 +10,6 @@ Texture2D<float4> current_frame		: register(t0);
 Texture2D<float4> prev_frame			: register(t1);
 Texture2D<float2> motion			: register(t2);
 Texture2D<float> depth_buffer		: register(t3);
-Texture2D<float2> prev_frame_motion	: register(t4);
 
 SamplerState linear_sampler			: register(s0);
 
@@ -161,10 +160,7 @@ void main(CSInput IN)
 	const float motion_pixels = length(m * cb.dimensions);
 	blendfactor = max(blendfactor, lerp(0.05f, 0.25f, saturate(motion_pixels / 32.f)));
 
-	const int2 prev_pixel = clamp(int2(prev_uv * cb.dimensions), 0, int2(cb.dimensions) - 1);
-	const bool disoccluded = is_disoccluded(m, prev_frame_motion[prev_pixel], cb.dimensions);
-
-	const float history_length = (is_saturated(prev_uv) && !disoccluded) ? prev_frame.SampleLevel(linear_sampler, prev_uv, 0).a : 0.f;
+	const float history_length = is_saturated(prev_uv) ? prev_frame.SampleLevel(linear_sampler, prev_uv, 0).a : 0.f;
 
 	// Young history is a running average, otherwise the first (aliased, jittered) samples linger for many frames.
 	blendfactor = max(blendfactor, 1.f / (history_length + 1.f));

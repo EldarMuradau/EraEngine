@@ -71,7 +71,7 @@ namespace era_engine
         cb.camera_vp = common.prev_frame_camera_view_proj;
         cb.camera_projection_params = common.camera_projection_params;
         cb.camera_position = common.camera_position;
-        cb.frame_index = (uint32)dx_context.frame_id;
+        cb.frame_index = (uint32)dx_context.get_frame_id();
         cb.drag = 1.f / (1.f + dt * linear_damping);
 
         uint32 num_bursts = (uint32)min(arraysize(cb.emit_positions), bursts.size());

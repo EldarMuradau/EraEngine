@@ -174,9 +174,6 @@ namespace era_engine::physics
                 limb_data_component->collision.touching_dynamic = false;
                 limb_data_component->collision.impulse = vec3::zero;
             }
-
-            physical_animation_component->reached_physics_pose = false;
-            physical_animation_component->elapsed_blend_time = 0.0f;
         }
 
         filter_states_by_collisions(dt);

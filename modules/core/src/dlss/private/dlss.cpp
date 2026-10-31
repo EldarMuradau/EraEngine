@@ -103,7 +103,7 @@ namespace era_engine::dlss
 
 #if ENABLE_DLSS
 
-        renderer->settings.tonemap_settings = tonemap_settings;
+        renderer->frame_settings.tonemap_settings = tonemap_settings;
         NVSDK_NGX_D3D12_Feature_Eval_Params featureEvalsParams{};
         featureEvalsParams.pInOutput = renderer->frame_result->resource.Get();
         featureEvalsParams.pInColor = renderer->ldr_post_processing_texture->resource.Get();

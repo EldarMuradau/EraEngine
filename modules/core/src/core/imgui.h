@@ -27,6 +27,10 @@ namespace era_engine
 {
     ImGuiContext* initialize_imgui(struct DXWindow& window);
     void new_imgui_frame(float dt);
+
+    void end_imgui_frame();
+
+    // Draws the main viewport of the current frame.
     void render_imgui(struct DXCommandList* cl);
 
     LRESULT handle_imgui_input(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param);

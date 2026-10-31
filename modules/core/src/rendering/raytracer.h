@@ -35,8 +35,8 @@ namespace era_engine
     template <typename InputResources, typename OutputResources>
     inline DXGPUDescriptorHandle DXRaytracer::copy_global_resources_to_descriptor_heap(const InputResources& in, const OutputResources& out)
     {
-        DXCPUDescriptorHandle cpu_handle = resource_cpu_base[dx_context.buffered_frame_id];
-        DXGPUDescriptorHandle gpu_handle = resource_gpu_base[dx_context.buffered_frame_id];
+        DXCPUDescriptorHandle cpu_handle = resource_cpu_base[dx_context.get_buffered_frame_id()];
+        DXGPUDescriptorHandle gpu_handle = resource_gpu_base[dx_context.get_buffered_frame_id()];
 
         const uint32 num_input_resources = sizeof(InputResources) / sizeof(DXCPUDescriptorHandle);
         const uint32 num_output_resources = sizeof(OutputResources) / sizeof(DXCPUDescriptorHandle);

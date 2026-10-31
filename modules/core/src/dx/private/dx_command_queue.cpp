@@ -69,6 +69,8 @@ namespace era_engine
 
     uint64 DXCommandQueue::signal()
     {
+        std::lock_guard lock{submission_mutex};
+
         uint64 fence_value_for_signal = atomic_increment(fence_value) + 1;
         checkResult(command_queue->Signal(fence.Get(), fence_value_for_signal));
 

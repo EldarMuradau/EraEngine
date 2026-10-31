@@ -72,8 +72,6 @@ namespace era_engine::physics
                 }
                 ragdoll_component.simulated.sync_changes();
             }
-            ragdoll_component.elapsed_blend_time = 0.0f;
-            ragdoll_component.reached_physics_pose = false;
         }
 
         for (auto [entity_handle, transform_component, ragdoll_limb_component] : world->group(components_group<TransformComponent, RagdollLimbComponent>).each())
@@ -115,23 +113,12 @@ namespace era_engine::physics
             }
 
             {
-                const float fixed_update_dt = world->get_fixed_update_dt();
-
                 const uint32 root_id = 0;
                 ragdoll_component.local_joint_poses[root_id] = SkeletonUtils::get_object_space_joint_transform(&skeleton_component, root_id);
 
                 auto simulated_joints_end = ragdoll_component.simulated_joints.end();
 
-                if (!ragdoll_component.reached_physics_pose)
-                {
-                    ragdoll_component.elapsed_blend_time += dt;
-                }
-
-                const float blend_value = ragdoll_component.reached_physics_pose ? 1.0f : std::min(ragdoll_component.elapsed_blend_time / fixed_update_dt, 1.0f);
-                if (ragdoll_component.elapsed_blend_time >= fixed_update_dt)
-                {
-                    ragdoll_component.reached_physics_pose = true;
-                }
+                const float blend_value = world->get_elapsed_fixed_update_share();
 
                 for (const uint32 simulation_joint : ragdoll_component.simulated_joints_set)
                 {

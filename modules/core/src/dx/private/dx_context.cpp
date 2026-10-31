@@ -7,6 +7,8 @@
 #include "dx/dx_profiling.h"
 
 #include "core/string.h"
+#include "core/frame_params.h"
+#include "core/jobs/jobs.h"
 
 #include "dlss/dlss.h"
 
@@ -293,17 +295,13 @@ namespace era_engine
         for (uint32 i = 0; i < NUM_BUFFERED_FRAMES; ++i)
         {
             page_pools[i].initialize(mb(32));
+            frame_upload_buffers[i].page_pool = &page_pools[i];
 
 #if ENABLE_DX_PROFILING
             timestampHeaps[i].initialize(MAX_NUM_DX_PROFILE_EVENTS);
             resolvedTimestampBuffers[i] = create_readback_buffer(sizeof(uint64), MAX_NUM_DX_PROFILE_EVENTS);
 #endif
         }
-
-        frame_upload_buffer.reset();
-        frame_upload_buffer.page_pool = &page_pools[buffered_frame_id];
-
-        page_pools[buffered_frame_id].reset();
 
         render_queue.initialize(device, D3D12_COMMAND_LIST_TYPE_DIRECT);
         compute_queue.initialize(device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
@@ -355,25 +353,25 @@ namespace era_engine
     void DXContext::retire(TextureGrave&& texture)
     {
         Lock lock{mutex};
-        texture_graveyard[buffered_frame_id].push_back(std::move(texture));
+        texture_graveyard[get_buffered_frame_id()].push_back(std::move(texture));
     }
 
     void DXContext::retire(BufferGrave&& buffer)
     {
         Lock lock{mutex};
-        buffer_graveyard[buffered_frame_id].push_back(std::move(buffer));
+        buffer_graveyard[get_buffered_frame_id()].push_back(std::move(buffer));
     }
 
     void DXContext::retire(DXObject obj)
     {
         Lock lock{mutex};
-        object_graveyard[buffered_frame_id].push_back(obj);
+        object_graveyard[get_buffered_frame_id()].push_back(obj);
     }
 
     void DXContext::retire(D3D12MA::Allocation* allocation)
     {
         Lock lock{mutex};
-        allocation_graveyard[buffered_frame_id].push_back(allocation);
+        allocation_graveyard[get_buffered_frame_id()].push_back(allocation);
     }
 
     DXCommandQueue& DXContext::get_queue(D3D12_COMMAND_LIST_TYPE type)
@@ -399,7 +397,7 @@ namespace era_engine
         }
 
 #if ENABLE_DX_PROFILING
-        result->time_stamp_query_heap = timestampHeaps[buffered_frame_id].heap;
+        result->time_stamp_query_heap = timestampHeaps[get_buffered_frame_id()].heap;
 #endif
 
         return result;
@@ -445,9 +443,13 @@ namespace era_engine
         checkResult(command_list->command_list->Close());
 
         ID3D12CommandList* d3d12_list = command_list->command_list.Get();
-        queue.command_queue->ExecuteCommandLists(1, &d3d12_list);
 
-        uint64 fence_value = queue.signal();
+        uint64 fence_value;
+        {
+            std::lock_guard submission_lock{queue.submission_mutex};
+            queue.command_queue->ExecuteCommandLists(1, &d3d12_list);
+            fence_value = queue.signal();
+        }
 
         command_list->last_execution_fence_value = fence_value;
 
@@ -473,9 +475,12 @@ namespace era_engine
             d3d12_lists[i] = command_lists[i]->command_list.Get();
         }
 
-        queue.command_queue->ExecuteCommandLists(count, d3d12_lists);
-
-        uint64 fence_value = queue.signal();
+        uint64 fence_value;
+        {
+            std::lock_guard submission_lock{queue.submission_mutex};
+            queue.command_queue->ExecuteCommandLists(count, d3d12_lists);
+            fence_value = queue.signal();
+        }
 
         for (uint32 i = 0; i < count; ++i)
         {
@@ -496,7 +501,10 @@ namespace era_engine
 
     DXAllocation DXContext::allocate_dynamic_buffer(uint32 size_in_bytes, uint32 alignment)
     {
-        DXAllocation allocation = frame_upload_buffer.allocate(size_in_bytes, alignment);
+        const uint32 slot = get_buffered_frame_id();
+
+        Lock lock{upload_mutexes[slot]};
+        DXAllocation allocation = frame_upload_buffers[slot].allocate(size_in_bytes, alignment);
         return allocation;
     }
 
@@ -545,7 +553,8 @@ namespace era_engine
     {
 #if ENABLE_DX_PROFILING
         dxProfilingFrameEndMarker(cl);
-        cl->command_list->ResolveQueryData(timestampHeaps[buffered_frame_id].heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, timestampQueryIndex[buffered_frame_id], resolvedTimestampBuffers[buffered_frame_id]->resource.Get(), 0);
+        const uint32 slot = get_buffered_frame_id();
+        cl->command_list->ResolveQueryData(timestampHeaps[slot].heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, timestampQueryIndex[slot], resolvedTimestampBuffers[slot]->resource.Get(), 0);
 #endif
     }
 
@@ -573,11 +582,24 @@ namespace era_engine
         }
         allocation_graveyard[buffered_frame_id].clear();
 
-        frame_upload_buffer.reset();
-        frame_upload_buffer.page_pool = &page_pools[buffered_frame_id];
-
-        page_pools[buffered_frame_id].reset();
+        {
+            Lock upload_lock{upload_mutexes[buffered_frame_id]};
+            frame_upload_buffers[buffered_frame_id].reset();
+            page_pools[buffered_frame_id].reset();
+        }
         frame_descriptor_allocator.new_frame(buffered_frame_id);
+    }
+
+    uint64 DXContext::get_frame_id() const
+    {
+        const FrameParams* frame = JobSystem::get_frame_context();
+        return frame != nullptr ? frame->frame_id : frame_id;
+    }
+
+    uint32 DXContext::get_buffered_frame_id() const
+    {
+        const FrameParams* frame = JobSystem::get_frame_context();
+        return frame != nullptr ? frame->slot : buffered_frame_id;
     }
 
     ERA_CORE_API std::pair<DXDynamicVertexBuffer, void*> create_dynamic_vertex_buffer(uint32 element_size, uint32 element_count)

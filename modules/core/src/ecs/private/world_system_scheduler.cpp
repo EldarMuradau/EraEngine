@@ -130,29 +130,9 @@ namespace era_engine
             }
         }
 
-        size_t clamp_thread_count(size_t requested)
-        {
-            const size_t hardware = static_cast<size_t>(std::max(1u, std::thread::hardware_concurrency()));
-
-            // The calling thread participates in the pool, so leave a core for it.
-            const size_t budget = hardware > 1 ? hardware - 1 : 1;
-
-            if (requested == 0)
-            {
-                return budget;
-            }
-
-            if (requested > budget)
-            {
-                LOG_WARNING(std::format("Worker thread count {} exceeds the core budget, clamped to {}.", requested, budget).c_str());
-                return budget;
-            }
-
-            return requested;
-        }
     }
 
-    WorldSystemScheduler::WorldSystemScheduler(World* _world, size_t normal_threads, size_t fixed_threads)
+    WorldSystemScheduler::WorldSystemScheduler(World* _world)
         : world(_world)
     {
         ASSERT(world != nullptr);
@@ -161,15 +141,7 @@ namespace era_engine
 
         set_fixed_update_rate(fixed_update_rate.load(std::memory_order_relaxed));
 
-        const size_t thread_count = clamp_thread_count(normal_threads + fixed_threads);
-
         running.store(true, std::memory_order_relaxed);
-
-        workers.reserve(thread_count);
-        for (size_t i = 0; i < thread_count; ++i)
-        {
-            workers.emplace_back(&WorldSystemScheduler::worker_loop, this);
-        }
     }
 
     WorldSystemScheduler::~WorldSystemScheduler()
@@ -198,31 +170,9 @@ namespace era_engine
     {
         running.store(false, std::memory_order_relaxed);
 
-        {
-            // Taking the lock guarantees no thread sits between its predicate check and wait().
-            std::lock_guard<std::mutex> lock(work_mutex);
-        }
-
-        work_available.notify_all();
-
         if (fixed_timer_thread.joinable())
         {
             fixed_timer_thread.join();
-        }
-
-        for (std::thread& thread : workers)
-        {
-            if (thread.joinable())
-            {
-                thread.join();
-            }
-        }
-        workers.clear();
-
-        std::lock_guard<std::mutex> lock(work_mutex);
-        for (size_t kind = 0; kind < QUEUE_COUNT; ++kind)
-        {
-            queues[kind].clear();
         }
     }
 
@@ -256,6 +206,11 @@ namespace era_engine
     {
         fixed_step_mode.store(mode, std::memory_order_relaxed);
         pump_clock_valid = false;
+
+        if (mode == FixedStepMode::THREADED && systems_initialized)
+        {
+            start_fixed_timer_thread();
+        }
     }
 
     FixedStepMode WorldSystemScheduler::get_fixed_step_mode() const
@@ -295,6 +250,15 @@ namespace era_engine
     {
         const double seconds = 1.0 / fixed_update_rate.load(std::memory_order_relaxed);
         return std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(seconds));
+    }
+
+    float WorldSystemScheduler::compute_fixed_update_elapsed_share(std::chrono::steady_clock::time_point next_update) const
+    {
+        using Seconds = std::chrono::duration<double>;
+
+        const double interval = Seconds(fixed_interval()).count();
+        const double remaining = Seconds(next_update - std::chrono::steady_clock::now()).count();
+        return static_cast<float>(std::clamp(1.0 - remaining / interval, 0.0, 1.0));
     }
 
     void WorldSystemScheduler::initialize_systems(const rttr::array_range<rttr::type>& types)
@@ -405,6 +369,19 @@ namespace era_engine
 
         refresh_graph();
 
+        if (fixed_step_mode.load(std::memory_order_relaxed) == FixedStepMode::THREADED)
+        {
+            start_fixed_timer_thread();
+        }
+    }
+
+    void WorldSystemScheduler::start_fixed_timer_thread()
+    {
+        if (fixed_timer_thread.joinable())
+        {
+            return;
+        }
+
         next_fixed_update = std::chrono::steady_clock::now() + fixed_interval();
         fixed_timer_thread = std::thread(&WorldSystemScheduler::fixed_timer_loop, this);
         nudge_thread_priority(fixed_timer_thread);
@@ -443,9 +420,16 @@ namespace era_engine
         if (fixed_step_mode.load(std::memory_order_relaxed) == FixedStepMode::MAIN_THREAD_PUMP)
         {
             pump_fixed_steps();
+            world->fixed_update_elapsed_share = compute_fixed_update_elapsed_share(next_pumped_fixed_update);
+        }
+        else
+        {
+            using Clock = std::chrono::steady_clock;
+            const Clock::rep next_ticks = next_fixed_update_ticks.load(std::memory_order_relaxed);
+            world->fixed_update_elapsed_share = compute_fixed_update_elapsed_share(Clock::time_point(Clock::duration(next_ticks)));
         }
 
-        run_schedule(get_schedule(UpdateType::NORMAL), dt, QUEUE_NORMAL);
+        run_schedule(get_schedule(UpdateType::NORMAL), dt);
     }
 
     void WorldSystemScheduler::update_fixed(float dt)
@@ -461,7 +445,7 @@ namespace era_engine
 
         const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-        run_schedule(get_schedule(UpdateType::FIXED), dt, QUEUE_FIXED);
+        run_schedule(get_schedule(UpdateType::FIXED), dt);
 
         const double step_ms =
             std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();
@@ -476,7 +460,7 @@ namespace era_engine
         ++world->fixed_frame_id;
     }
 
-    void WorldSystemScheduler::run_schedule(const UpdateScheduleRef& schedule, float dt, size_t kind)
+    void WorldSystemScheduler::run_schedule(const UpdateScheduleRef& schedule, float dt)
     {
         if (!schedule)
         {
@@ -490,11 +474,11 @@ namespace era_engine
                 return;
             }
 
-            run_stage(stage, dt, kind);
+            run_stage(stage, dt);
         }
     }
 
-    void WorldSystemScheduler::run_stage(const StageSchedule& stage, float dt, size_t kind)
+    void WorldSystemScheduler::run_stage(const StageSchedule& stage, float dt)
     {
         if (stage.nodes.empty())
         {
@@ -502,7 +486,7 @@ namespace era_engine
         }
 
         // A main-thread stage belongs entirely to the calling thread, in topological order.
-        if (stage.serial || workers.empty() || stage.nodes.size() == 1)
+        if (stage.serial || stage.nodes.size() == 1 || !JobSystem::is_initialized())
         {
             for (const StageNode& node : stage.nodes)
             {
@@ -511,149 +495,56 @@ namespace era_engine
             return;
         }
 
+        const uint32 node_count = static_cast<uint32>(stage.nodes.size());
+
         StageRun run;
         run.stage = &stage;
         run.dt = dt;
-        run.total = static_cast<uint32>(stage.nodes.size());
-        run.remaining.resize(stage.nodes.size());
-        for (size_t i = 0; i < stage.nodes.size(); ++i)
+        run.remaining = std::make_unique<std::atomic<uint32>[]>(node_count);
+        run.node_jobs.resize(node_count);
+        for (uint32 i = 0; i < node_count; ++i)
         {
-            run.remaining[i] = stage.nodes[i].predecessor_count;
+            run.remaining[i].store(stage.nodes[i].predecessor_count, std::memory_order_relaxed);
+            run.node_jobs[i] = NodeJob{&run, i};
         }
 
+        std::vector<JobDecl> roots;
+        roots.reserve(stage.roots.size());
+        for (uint32 root : stage.roots)
         {
-            std::lock_guard<std::mutex> lock(work_mutex);
-            for (uint32 root : stage.roots)
-            {
-                queues[kind].push_back(TaskItem{&run, root});
-            }
+            roots.push_back(make_node_job(run, root));
         }
-        work_available.notify_all();
 
-        // The driving thread is a worker too.
-        while (true)
-        {
-            TaskItem item;
-            {
-                std::unique_lock<std::mutex> lock(work_mutex);
-                work_available.wait(lock, [this, kind, &run]
-                    {
-                        return run.completed == run.total || !queues[kind].empty();
-                    });
-
-                if (run.completed == run.total)
-                {
-                    return;
-                }
-
-                if (!pop_from_locked(kind, item))
-                {
-                    continue;
-                }
-            }
-
-            execute_node(item, kind);
-        }
+        JobSystem::run_jobs(roots.data(), static_cast<uint32>(roots.size()), &run.counter);
+        JobSystem::wait_for_counter(&run.counter);
     }
 
-    bool WorldSystemScheduler::has_pending_locked() const
+    JobDecl WorldSystemScheduler::make_node_job(StageRun& run, uint32 node)
     {
-        return !queues[QUEUE_NORMAL].empty() || !queues[QUEUE_FIXED].empty();
+        return JobDecl(&WorldSystemScheduler::execute_node, &run.node_jobs[node], JobPriority::HIGH, false, run.stage->nodes[node].task->name.c_str());
     }
 
-    bool WorldSystemScheduler::pop_from_locked(size_t kind, TaskItem& out_item)
+    void WorldSystemScheduler::execute_node(void* node_job)
     {
-        if (queues[kind].empty())
-        {
-            return false;
-        }
+        const NodeJob& job = *static_cast<const NodeJob*>(node_job);
+        StageRun& run = *job.run;
+        const StageNode& node = run.stage->nodes[job.node];
 
-        out_item = queues[kind].front();
-        queues[kind].pop_front();
-
-        return true;
-    }
-
-    bool WorldSystemScheduler::pop_any_locked(TaskItem& out_item, size_t& out_kind)
-    {
-        const size_t first = prefer_fixed ? static_cast<size_t>(QUEUE_FIXED) : static_cast<size_t>(QUEUE_NORMAL);
-        const size_t second = prefer_fixed ? static_cast<size_t>(QUEUE_NORMAL) : static_cast<size_t>(QUEUE_FIXED);
-
-        if (pop_from_locked(first, out_item))
-        {
-            out_kind = first;
-            prefer_fixed = !prefer_fixed;
-            return true;
-        }
-
-        if (pop_from_locked(second, out_item))
-        {
-            out_kind = second;
-            prefer_fixed = !prefer_fixed;
-            return true;
-        }
-
-        return false;
-    }
-
-    void WorldSystemScheduler::execute_node(const TaskItem& item, size_t kind)
-    {
-        StageRun& run = *item.run;
-        const StageNode& node = run.stage->nodes[item.node];
-
-        // StageRun::dt is written before the roots are published.
         node.task->invoke(run.dt);
 
-        size_t released = 0;
-        bool finished = false;
+        // Successors join the stage counter before this job leaves it, so the counter cannot reach zero early.
+        std::vector<JobDecl> released;
+        for (uint32 successor : node.successors)
         {
-            std::lock_guard<std::mutex> lock(work_mutex);
-
-            for (uint32 successor : node.successors)
+            if (run.remaining[successor].fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
-                if (--run.remaining[successor] == 0)
-                {
-                    queues[kind].push_back(TaskItem{&run, successor});
-                    ++released;
-                }
+                released.push_back(make_node_job(run, successor));
             }
-
-            ++run.completed;
-            finished = run.completed == run.total;
         }
 
-        if (released != 0 || finished)
+        if (!released.empty())
         {
-            work_available.notify_all();
-        }
-    }
-
-    void WorldSystemScheduler::worker_loop()
-    {
-        while (true)
-        {
-            TaskItem item;
-            size_t kind = QUEUE_NORMAL;
-
-            {
-                std::unique_lock<std::mutex> lock(work_mutex);
-                work_available.wait(lock, [this]
-                    {
-                        return !running.load(std::memory_order_relaxed) || has_pending_locked();
-                    });
-
-                if (!pop_any_locked(item, kind))
-                {
-                    if (!running.load(std::memory_order_relaxed))
-                    {
-                        break;
-                    }
-
-                    continue;
-                }
-            }
-
-            execute_node(item, kind);
+            JobSystem::run_jobs(released.data(), static_cast<uint32>(released.size()), &run.counter);
         }
     }
 
@@ -710,6 +601,8 @@ namespace era_engine
                 next_fixed_update = now + interval;
                 std::this_thread::yield();
             }
+
+            next_fixed_update_ticks.store(next_fixed_update.time_since_epoch().count(), std::memory_order_relaxed);
         }
     }
 
@@ -1137,8 +1030,8 @@ namespace era_engine
         }
 
         result += ": " + std::to_string(schedule->task_count) + " task(s), " +
-                  std::to_string(schedule->stages.size()) + " stage(s), " + std::to_string(workers.size()) +
-                  " worker(s) + the calling thread\n";
+                  std::to_string(schedule->stages.size()) + " stage(s), " + std::to_string(JobSystem::get_worker_count()) +
+                  " job worker(s)\n";
 
         for (const StageSchedule& stage : schedule->stages)
         {

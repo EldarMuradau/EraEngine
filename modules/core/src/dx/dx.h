@@ -42,6 +42,6 @@ namespace era_engine
 #endif
 }
 
-#define NUM_BUFFERED_FRAMES 2
+#define NUM_BUFFERED_FRAMES 3
 
 #define SET_NAME(obj, name) checkResult(obj->SetName(L##name));

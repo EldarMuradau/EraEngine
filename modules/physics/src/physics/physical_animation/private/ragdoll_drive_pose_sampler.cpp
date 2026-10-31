@@ -33,24 +33,11 @@ namespace era_engine::physics
         ref<Skeleton> skeleton = skeleton_to_update->skeleton;
         ASSERT(skeleton != nullptr);
 
-        const float fixed_update_dt = physical_animation_component->get_world()->get_fixed_update_dt();
-
         const uint32 root_id = 0;
-        trs root_local_transform = SkeletonUtils::get_object_space_joint_transform(pose, skeleton.get(), root_id);
-        root_local_transform.scale = vec3(1.0f);
 
         auto simulated_joints_end = physical_animation_component->simulated_joints.end();
 
-        if (!physical_animation_component->reached_physics_pose)
-        {
-            physical_animation_component->elapsed_blend_time += dt;
-        }
-
-        const float blend_value = physical_animation_component->reached_physics_pose ? 1.0f : std::min(physical_animation_component->elapsed_blend_time / fixed_update_dt, 1.0f);
-        if (physical_animation_component->elapsed_blend_time >= fixed_update_dt)
-        {
-            physical_animation_component->reached_physics_pose = true;
-        }
+        const float blend_value = physical_animation_component->get_world()->get_elapsed_fixed_update_share();
 
         for (const uint32 simulation_joint : physical_animation_component->simulated_joints_set)
         {
@@ -79,9 +66,17 @@ namespace era_engine::physics
 
                 PhysicalAnimationLimbComponent* limb_data_component = limb.get_component<PhysicalAnimationLimbComponent>();
 
-                // Combine blend types to process ragdoll profile transition.
+                // A kinematic limb follows the drive target, which lags the animation by a frame. The mesh shows the animation
+                // for it and fades to the physics pose when the limb starts simulating, so the start does not jump.
+                const bool is_limb_simulated = limb_data_component->get_current_state_type() != PhysicalLimbStateType::KINEMATIC;
+                const float limb_blend_time = is_limb_simulated ? physical_animation_component->blend_in_time : physical_animation_component->blend_out_time;
+                const float limb_blend_step = limb_blend_time > 0.0f ? dt / limb_blend_time : 1.0f;
+
+                float& mesh_physics_weight = limb_data_component->mesh_physics_weight;
+                mesh_physics_weight = is_limb_simulated ? std::min(mesh_physics_weight + limb_blend_step, 1.0f) : std::max(mesh_physics_weight - limb_blend_step, 0.0f);
+
                 PhysicalLimbBlendType result_type = limb_data_component->blend_type | limb_data_component->prev_blend_type;
-                if (result_type == PhysicalLimbBlendType::NONE)
+                if (result_type == PhysicalLimbBlendType::NONE || mesh_physics_weight <= 0.0f)
                 {
                     // By default use PURE_ANIMATION blend type.
                     result_type = PhysicalLimbBlendType::PURE_ANIMATION;
@@ -91,6 +86,7 @@ namespace era_engine::physics
                 {
                     if (dismembered_limb->is_dismembered())
                     {
+                        mesh_physics_weight = 1.0f;
                         result_type = PhysicalLimbBlendType::PURE_PHYSICS;
                     }
                 }
@@ -153,7 +149,8 @@ namespace era_engine::physics
         const trs& inverse_parent_local_transform,
         float blend_time) const
     {
-        if (fuzzy_equals(physical_animation_component->blend_weight, 0.0f))
+        const float blend_weight = physical_animation_component->blend_weight * limb_data_component->mesh_physics_weight;
+        if (fuzzy_equals(blend_weight, 0.0f))
         {
             return inverse_parent_local_transform * limb_animation_transform;
         }
@@ -162,25 +159,23 @@ namespace era_engine::physics
 
         if (!has_flag(result_type, PhysicalLimbBlendType::PURE_PHYSICS))
         {
+            // Physics poses come at fixed rate, interpolate them always so the mesh does not step.
+            blend_with_transform(limb_data_component->prev_physics_pose,
+                blend_time,
+                new_object_pose);
+
             if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_ANIMATION_POSE))
             {
                 blend_with_transform(limb_animation_transform,
                     physical_animation_component->animation_blend_factor,
                     new_object_pose);
             }
-
-            if (has_flag(result_type, PhysicalLimbBlendType::BLEND_WITH_PREV_POSE))
-            {
-                blend_with_transform(limb_data_component->prev_physics_pose,
-                    blend_time,
-                    new_object_pose);
-            }
         }
 
-        if (!fuzzy_equals(physical_animation_component->blend_weight, 1.0f))
+        if (!fuzzy_equals(blend_weight, 1.0f))
         {
             blend_with_transform(limb_animation_transform,
-                physical_animation_component->blend_weight,
+                blend_weight,
                 new_object_pose);
         }
 

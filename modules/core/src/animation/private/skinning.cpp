@@ -108,16 +108,21 @@ namespace era_engine::animation
 
     static ref<DXBuffer> skinning_matrices_buffer; // Buffered frames are in a single dx_buffer.
 
-    static uint32 current_skinned_vertex_buffer;
-    static VertexBufferGroup skinned_vertex_buffer[2]; // We have two of these, so that we can compute screen space velocities.
+    // Skinning runs on the async compute queue, which does not wait for the render queue, so a frame writes its buffer
+    // while the previous frames may still render from theirs (current and previous for screen space velocities).
+    static constexpr uint32 NUM_SKINNED_VERTEX_BUFFERS = NUM_BUFFERED_FRAMES + 1;
 
-    static mat4 skinning_matrices[MAX_NUM_SKINNING_MATRICES_PER_FRAME];
+    static uint32 current_skinned_vertex_buffer;
+    static VertexBufferGroup skinned_vertex_buffer[NUM_SKINNED_VERTEX_BUFFERS];
+
+    // Per frame slot. The execution of a frame copies its matrices and calls while the next frame collects.
+    static mat4 skinning_matrices[NUM_BUFFERED_FRAMES][MAX_NUM_SKINNING_MATRICES_PER_FRAME];
     static volatile uint32 num_skinning_matrices_this_frame;
 
-    static SkinningCall calls[1024];
+    static SkinningCall calls[NUM_BUFFERED_FRAMES][1024];
     static volatile uint32 num_calls;
 
-    static ClothSkinningCall cloth_calls[128];
+    static ClothSkinningCall cloth_calls[NUM_BUFFERED_FRAMES][128];
     static volatile uint32 num_cloth_calls;
 
     static volatile uint32 total_num_vertices;
@@ -126,7 +131,7 @@ namespace era_engine::animation
     {
         skinning_matrices_buffer = create_upload_buffer(sizeof(mat4), MAX_NUM_SKINNING_MATRICES_PER_FRAME * NUM_BUFFERED_FRAMES, 0);
 
-        for (uint32 i = 0; i < 2; ++i)
+        for (uint32 i = 0; i < NUM_SKINNED_VERTEX_BUFFERS; ++i)
         {
             skinned_vertex_buffer[i].positions = create_vertex_buffer(sizeof(vec3), MAX_NUM_SKINNED_VERTICES_PER_FRAME, 0, true);
             skinned_vertex_buffer[i].others = create_vertex_buffer(
@@ -146,10 +151,12 @@ namespace era_engine::animation
         uint32 vertex_offset = atomic_add(total_num_vertices, range.num_vertices);
         ASSERT(vertex_offset + range.num_vertices <= MAX_NUM_SKINNED_VERTICES_PER_FRAME);
 
-        uint32 call_index = atomic_increment(num_calls);
-        ASSERT(call_index < arraysize(calls));
+        const uint32 slot = dx_context.get_buffered_frame_id();
 
-        calls[call_index] =
+        uint32 call_index = atomic_increment(num_calls);
+        ASSERT(call_index < arraysize(calls[slot]));
+
+        calls[slot][call_index] =
             {
                 vertex_buffer,
                 range,
@@ -170,7 +177,7 @@ namespace era_engine::animation
         result.others.view.SizeInBytes = others->element_size * num_vertices;
         result.others.view.StrideInBytes = others->element_size;
 
-        return {result, skinning_matrices + joint_offset};
+        return {result, skinning_matrices[slot] + joint_offset};
     }
 
     ERA_CORE_API std::tuple<DXVertexBufferGroupView, mat4*> skin_object(const DXVertexBufferGroupView& vertex_buffer, uint32 num_vertices, uint32 num_joints)
@@ -192,10 +199,12 @@ namespace era_engine::animation
         uint32 vertex_offset = atomic_add(total_num_vertices, num_vertices);
         ASSERT(vertex_offset + num_vertices <= MAX_NUM_SKINNED_VERTICES_PER_FRAME);
 
-        uint32 call_index = atomic_increment(num_cloth_calls);
-        ASSERT(call_index < arraysize(cloth_calls));
+        const uint32 slot = dx_context.get_buffered_frame_id();
 
-        cloth_calls[call_index] =
+        uint32 call_index = atomic_increment(num_cloth_calls);
+        ASSERT(call_index < arraysize(cloth_calls[slot]));
+
+        cloth_calls[slot][call_index] =
             {
                 inpositions,
                 grid_size_x,
@@ -220,23 +229,25 @@ namespace era_engine::animation
         // TODO: We currently make no attempt to ensure that all draw calls have actually been written completely, if executed on another thread.
         if (num_calls > 0 || num_cloth_calls > 0)
         {
+            const uint32 slot = dx_context.get_buffered_frame_id();
+
             SkinningData data;
             data.skinned_vertex_buffer = skinned_vertex_buffer[current_skinned_vertex_buffer];
             data.skinning_matrices_buffer = skinning_matrices_buffer;
 
-            data.skinning_matrices = skinning_matrices;
+            data.skinning_matrices = skinning_matrices[slot];
             data.num_skinning_matrices = num_skinning_matrices_this_frame;
-            data.matrix_offset = dx_context.buffered_frame_id * MAX_NUM_SKINNING_MATRICES_PER_FRAME;
+            data.matrix_offset = slot * MAX_NUM_SKINNING_MATRICES_PER_FRAME;
 
-            data.calls = calls;
+            data.calls = calls[slot];
             data.num_calls = num_calls;
 
-            data.cloth_calls = cloth_calls;
+            data.cloth_calls = cloth_calls[slot];
             data.num_cloth_calls = num_cloth_calls;
 
             compute_pass->add_task<SkinningPipeline>(COMPUTE_PASS_FRAME_START, data);
 
-            current_skinned_vertex_buffer = 1 - current_skinned_vertex_buffer;
+            current_skinned_vertex_buffer = (current_skinned_vertex_buffer + 1) % NUM_SKINNED_VERTEX_BUFFERS;
             num_calls = 0;
             num_cloth_calls = 0;
             num_skinning_matrices_this_frame = 0;

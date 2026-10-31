@@ -864,7 +864,7 @@ namespace era_engine::physics
                 else
                 {
                     ASSERT(false);
-                    iter = d6_joints_to_init.erase(iter);
+                    iter = distance_joints_to_init.erase(iter);
                     continue;
                 }
             }
@@ -933,7 +933,7 @@ namespace era_engine::physics
                 else
                 {
                     ASSERT(false);
-                    iter = d6_joints_to_init.erase(iter);
+                    iter = fixed_joints_to_init.erase(iter);
                     continue;
                 }
             }
@@ -1003,7 +1003,7 @@ namespace era_engine::physics
                 else
                 {
                     ASSERT(false);
-                    iter = d6_joints_to_init.erase(iter);
+                    iter = revolute_joints_to_init.erase(iter);
                     continue;
                 }
             }
@@ -1072,7 +1072,7 @@ namespace era_engine::physics
                 else
                 {
                     ASSERT(false);
-                    iter = d6_joints_to_init.erase(iter);
+                    iter = spherical_joints_to_init.erase(iter);
                     continue;
                 }
             }

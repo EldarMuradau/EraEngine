@@ -1,195 +1,187 @@
-// Copyright (c) 2023-present Eldar Muradov. All rights reserved.
-
 #include "core/job_system.h"
-#include "core/math.h"
-#include "core/imgui.h"
 
 namespace era_engine
 {
-    void JobQueue::initialize(uint32 num_threads, uint32 thread_offset, int thread_priority, const wchar* description)
+    struct JobState
     {
-        queue = moodycamel::ConcurrentQueue<int32>(capacity);
+        std::function<void(JobHandle)> function;
+        JobQueueType type = JobQueueType::HIGH_PRIORITY;
 
-        for (uint32 i = 0; i < num_threads; ++i)
-        {
-            std::thread thread([this, i]()
-                {
-                    thread_func(i);
-                });
+        // Own execution + unfinished children + pending continuation registrations.
+        JobCounter unfinished;
 
-            HANDLE handle = (HANDLE)thread.native_handle();
-            SetThreadPriority(handle, thread_priority);
+        ref<JobState> parent;
+        JobHandle continuation;
+    };
 
-            uint64 affinity_mask = 1ull << (i + thread_offset);
-            SetThreadAffinityMask(handle, affinity_mask);
-            SetThreadDescription(handle, description);
-
-            thread.detach();
-        }
-    }
-
-    void JobQueue::add_continuation(int32 first, JobHandle second)
+    namespace
     {
-        JobQueueEntry& first_job = all_jobs[first];
-        // ASSERT(firstJob.continuation.index == -1);
+        std::mutex main_thread_jobs_mutex;
+        std::vector<ref<JobState>> main_thread_jobs;
 
-        int32 unfinished = first_job.num_unfinished_jobs++;
-        if (unfinished == 0)
+        void finish(const ref<JobState>& state)
         {
-            // First job was finished before adding continuation -> just submit second.
-            second.queue->submit(second.index);
-        }
-        else
-        {
-            // First job hadn't finished before -> add second as continuation and then finish first (which decrements numUnfinished again).
-            first_job.continuation = second;
-            finish_job(first);
-        }
-    }
-
-    void JobQueue::submit(int32 handle)
-    {
-        if (handle != -1)
-        {
-            while (!queue.try_enqueue(handle))
+            if (JobSystem::decrement_counter(&state->unfinished) != 0)
             {
-                execute_next_job();
+                return;
             }
 
-            ++running_jobs;
+            ref<JobState> parent = std::move(state->parent);
+            JobHandle continuation = std::move(state->continuation);
 
-            wake_condition.notify_one();
-        }
-    }
-
-    void JobQueue::wait_for_completion()
-    {
-        while (running_jobs)
-        {
-            execute_next_job();
-        }
-    }
-
-    void JobQueue::wait_for_completion(int32 handle)
-    {
-        if (handle != -1)
-        {
-            JobQueueEntry& job = all_jobs[handle];
-
-            while (job.num_unfinished_jobs > 0)
+            if (parent != nullptr)
             {
-                execute_next_job();
+                finish(parent);
             }
+            continuation.submit_now();
         }
-    }
 
-    int32 JobQueue::allocate_job()
-    {
-        return (int32)(next_free_job++ & index_mask);
-    }
-
-    void JobQueue::finish_job(int32 handle)
-    {
-        JobQueueEntry& job = all_jobs[handle];
-        int32 num_unfinished_jobs = --job.num_unfinished_jobs;
-        ASSERT(num_unfinished_jobs >= 0);
-        if (num_unfinished_jobs == 0)
+        void execute(const ref<JobState>& state)
         {
-            --running_jobs;
+            state->function(JobHandle{state});
 
-            if (job.parent != -1)
-            {
-                finish_job(job.parent);
-            }
+            // Captured data is released before waiters wake up.
+            state->function = nullptr;
 
-            if (job.continuation.index != -1)
-            {
-                job.continuation.queue->submit(job.continuation.index);
-            }
+            finish(state);
+        }
+
+        void job_entry_point(void* data)
+        {
+            ref<JobState>* holder = static_cast<ref<JobState>*>(data);
+            ref<JobState> state = std::move(*holder);
+            delete holder;
+
+            execute(state);
         }
     }
 
-    bool JobQueue::execute_next_job()
+    JobQueue::JobQueue(JobQueueType _type)
+        : type(_type)
     {
-        int32 handle = -1;
-        if (queue.try_dequeue(handle))
-        {
-            JobQueueEntry& job = all_jobs[handle];
-            job.function(job.templated_function, job.data, {handle, this});
-
-            finish_job(handle);
-
-            return true;
-        }
-
-        return false;
     }
 
-    void JobQueue::thread_func(int32 thread_index)
+    JobHandle JobQueue::create_job(std::function<void(JobHandle)> function, JobHandle parent)
     {
-        while (true)
+        ref<JobState> state = make_ref<JobState>();
+        state->function = std::move(function);
+        state->type = type;
+
+        JobSystem::increment_counter(&state->unfinished);
+
+        if (parent.state != nullptr)
         {
-            if (!execute_next_job())
-            {
-                std::unique_lock<std::mutex> lock(wake_mutex);
-                wake_condition.wait(lock);
-            }
+            JobSystem::increment_counter(&parent.state->unfinished);
+            state->parent = parent.state;
         }
+
+        return JobHandle{state};
     }
 
     void JobHandle::submit_now()
     {
-        if (queue != nullptr)
+        if (state == nullptr)
         {
-            queue->submit(index);
+            return;
         }
+
+        if (state->type == JobQueueType::MAIN_THREAD)
+        {
+            std::lock_guard lock(main_thread_jobs_mutex);
+            main_thread_jobs.push_back(state);
+            return;
+        }
+
+        const JobPriority priority = state->type == JobQueueType::HIGH_PRIORITY ? JobPriority::HIGH : JobPriority::BACKGROUND;
+        const JobDecl decl(job_entry_point, new ref<JobState>(state), priority, false, "JobHandle job");
+        JobSystem::run_jobs(&decl, 1);
     }
 
     void JobHandle::submit_after(JobHandle before)
     {
-        before.queue->add_continuation(before.index, *this);
+        if (before.state == nullptr)
+        {
+            submit_now();
+            return;
+        }
+
+        // Holding a reference keeps 'before' unfinished while the continuation is attached.
+        if (JobSystem::increment_counter(&before.state->unfinished) == 0)
+        {
+            JobSystem::decrement_counter(&before.state->unfinished);
+            submit_now();
+            return;
+        }
+
+        ASSERT(before.state->continuation.state == nullptr);
+        before.state->continuation = *this;
+        finish(before.state);
     }
 
     void JobHandle::wait_for_completion()
     {
-        if (queue != nullptr)
+        if (state == nullptr)
         {
-            queue->wait_for_completion(index);
+            return;
         }
+
+        if (state->type == JobQueueType::MAIN_THREAD && JobSystem::get_worker_index() == 0)
+        {
+            execute_main_thread_jobs();
+        }
+
+        JobSystem::wait_for_counter(&state->unfinished);
     }
 
-    JobQueue high_priority_job_queue;
-    JobQueue low_priority_job_queue;
-    JobQueue main_thread_job_queue;
+    JobQueue high_priority_job_queue(JobQueueType::HIGH_PRIORITY);
+    JobQueue low_priority_job_queue(JobQueueType::LOW_PRIORITY);
+    JobQueue main_thread_job_queue(JobQueueType::MAIN_THREAD);
 
     void initialize_job_system()
     {
-        HANDLE handle = GetCurrentThread();
-        SetThreadAffinityMask(handle, 1);
-        SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
-        CloseHandle(handle);
+        if (!JobSystem::is_initialized())
+        {
+            JobSystem::initialize();
+        }
+    }
 
-        high_priority_job_queue.initialize(2, 1, THREAD_PRIORITY_NORMAL, L"High priority worker");
-        low_priority_job_queue.initialize(2, 3, THREAD_PRIORITY_BELOW_NORMAL, L"Low priority worker");
-        main_thread_job_queue.initialize(0, 0, 0, 0);
+    void shutdown_job_system()
+    {
+        execute_main_thread_jobs();
+        JobSystem::shutdown();
     }
 
     void execute_main_thread_jobs()
     {
-        main_thread_job_queue.wait_for_completion();
+        while (true)
+        {
+            std::vector<ref<JobState>> jobs;
+            {
+                std::lock_guard lock(main_thread_jobs_mutex);
+                jobs.swap(main_thread_jobs);
+            }
+
+            if (jobs.empty())
+            {
+                return;
+            }
+
+            for (const ref<JobState>& state : jobs)
+            {
+                execute(state);
+            }
+        }
     }
 
     JobHandle schedule_low_priority_job(const DefaultJob& data, JobHandle parent_job /* = {}*/)
     {
-        JobHandle job = low_priority_job_queue.create_job<DefaultJob>([](DefaultJob& job_data, JobHandle job)
+        return low_priority_job_queue.create_job([job_func = data.job_func](JobHandle)
             {
-                if (job_data.job_func)
+                if (job_func)
                 {
-                    job_data.job_func();
+                    job_func();
                 }
             },
-            data, parent_job);
-
-        return job;
+            parent_job);
     }
 }

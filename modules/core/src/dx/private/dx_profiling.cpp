@@ -38,10 +38,10 @@ namespace era_engine
     {
         ASSERT(cl->type == D3D12_COMMAND_LIST_TYPE_DIRECT);
 
-        uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.buffered_frame_id]);
+        uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.get_buffered_frame_id()]);
         cl->query_timestamp(queryIndex);
 
-        dxProfileEvents[dx_context.buffered_frame_id][queryIndex] =
+        dxProfileEvents[dx_context.get_buffered_frame_id()][queryIndex] =
             {
                 PROFILE_EVENT_FRAME_MARKER,
                 profile_cl_graphics,
@@ -55,11 +55,11 @@ namespace era_engine
 
         if (!pauseRecording)
         {
-            uint32 numQueries = dx_context.timestampQueryIndex[dx_context.buffered_frame_id];
+            uint32 numQueries = dx_context.timestampQueryIndex[dx_context.get_buffered_frame_id()];
             if (numQueries == 0)
                 return;
 
-            profile_event* events = dxProfileEvents[dx_context.buffered_frame_id];
+            profile_event* events = dxProfileEvents[dx_context.get_buffered_frame_id()];
             for (uint32 i = 0; i < numQueries; ++i)
             {
                 events[i].timestamp = timestamps[i];
@@ -101,7 +101,7 @@ namespace era_engine
 
                     frame.startClock = (previousFrame.endClock == 0) ? frameEndTimestamp : previousFrame.endClock;
                     frame.endClock = frameEndTimestamp;
-                    frame.globalFrameID = dx_context.frame_id;
+                    frame.globalFrameID = dx_context.get_frame_id();
 
                     frame.duration = (float)(frame.endClock - frame.startClock) / dx_context.render_queue.time_stamp_frequency * 1000.f;
 

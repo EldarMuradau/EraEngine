@@ -4,12 +4,14 @@
 
 #include "core_api.h"
 
+#include "core/jobs/jobs.h"
+
 #include <atomic>
 #include <mutex>
 
 namespace era_engine
 {
-    struct ERA_CORE_API Lock
+    struct ERA_CORE_API Lock final
     {
         Lock(std::mutex& mutex)
             : sync(mutex)
@@ -25,36 +27,39 @@ namespace era_engine
         std::mutex& sync;
     };
 
-    class SpinLock
+    // Not recursive.
+    class SpinLock final
     {
-        alignas(64) std::atomic_flag flag = ATOMIC_FLAG_INIT;
+        alignas(std::hardware_destructive_interference_size) std::atomic_flag flag = ATOMIC_FLAG_INIT;
 
     public:
         void lock()
         {
             uint32 backoff = 1;
 
-            while (!flag.test_and_set(std::memory_order_acquire))
+            while (flag.test_and_set(std::memory_order_acquire))
             {
-                for (uint32 i = 0; i < backoff; ++i)
+                while (flag.test(std::memory_order_relaxed))
                 {
-                    _mm_pause();
-                }
-
-                if (backoff < 1024u)
-                {
-                    backoff *= 2u;
-                }
-                else
-                {
-                    std::this_thread::yield();
+                    if (backoff <= 1024u)
+                    {
+                        for (uint32 i = 0; i < backoff; ++i)
+                        {
+                            _mm_pause();
+                        }
+                        backoff *= 2u;
+                    }
+                    else
+                    {
+                        JobSystem::yield();
+                    }
                 }
             }
         }
 
         bool try_lock()
         {
-            return flag.test_and_set(std::memory_order_acquire);
+            return !flag.test_and_set(std::memory_order_acquire);
         }
 
         void unlock()
@@ -63,7 +68,7 @@ namespace era_engine
         }
     };
 
-    class ERA_CORE_API ScopedSpinLock
+    class ERA_CORE_API ScopedSpinLock final
     {
         SpinLock& lock;
 

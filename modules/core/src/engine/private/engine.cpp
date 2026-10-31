@@ -4,6 +4,7 @@
 #include "core/imgui.h"
 #include "core/cpu_profiling.h"
 #include "core/job_system.h"
+#include "core/frame_params.h"
 #include "core/debug/debug_var_storage.h"
 
 #include "dx/dx_context.h"
@@ -43,10 +44,46 @@ namespace era_engine
 {
     bool handle_windows_messages();
 
-    static uint64 fence_values[NUM_BUFFERED_FRAMES];
+    static FrameParams frames[NUM_BUFFERED_FRAMES];
     static uint64 frame_id;
 
-    static bool new_frame(float& dt, DXWindow& window)
+    // Execution of the last collected frame. Executions run one at a time, in frame order.
+    static JobCounter frame_execution;
+
+    static bool serial_frames = false;
+
+    void wait_for_frame_execution()
+    {
+        ZoneScopedN("Wait for frame execution");
+        JobSystem::wait_for_counter(&frame_execution);
+    }
+
+    // Starts collection of the next frame once the GPU has finished the frame that used the same slot.
+    static FrameParams& begin_frame_params()
+    {
+        FrameParams& frame = frames[frame_id % NUM_BUFFERED_FRAMES];
+
+        {
+            ZoneScopedN("Wait for queued frame to finish rendering");
+            dx_context.render_queue.wait_for_fence(frame.gpu_fence);
+        }
+
+        frame.frame_id = frame_id;
+        frame.slot = (uint32)(frame_id % NUM_BUFFERED_FRAMES);
+        frame.gpu_fence = 0;
+        frame.render_tasks.clear();
+
+        JobSystem::set_frame_context(&frame);
+
+        {
+            ZoneScopedN("dx_context.new_frame");
+            dx_context.new_frame(frame_id);
+        }
+
+        return frame;
+    }
+
+    static bool new_frame(float& dt)
     {
         static bool first = true;
         static float perf_freq;
@@ -74,16 +111,6 @@ namespace era_engine
         ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
         cpu_profiling_resolve_time_stamps();
-
-        {
-            ZoneScopedN("Wait for queued frame to finish rendering");
-            dx_context.render_queue.wait_for_fence(fence_values[window.current_backbuffer_index]);
-        }
-
-        {
-            ZoneScopedN("dx_context.new_frame");
-            dx_context.new_frame(frame_id);
-        }
 
         return result;
     }
@@ -116,8 +143,10 @@ namespace era_engine
         DebugVarsStorage::get_instance()->draw_vars(debug_vars_opened);
     }
 
-    static void render_to_main_window(DXWindow& window)
+    static void render_to_main_window(DXWindow& window, FrameParams& frame, const vec4& clear_color)
     {
+        ZoneScopedN("Engine::render_to_main_window");
+
         DXResource backbuffer = window.back_buffers[window.current_backbuffer_index];
         DXRTVDescriptorHandle rtv = window.back_buffer_rtvs[window.current_backbuffer_index];
 
@@ -143,7 +172,6 @@ namespace era_engine
             else
             {
                 cl->transition_barrier(backbuffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-                const ImVec4 clear_color = ImGui::GetStyleColorVec4(ImGuiCol_DockingEmptyBg);
                 cl->clear_rtv(rtv, clear_color.x, clear_color.y, clear_color.z);
             }
             window.present_texture = nullptr;
@@ -160,7 +188,54 @@ namespace era_engine
 
         window.swap_buffers();
 
-        fence_values[window.current_backbuffer_index] = result;
+        frame.gpu_fence = result;
+    }
+
+    // Execution of a collected frame: queued render tasks, then the main window.
+    static void execute_frame(DXWindow& window, FrameParams& frame, const vec4& clear_color)
+    {
+        ZoneScopedN("Engine::execute_frame");
+
+        {
+            ZoneScopedN("Frame render tasks");
+            for (const std::function<void()>& task : frame.render_tasks)
+            {
+                task();
+            }
+        }
+
+        render_to_main_window(window, frame, clear_color);
+    }
+
+    struct FrameExecution
+    {
+        DXWindow* window = nullptr;
+        FrameParams* frame = nullptr;
+        vec4 clear_color;
+    };
+
+    static FrameExecution frame_executions[NUM_BUFFERED_FRAMES];
+
+    // Runs the frame's execution as a job while the main thread starts the next frame.
+    static void launch_frame_execution(DXWindow& window, FrameParams& frame, const vec4& clear_color)
+    {
+        wait_for_frame_execution();
+
+        FrameExecution& execution = frame_executions[frame.slot];
+        execution = FrameExecution{&window, &frame, clear_color};
+
+        const JobDecl decl([](void* data)
+            {
+                const FrameExecution& execution = *static_cast<const FrameExecution*>(data);
+                execute_frame(*execution.window, *execution.frame, execution.clear_color);
+            },
+            &execution, JobPriority::HIGH, false, "Frame execution");
+        JobSystem::run_jobs(&decl, 1, &frame_execution);
+
+        if (serial_frames)
+        {
+            wait_for_frame_execution();
+        }
     }
 
     Engine* Engine::instance_object = nullptr;
@@ -184,6 +259,7 @@ namespace era_engine
         Parser cli;
         cli += Opt(verbose, "verbose")["-v"]["--verbose"]("Enable verbose logging");
         cli += Opt(main_menu, "main-menu")["-mm"]["--main-menu"]("Enable main menu bar");
+        cli += Opt(serial_frames, "serial-frames")["-sf"]["--serial-frames"]("Execute each frame before collecting the next one");
 
         auto result = cli.parse(Args(argc, argv));
         if (!result)
@@ -240,7 +316,6 @@ namespace era_engine
         FileBrowser file_browser;
 
         // Wait for initialization to finish
-        fence_values[NUM_BUFFERED_FRAMES - 1] = dx_context.render_queue.signal();
         dx_context.flush_application();
 
         if (initial_task)
@@ -264,10 +339,13 @@ namespace era_engine
 
             window->begin_frame(dt);
 
+            FrameParams& frame = begin_frame_params();
+
             {
                 ZoneScopedN("Engine::start_frame");
-                status = new_frame(dt, *window);
+                status = new_frame(dt);
             }
+            frame.dt = dt;
 
             window->update_input(dt);
 
@@ -306,7 +384,10 @@ namespace era_engine
                 ZoneScopedN("Engine::render");
                 file_browser.draw();
 
-                render_to_main_window(*window);
+                const ImVec4 clear_color = ImGui::GetStyleColorVec4(ImGuiCol_DockingEmptyBg);
+                end_imgui_frame();
+
+                launch_frame_execution(*window, frame, vec4(clear_color.x, clear_color.y, clear_color.z, clear_color.w));
             }
 
             cpu_profiling_frame_end_marker();
@@ -316,11 +397,15 @@ namespace era_engine
             FrameMark;
         }
 
+        wait_for_frame_execution();
+
         for (auto& [name, world] : get_worlds())
         {
             WorldSystemScheduler* scheduler = world->get_system_scheduler();
             scheduler->stop();
         }
+
+        shutdown_job_system();
 
         terminate();
 

@@ -11,8 +11,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -97,10 +95,7 @@ namespace era_engine
     class ERA_CORE_API WorldSystemScheduler
     {
     public:
-        // `normal_threads` and `fixed_threads` are summed into a *single* shared pool. Two
-        // independent pools oversubscribe the machine and let fixed work preempt the frame.
-        // 0 (default) sizes the pool from hardware_concurrency.
-        WorldSystemScheduler(World* _world, size_t normal_threads = 0, size_t fixed_threads = 0);
+        explicit WorldSystemScheduler(World* _world);
 
         ~WorldSystemScheduler();
 
@@ -110,7 +105,7 @@ namespace era_engine
         void stop();
         bool is_running() const;
 
-        // `rate_hz` is a frequency (30.0 == 30 steps per second).
+        // 'rate_hz' is a frequency (30.0 == 30 steps per second).
         void set_fixed_update_rate(double rate_hz);
         double get_fixed_update_rate() const;
 
@@ -125,9 +120,7 @@ namespace era_engine
 
         void refresh_graph();
 
-        // Removes the barrier between `group_name` and the group that precedes it in the update
-        // order: both run as a single stage and only real After/Before dependencies between their
-        // tasks are enforced.
+        // Removes the barrier between `group_name` and the group that precedes it in the update order.
         void set_group_overlap(const std::string& group_name, bool may_overlap_previous);
 
         void set_overlapping_groups(const std::vector<std::string>& group_names);
@@ -155,45 +148,36 @@ namespace era_engine
         uint32 pump_fixed_steps();
 
     protected:
-        enum QueueKind : size_t
+        struct StageRun;
+
+        struct NodeJob
         {
-            QUEUE_NORMAL = 0,
-            QUEUE_FIXED = 1,
-            QUEUE_COUNT = 2
+            StageRun* run = nullptr;
+            uint32 node = 0;
         };
 
         // Live state of one stage execution.
         struct StageRun
         {
             const StageSchedule* stage = nullptr;
-            std::vector<uint32> remaining;
+            std::unique_ptr<std::atomic<uint32>[]> remaining;
+            std::vector<NodeJob> node_jobs;
             float dt = 0.0f;
-            uint32 completed = 0;
-            uint32 total = 0;
+            JobCounter counter;
         };
-
-        struct TaskItem
-        {
-            StageRun* run = nullptr;
-            uint32 node = 0;
-        };
-
-        void worker_loop();
 
         void fixed_timer_loop();
+        void start_fixed_timer_thread();
 
-        void run_schedule(const UpdateScheduleRef& schedule, float dt, size_t kind);
+        void run_schedule(const UpdateScheduleRef& schedule, float dt);
 
-        // Dispatches the stage as a dataflow graph and keeps executing its tasks on the calling
-        // thread until the stage is done, instead of parking on a barrier.
-        void run_stage(const StageSchedule& stage, float dt, size_t kind);
+        // Dispatches the stage as a dataflow graph of jobs. The calling fiber waits for all of them.
+        void run_stage(const StageSchedule& stage, float dt);
 
-        // Invokes one node, then releases the successors it was blocking.
-        void execute_node(const TaskItem& item, size_t kind);
+        static JobDecl make_node_job(StageRun& run, uint32 node);
 
-        bool has_pending_locked() const;
-        bool pop_any_locked(TaskItem& out_item, size_t& out_kind);
-        bool pop_from_locked(size_t kind, TaskItem& out_item);
+        // Invokes one node, then dispatches the successors it was blocking.
+        static void execute_node(void* node_job);
 
         void add_task(ref<Task> task, UpdateType type);
 
@@ -201,18 +185,14 @@ namespace era_engine
         UpdateScheduleRef get_schedule(UpdateType type) const;
 
         std::chrono::steady_clock::duration fixed_interval() const;
+        float compute_fixed_update_elapsed_share(std::chrono::steady_clock::time_point next_update) const;
 
     protected:
         World* world = nullptr;
 
-        std::vector<std::thread> workers;
-        std::deque<TaskItem> queues[QUEUE_COUNT];
-        bool prefer_fixed = false;
-
-        mutable std::mutex work_mutex;
-        std::condition_variable work_available;
         std::atomic<bool> running = false;
 
+        // Started only for FixedStepMode::THREADED.
         std::thread fixed_timer_thread;
         std::mutex fixed_step_mutex;
         std::atomic<double> fixed_update_rate = 30.0;
@@ -222,6 +202,9 @@ namespace era_engine
         // Owned by the timer thread.
         std::chrono::steady_clock::time_point next_fixed_update{};
         std::chrono::steady_clock::duration fixed_spin_margin = std::chrono::microseconds(300);
+
+        // next_fixed_update published for the normal update.
+        std::atomic<std::chrono::steady_clock::rep> next_fixed_update_ticks = 0;
 
         // Owned by the thread calling update_normal().
         std::chrono::steady_clock::time_point next_pumped_fixed_update{};

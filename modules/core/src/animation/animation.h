@@ -53,8 +53,6 @@ namespace era_engine::animation
         DXVertexBufferGroupView current_vertex_buffer;
         DXVertexBufferGroupView prev_frame_vertex_buffer;
 
-        trs* current_global_transforms = nullptr;
-
         ref<InertialBlendSampler> inertial_sampler;
         float blend_time = 0.16f;
 

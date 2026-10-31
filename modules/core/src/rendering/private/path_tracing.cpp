@@ -49,7 +49,7 @@ namespace era_engine
 
     bool PathTracer::is_accumulation_valid(const RaytracingTLAS& tlas, const ref<DXTexture>& output, const CameraCB& camera) const
     {
-        return last_frame_id + 1 == dx_context.frame_id && last_width == output->width && last_height == output->height && memcmp(&last_view_proj, &camera.view_proj, sizeof(mat4)) == 0 && last_instances.size() == tlas.all_instances.size() && memcmp(last_instances.data(), tlas.all_instances.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * last_instances.size()) == 0 && memcmp(&settings, &old_settings, sizeof(PathTracerSettings)) == 0;
+        return last_frame_id + 1 == dx_context.get_frame_id() && last_width == output->width && last_height == output->height && memcmp(&last_view_proj, &camera.view_proj, sizeof(mat4)) == 0 && last_instances.size() == tlas.all_instances.size() && memcmp(last_instances.data(), tlas.all_instances.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * last_instances.size()) == 0 && memcmp(&settings, &old_settings, sizeof(PathTracerSettings)) == 0;
     }
 
     void PathTracer::render(DXCommandList* cl, const RaytracingTLAS& tlas,
@@ -67,7 +67,7 @@ namespace era_engine
             last_view_proj = camera.view_proj;
             last_instances = tlas.all_instances;
         }
-        last_frame_id = dx_context.frame_id;
+        last_frame_id = dx_context.get_frame_id();
 
         InputResources in;
         in.tlas = tlas.tlas->raytracing_srv;
@@ -96,7 +96,7 @@ namespace era_engine
         cl->set_compute_dynamic_constant_buffer(PATH_TRACING_RS_CAMERA, common.camera_cbv);
         cl->set_compute_32bit_constants(PATH_TRACING_RS_CB,
             PathTracingCB{
-                (uint32)dx_context.frame_id,
+                (uint32)dx_context.get_frame_id(),
                 num_averaged_frames,
                 depth,
                 clamp(settings.start_russian_roulette_after, 0u, depth),

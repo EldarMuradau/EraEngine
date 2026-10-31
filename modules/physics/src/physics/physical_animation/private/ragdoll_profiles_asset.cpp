@@ -167,9 +167,9 @@ namespace era_engine::physics
         ContactResponseSettings foot_contact = make_contact_response(0.7f, vec2(1.0f, 5.0f), 0.25f, 0.4f, 0.5f, 1.0f);
         foot_contact.respond_to_own_hits = false;
 
-        profile->body_lower_limb_details = make_driven_limb(8.0f * f, 1.0f * z, 6.5f * f, 350.0f * a, 45.0f * a, core_contact);
-        profile->body_middle_limb_details = make_driven_limb(7.5f * f, 1.0f * z, 4.5f * f, 250.0f * a, 30.0f * a, core_contact);
-        profile->body_upper_limb_details = make_driven_limb(7.5f * f, 1.0f * z, 4.5f * f, 250.0f * a, 30.0f * a, body_contact);
+        profile->body_lower_limb_details = make_driven_limb(8.0f * f, 0.72f * z, 6.5f * f, 350.0f * a, 45.0f * a, core_contact);
+        profile->body_middle_limb_details = make_driven_limb(7.5f * f, 0.72f * z, 4.5f * f, 250.0f * a, 30.0f * a, core_contact);
+        profile->body_upper_limb_details = make_driven_limb(7.5f * f, 0.72f * z, 4.5f * f, 250.0f * a, 30.0f * a, body_contact);
 
         profile->neck_limb_details = make_driven_limb(5.5f * f, 0.6f * z, 4.0f * f, 250.0f * a, 20.0f * a, neck_contact);
         profile->head_limb_details = make_driven_limb(5.5f * f, 0.6f * z, 4.0f * f, 250.0f * a, 20.0f * a, head_contact);

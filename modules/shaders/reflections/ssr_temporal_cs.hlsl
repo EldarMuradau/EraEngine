@@ -13,7 +13,6 @@ Texture2D<float4> prev_resolve	    : register(t1);
 Texture2D<float2> motion		    : register(t2);
 Texture2D<float> depth_buffer	    : register(t3);
 Texture2D<float4> raycast		    : register(t4);
-Texture2D<float2> prev_frame_motion	    : register(t5);
 
 SamplerState linear_sampler			: register(s0);
 SamplerState point_sampler			: register(s1);
@@ -130,7 +129,6 @@ void main(CSInput IN)
 #endif
 
     float2 m = motion.SampleLevel(point_sampler, uv, 0);
-    const bool disoccluded = is_disoccluded(m, prev_frame_motion.SampleLevel(point_sampler, uv + m, 0), 1.f / cb.inv_dimensions);
 
     const float4 ray = raycast.SampleLevel(point_sampler, uv, 0);
     const float depth = depth_buffer.SampleLevel(point_sampler, uv, 0);
@@ -166,7 +164,7 @@ void main(CSInput IN)
 
     const float motion_pixels = length(m / cb.inv_dimensions);
     float blend_final = lerp(0.92f, 0.75f, saturate(motion_pixels / 16.f));
-    blend_final = (is_saturated(prev_uv) && !disoccluded) ? blend_final : 0.f;
+    blend_final = is_saturated(prev_uv) ? blend_final : 0.f;
 
     float4 result = lerp(current, prev, blend_final);
     output[IN.dispatch_thread_id.xy] = max(0, result);

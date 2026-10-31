@@ -136,19 +136,16 @@ namespace era_engine
 
     void DXFrameDescriptorAllocator::initialize()
     {
-        current_frame = NUM_BUFFERED_FRAMES - 1;
     }
 
     void DXFrameDescriptorAllocator::new_frame(uint32 buffered_frame_id)
     {
         Lock lock{mutex};
 
-        current_frame = buffered_frame_id;
-
-        while (used_pages[current_frame])
+        while (used_pages[buffered_frame_id])
         {
-            DXFrameDescriptorPage* page = used_pages[current_frame];
-            used_pages[current_frame] = page->next;
+            DXFrameDescriptorPage* page = used_pages[buffered_frame_id];
+            used_pages[buffered_frame_id] = page->next;
             page->next = free_pages;
             free_pages = page;
         }
@@ -156,6 +153,8 @@ namespace era_engine
 
     DXDescriptorRange DXFrameDescriptorAllocator::allocate_contiguous_descriptor_range(uint32 count)
     {
+        const uint32 current_frame = dx_context.get_buffered_frame_id();
+
         // Lock section
         mutex.lock();
 

@@ -392,6 +392,7 @@ namespace era_engine
     {
         if (is_open())
         {
+            renderer.end_collection();
             renderer.end_frame(&input);
             controller.update(input, width, height, 1.0f / 10.0f);
         }

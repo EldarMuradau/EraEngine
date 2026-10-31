@@ -51,10 +51,10 @@ namespace era_engine
         DXProfileBlockRecorder(DXCommandList* cl, const char* name)
             : cl(cl), name(name)
         {
-            uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.buffered_frame_id]);
+            uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.get_buffered_frame_id()]);
             cl->query_timestamp(queryIndex);
 
-            dxProfileEvents[dx_context.buffered_frame_id][queryIndex] =
+            dxProfileEvents[dx_context.get_buffered_frame_id()][queryIndex] =
                 {
                     PROFILE_EVENT_BEGIN_BLOCK,
                     (uint16)((cl->type == D3D12_COMMAND_LIST_TYPE_DIRECT) ? profile_cl_graphics : profile_cl_compute),
@@ -64,10 +64,10 @@ namespace era_engine
 
         ~DXProfileBlockRecorder()
         {
-            uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.buffered_frame_id]);
+            uint32 queryIndex = atomicIncrement(dx_context.timestampQueryIndex[dx_context.get_buffered_frame_id()]);
             cl->query_timestamp(queryIndex);
 
-            dxProfileEvents[dx_context.buffered_frame_id][queryIndex] =
+            dxProfileEvents[dx_context.get_buffered_frame_id()][queryIndex] =
                 {
                     PROFILE_EVENT_END_BLOCK,
                     (uint16)((cl->type == D3D12_COMMAND_LIST_TYPE_DIRECT) ? profile_cl_graphics : profile_cl_compute),

@@ -306,9 +306,6 @@ namespace era_engine::physics
 
         float mass = 80.0f; // Set before creation.
 
-        float elapsed_blend_time = 0.0f;
-        bool reached_physics_pose = false;
-
         uint32 root_joint_id = 0;
 
         std::vector<EntityPtr> limbs;

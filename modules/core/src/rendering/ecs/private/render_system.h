@@ -22,7 +22,7 @@ namespace era_engine
     {
     public:
         RenderSystem(World* _world);
-        ~RenderSystem();
+        ~RenderSystem() override;
 
         void init() override;
         void begin_frame(float dt);
@@ -47,8 +47,6 @@ namespace era_engine
         RendererHolderRootComponent* renderer_holder_rc = nullptr;
 
         Allocator stack_arena;
-
-        RaytracingTLAS raytracing_tlas;
 
         struct RaytracingMeshEntry
         {
@@ -75,11 +73,20 @@ namespace era_engine
         BoidParticleSystem boid_particle_system;
         DebrisParticleSystem debris_particle_system;
 
-        OpaqueRenderPass opaque_render_pass;
-        TransparentRenderPass transparent_render_pass;
-        SunShadowRenderPass sun_shadow_render_pass;
-        SpotShadowRenderPass spot_shadow_render_passes[16];
-        PointShadowRenderPass point_shadow_render_passes[16];
-        ComputePass compute_pass;
+        struct FramePasses
+        {
+            OpaqueRenderPass opaque_render_pass;
+            TransparentRenderPass transparent_render_pass;
+            LDRRenderPass ldr_render_pass;
+            SunShadowRenderPass sun_shadow_render_pass;
+            SpotShadowRenderPass spot_shadow_render_passes[16];
+            PointShadowRenderPass point_shadow_render_passes[16];
+            ComputePass compute_pass;
+            RaytracingTLAS raytracing_tlas;
+        };
+
+        FramePasses& frame_passes();
+
+        FramePasses passes[NUM_BUFFERED_FRAMES];
     };
 }

@@ -24,7 +24,7 @@ namespace era_engine
         while (asset.load_state.load() == AssetLoadState::LOADING)
         {
             JobHandle job = asset.load_job;
-            if (job.queue == nullptr)
+            if (job.state == nullptr)
             {
                 std::this_thread::yield();
                 continue;

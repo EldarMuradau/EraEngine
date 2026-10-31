@@ -112,12 +112,56 @@ namespace era_engine
         bool allow_dlss = true;
     };
 
-    struct MainRenderer
+    struct MainRendererFrameInputs
+    {
+        const SunShadowRenderPass* sun_shadow_render_passes[MAX_NUM_SUN_LIGHT_SHADOW_PASSES]{};
+        const SpotShadowRenderPass* spot_light_shadow_render_passes[MAX_NUM_SPOT_LIGHT_SHADOW_PASSES]{};
+        const PointShadowRenderPass* point_light_shadow_render_passes[MAX_NUM_POINT_LIGHT_SHADOW_PASSES]{};
+
+        uint32 num_sun_light_shadow_render_passes{};
+        uint32 num_spot_light_shadow_render_passes{};
+        uint32 num_point_light_shadow_render_passes{};
+
+        RaytracingTLAS* tlas = nullptr;
+        const PBREnvironment* environment = nullptr;
+
+        DirectionalLightCB sun{};
+
+        ref<DXBuffer> point_lights;
+        ref<DXBuffer> spot_lights;
+        ref<DXBuffer> point_light_shadow_info_buffer;
+        ref<DXBuffer> spot_light_shadow_info_buffer;
+        ref<DXBuffer> decals;
+
+        uint32 num_point_lights{};
+        uint32 num_spot_lights{};
+        uint32 num_decals{};
+
+        ref<DXTexture> decal_texture_atlas;
+
+        const OpaqueRenderPass* opaque_render_pass = nullptr;
+        const TransparentRenderPass* transparent_render_pass = nullptr;
+        const LDRRenderPass* ldr_render_pass = nullptr;
+        const ComputePass* compute_pass = nullptr;
+
+        CameraCB jittered_camera{};
+        CameraCB unjittered_camera{};
+
+        uint32 requested_width{};
+        uint32 requested_height{};
+
+        RendererSettings frame_settings{};
+        RendererMode frame_mode = RENDERER_MODE_RASTERIZED;
+        AspectRatioMode frame_aspect_ratio_mode = ASPECT_RATIO_FREE;
+    };
+
+    struct MainRenderer : private MainRendererFrameInputs
     {
         MainRenderer() = default;
         void initialize(ColorDepth color_depth, uint32 window_width, uint32 window_height, RendererSpec spec, bool init_dlss = false);
 
         void begin_frame(uint32 window_width, uint32 window_height);
+        void end_collection();
         void end_frame(const UserInput* input);
 
         void set_camera(const RenderCamera& camera);
@@ -126,42 +170,50 @@ namespace era_engine
 
         void submit_render_pass(OpaqueRenderPass* render_pass)
         {
-            ASSERT(!opaque_render_pass);
-            opaque_render_pass = render_pass;
+            ASSERT(!collected().opaque_render_pass);
+            collected().opaque_render_pass = render_pass;
         }
+
         void submit_render_pass(TransparentRenderPass* render_pass)
         {
-            ASSERT(!transparent_render_pass);
-            transparent_render_pass = render_pass;
+            ASSERT(!collected().transparent_render_pass);
+            collected().transparent_render_pass = render_pass;
         }
+
         void submit_render_pass(LDRRenderPass* render_pass)
         {
-            ASSERT(!ldr_render_pass);
-            ldr_render_pass = render_pass;
+            ASSERT(!collected().ldr_render_pass);
+            collected().ldr_render_pass = render_pass;
         }
+
         void submit_compute_pass(ComputePass* compute_pass)
         {
-            ASSERT(!this->compute_pass);
-            this->compute_pass = compute_pass;
+            ASSERT(!collected().compute_pass);
+            collected().compute_pass = compute_pass;
         }
 
         void submit_shadow_render_pass(SunShadowRenderPass* render_pass)
         {
-            ASSERT(num_sun_light_shadow_render_passes < MAX_NUM_SUN_LIGHT_SHADOW_PASSES);
-            sun_shadow_render_passes[num_sun_light_shadow_render_passes++] = render_pass;
-        }
-        void submit_shadow_render_pass(SpotShadowRenderPass* render_pass)
-        {
-            ASSERT(num_spot_light_shadow_render_passes < MAX_NUM_SPOT_LIGHT_SHADOW_PASSES);
-            spot_light_shadow_render_passes[num_spot_light_shadow_render_passes++] = render_pass;
-        }
-        void submit_shadow_render_pass(PointShadowRenderPass* render_pass)
-        {
-            ASSERT(num_point_light_shadow_render_passes < MAX_NUM_POINT_LIGHT_SHADOW_PASSES);
-            point_light_shadow_render_passes[num_point_light_shadow_render_passes++] = render_pass;
+            MainRendererFrameInputs& inputs = collected();
+            ASSERT(inputs.num_sun_light_shadow_render_passes < MAX_NUM_SUN_LIGHT_SHADOW_PASSES);
+            inputs.sun_shadow_render_passes[inputs.num_sun_light_shadow_render_passes++] = render_pass;
         }
 
-        void set_raytracing_scene(RaytracingTLAS* tlas) { this->tlas = tlas; }
+        void submit_shadow_render_pass(SpotShadowRenderPass* render_pass)
+        {
+            MainRendererFrameInputs& inputs = collected();
+            ASSERT(inputs.num_spot_light_shadow_render_passes < MAX_NUM_SPOT_LIGHT_SHADOW_PASSES);
+            inputs.spot_light_shadow_render_passes[inputs.num_spot_light_shadow_render_passes++] = render_pass;
+        }
+
+        void submit_shadow_render_pass(PointShadowRenderPass* render_pass)
+        {
+            MainRendererFrameInputs& inputs = collected();
+            ASSERT(inputs.num_point_light_shadow_render_passes < MAX_NUM_POINT_LIGHT_SHADOW_PASSES);
+            inputs.point_light_shadow_render_passes[inputs.num_point_light_shadow_render_passes++] = render_pass;
+        }
+
+        void set_raytracing_scene(RaytracingTLAS* tlas) { collected().tlas = tlas; }
 
         NODISCARD ERA_CORE_API static uint32 get_num_available_modes();
 
@@ -205,33 +257,6 @@ namespace era_engine
 
         void recalculate_viewport(bool resize_textures);
 
-        const SunShadowRenderPass* sun_shadow_render_passes[MAX_NUM_SUN_LIGHT_SHADOW_PASSES];
-        const SpotShadowRenderPass* spot_light_shadow_render_passes[MAX_NUM_SPOT_LIGHT_SHADOW_PASSES];
-        const PointShadowRenderPass* point_light_shadow_render_passes[MAX_NUM_POINT_LIGHT_SHADOW_PASSES];
-        uint32 num_sun_light_shadow_render_passes{};
-        uint32 num_spot_light_shadow_render_passes{};
-        uint32 num_point_light_shadow_render_passes{};
-
-        RaytracingTLAS* tlas;
-
-        const PBREnvironment* environment;
-        DirectionalLightCB sun{};
-
-        ref<DXBuffer> point_lights;
-        ref<DXBuffer> spot_lights;
-        ref<DXBuffer> point_light_shadow_info_buffer;
-        ref<DXBuffer> spot_light_shadow_info_buffer;
-        ref<DXBuffer> decals;
-        uint32 num_point_lights{};
-        uint32 num_spot_lights{};
-        uint32 num_decals{};
-
-        ref<DXTexture> decal_texture_atlas;
-
-        const OpaqueRenderPass* opaque_render_pass;
-        const TransparentRenderPass* transparent_render_pass;
-        const LDRRenderPass* ldr_render_pass;
-        const ComputePass* compute_pass;
 
         uint32 window_width{};
         uint32 window_height{};
@@ -275,8 +300,6 @@ namespace era_engine
 
         ref<DXBuffer> hovered_object_id_readback_buffer;
 
-        CameraCB jittered_camera{};
-        CameraCB unjittered_camera{};
 
         LightCulling culling{};
 
@@ -291,6 +314,14 @@ namespace era_engine
         bool sss_was_on_last_frame = false;
 
         friend dlss::DLSSFeatureAdapter;
+        MainRendererFrameInputs& collected();
+
+        MainRendererFrameInputs frame_inputs[NUM_BUFFERED_FRAMES];
+
+        // Collection side: the previous frame's camera buffers.
+        CameraCB camera_history_jittered{};
+        CameraCB camera_history_unjittered{};
+
         friend struct EEditor;
     };
 }

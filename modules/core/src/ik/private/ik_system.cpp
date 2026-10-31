@@ -1,4 +1,5 @@
 #include "ik/ik_system.h"
+#include "core/jobs/jobs.h"
 #include "ik/ik_component.h"
 #include "ik/full_body_ik_component.h"
 
@@ -94,76 +95,89 @@ namespace era_engine
             effector.rotation_weight = target_component.rotation_weight;
         }
 
-        for (auto [handle, full_body_ik_component, skeleton_component, transform_component] : world->group(components_group<FBIKComponent,
-                                                                                                               SkeletonComponent,
-                                                                                                               TransformComponent>)
-                                                                                                  .each())
+        struct FullBodyIKEntity
+        {
+            FBIKComponent* ik = nullptr;
+            SkeletonComponent* skeleton = nullptr;
+            trs world_transform;
+        };
+
+        std::vector<FullBodyIKEntity> full_body_entities;
+        for (auto [handle, full_body_ik_component, skeleton_component, transform_component] :
+            world->group(components_group<FBIKComponent, SkeletonComponent, TransformComponent>).each())
         {
             if (!full_body_ik_component.enabled || !full_body_ik_component.is_initialized() || full_body_ik_component.settings.weight <= 0.0f)
             {
                 continue;
             }
 
-            SkeletonPose current_pose = skeleton_component.get_current_pose();
-
-            if (!current_pose.is_valid())
-            {
-                continue;
-            }
-
-            const bool solved = full_body_ik_component.solver->solve(current_pose,
-                transform_component.get_world_transform(),
-                full_body_ik_component.effectors,
-                full_body_ik_component.settings);
-
-            if (solved)
-            {
-                skeleton_component.apply_pose(current_pose);
-            }
+            full_body_entities.push_back({&full_body_ik_component, &skeleton_component, transform_component.get_world_transform()});
         }
 
-        for (auto [handle, ik_component, skeleton_component, transform_component] : world->group(components_group<IKComponent,
-                                                                                                     SkeletonComponent,
-                                                                                                     TransformComponent>)
-                                                                                        .each())
+        JobSystem::parallel_for(0, (uint32)full_body_entities.size(), 1, [&full_body_entities](uint32 index)
+            {
+                const FullBodyIKEntity& entity = full_body_entities[index];
+
+                SkeletonPose current_pose = entity.skeleton->get_current_pose();
+                if (!current_pose.is_valid())
+                {
+                    return;
+                }
+
+                if (entity.ik->solver->solve(current_pose, entity.world_transform, entity.ik->effectors, entity.ik->settings))
+                {
+                    entity.skeleton->apply_pose(current_pose);
+                }
+            });
+
+        struct ChainIKEntity
+        {
+            IKComponent* ik = nullptr;
+            SkeletonComponent* skeleton = nullptr;
+            trs world_transform;
+        };
+
+        std::vector<ChainIKEntity> chain_entities;
+        for (auto [handle, ik_component, skeleton_component, transform_component] :
+            world->group(components_group<IKComponent, SkeletonComponent, TransformComponent>).each())
         {
             if (!ik_component.enabled || !ik_component.is_initialized())
             {
                 continue;
             }
 
-            SkeletonPose current_pose = skeleton_component.get_current_pose();
-
-            if (!current_pose.is_valid())
-            {
-                continue;
-            }
-
-            const trs& world_transform = transform_component.get_world_transform();
-
-            bool has_any_enabled = false;
-
-            for (auto& chain : ik_component.chains)
-            {
-                if (!chain.enabled)
-                {
-                    continue;
-                }
-                if (chain.weight <= 0.0f)
-                {
-                    continue;
-                }
-                if (chain.solve(current_pose, world_transform))
-                {
-                    has_any_enabled = true;
-                }
-            }
-
-            if (has_any_enabled)
-            {
-                skeleton_component.apply_pose(current_pose);
-            }
+            chain_entities.push_back({&ik_component, &skeleton_component, transform_component.get_world_transform()});
         }
+
+        // Runs after the full body pass, so a character may have both.
+        JobSystem::parallel_for(0, (uint32)chain_entities.size(), 1, [&chain_entities](uint32 index)
+            {
+                const ChainIKEntity& entity = chain_entities[index];
+
+                SkeletonPose current_pose = entity.skeleton->get_current_pose();
+                if (!current_pose.is_valid())
+                {
+                    return;
+                }
+
+                bool has_any_enabled = false;
+                for (auto& chain : entity.ik->chains)
+                {
+                    if (!chain.enabled || chain.weight <= 0.0f)
+                    {
+                        continue;
+                    }
+                    if (chain.solve(current_pose, entity.world_transform))
+                    {
+                        has_any_enabled = true;
+                    }
+                }
+
+                if (has_any_enabled)
+                {
+                    entity.skeleton->apply_pose(current_pose);
+                }
+            });
     }
 
     void IKSystem::debug_draw(float dt)

@@ -89,7 +89,6 @@ namespace era_engine
     {
         DXFrameDescriptorPage* used_pages[NUM_BUFFERED_FRAMES];
         DXFrameDescriptorPage* free_pages;
-        uint32 current_frame;
 
         std::mutex mutex;
 

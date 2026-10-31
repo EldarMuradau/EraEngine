@@ -159,21 +159,21 @@ namespace era_engine
         }
     }
 
+    MainRendererFrameInputs& MainRenderer::collected()
+    {
+        return frame_inputs[dx_context.get_buffered_frame_id()];
+    }
+
     void MainRenderer::begin_frame(uint32 window_width, uint32 window_height)
     {
-        if (this->window_width != window_width || this->window_height != window_height)
-        {
-            this->window_width = window_width;
-            this->window_height = window_height;
-
-            resize_texture(frame_result, window_width, window_height);
-
-            recalculate_viewport(true);
-        }
+        MainRendererFrameInputs& inputs = collected();
+        inputs = MainRendererFrameInputs{};
+        inputs.requested_width = window_width;
+        inputs.requested_height = window_height;
 
         if (object_ids_texture && window_hovered)
         {
-            uint32* id = (uint32*)map_buffer(hovered_object_id_readback_buffer, true, MapRange{dx_context.buffered_frame_id, 1});
+            uint32* id = (uint32*)map_buffer(hovered_object_id_readback_buffer, true, MapRange{dx_context.get_buffered_frame_id(), 1});
             hovered_object_id = *id;
             unmap_buffer(hovered_object_id_readback_buffer, false);
         }
@@ -181,31 +181,19 @@ namespace era_engine
         {
             hovered_object_id = -1;
         }
+    }
 
-        opaque_render_pass = 0;
-        transparent_render_pass = 0;
-        ldr_render_pass = 0;
-        compute_pass = 0;
-
-        num_sun_light_shadow_render_passes = 0;
-        num_spot_light_shadow_render_passes = 0;
-        num_point_light_shadow_render_passes = 0;
-
-        environment = 0;
-        tlas = 0;
-
-        point_lights = 0;
-        spot_lights = 0;
-        num_point_lights = 0;
-        num_spot_lights = 0;
-        decals = 0;
-        num_decals = 0;
-        decal_texture_atlas = 0;
+    void MainRenderer::end_collection()
+    {
+        MainRendererFrameInputs& inputs = collected();
+        inputs.frame_settings = settings;
+        inputs.frame_mode = mode;
+        inputs.frame_aspect_ratio_mode = aspect_ratio_mode;
     }
 
     void MainRenderer::recalculate_viewport(bool resize_textures)
     {
-        if (aspect_ratio_mode == ASPECT_RATIO_FREE)
+        if (frame_aspect_ratio_mode == ASPECT_RATIO_FREE)
         {
             render_width = window_width;
             render_height = window_height;
@@ -214,7 +202,7 @@ namespace era_engine
         }
         else
         {
-            const float target_aspect = aspect_ratio_mode == ASPECT_RATIO_FIX_16_9 ? (16.f / 9.f) : (16.f / 10.f);
+            const float target_aspect = frame_aspect_ratio_mode == ASPECT_RATIO_FIX_16_9 ? (16.f / 9.f) : (16.f / 10.f);
 
             float aspect = (float)window_width / (float)window_height;
             if (aspect > target_aspect)
@@ -283,8 +271,12 @@ namespace era_engine
 
     void MainRenderer::set_camera(const RenderCamera& camera)
     {
-        build_camera_constant_buffer(camera, settings.taa_settings.camera_jitter_strength * settings.enable_taa, this->jittered_camera);
-        build_camera_constant_buffer(camera, 0.f, this->unjittered_camera);
+        // Builds on the previous frame's buffers, so they become the prev_frame fields.
+        build_camera_constant_buffer(camera, settings.taa_settings.camera_jitter_strength * settings.enable_taa, camera_history_jittered);
+        build_camera_constant_buffer(camera, 0.f, camera_history_unjittered);
+
+        collected().jittered_camera = camera_history_jittered;
+        collected().unjittered_camera = camera_history_unjittered;
     }
 
     void MainRenderer::dlss_pass(float dt)
@@ -294,11 +286,12 @@ namespace era_engine
 
     void MainRenderer::set_environment(const PBREnvironment& environment)
     {
-        MainRenderer::environment = &environment;
+        collected().environment = &environment;
     }
 
     void MainRenderer::set_sun(const DirectionalLight& light)
     {
+        DirectionalLightCB& sun = collected().sun;
         sun.cascade_distances = light.cascade_distances;
         sun.bias = light.depth_bias;
         sun.direction = light.direction;
@@ -312,24 +305,27 @@ namespace era_engine
 
     void MainRenderer::set_point_lights(const ref<DXBuffer>& lights, uint32 num_lights, const ref<DXBuffer>& shadow_info_buffer)
     {
-        point_lights = lights;
-        num_point_lights = num_lights;
-        point_light_shadow_info_buffer = shadow_info_buffer;
+        MainRendererFrameInputs& inputs = collected();
+        inputs.point_lights = lights;
+        inputs.num_point_lights = num_lights;
+        inputs.point_light_shadow_info_buffer = shadow_info_buffer;
     }
 
     void MainRenderer::set_spot_lights(const ref<DXBuffer>& lights, uint32 num_lights, const ref<DXBuffer>& shadow_info_buffer)
     {
-        spot_lights = lights;
-        num_spot_lights = num_lights;
-        spot_light_shadow_info_buffer = shadow_info_buffer;
+        MainRendererFrameInputs& inputs = collected();
+        inputs.spot_lights = lights;
+        inputs.num_spot_lights = num_lights;
+        inputs.spot_light_shadow_info_buffer = shadow_info_buffer;
     }
 
     void MainRenderer::set_decals(const ref<DXBuffer>& decals, uint32 num_decals, const ref<DXTexture>& texture_atlas)
     {
         ASSERT(num_decals < MAX_NUM_TOTAL_DECALS);
-        MainRenderer::decals = decals;
-        MainRenderer::num_decals = num_decals;
-        MainRenderer::decal_texture_atlas = texture_atlas;
+        MainRendererFrameInputs& inputs = collected();
+        inputs.decals = decals;
+        inputs.num_decals = num_decals;
+        inputs.decal_texture_atlas = texture_atlas;
     }
 
     template <typename func_t>
@@ -365,6 +361,8 @@ namespace era_engine
 
     NODISCARD DXCommandList* MainRenderer::render_thread0(const CommonRenderData& common_render_data)
     {
+        ZoneScopedN("MainRenderer::render_thread0");
+
         DXCommandList* cl = dx_context.get_free_render_command_list();
         PROFILE_ALL(cl, "Render thread 0");
 
@@ -388,6 +386,8 @@ namespace era_engine
 
     NODISCARD DXCommandList* MainRenderer::render_thread1(const CommonRenderData& common_render_data, bool aspect_ratio_mode_changed)
     {
+        ZoneScopedN("MainRenderer::render_thread1");
+
         DXCommandList* cl = dx_context.get_free_render_command_list();
         PROFILE_ALL(cl, "Render thread 1");
 
@@ -434,6 +434,8 @@ namespace era_engine
 
     NODISCARD DXCommandList* MainRenderer::render_thread2(const CommonRenderData& common_render_data, const UserInput* input)
     {
+        ZoneScopedN("MainRenderer::render_thread2");
+
         DXCommandList* cl = dx_context.get_free_render_command_list();
         PROFILE_ALL(cl, "Render thread 2");
 
@@ -467,12 +469,12 @@ namespace era_engine
         // AMBIENT OCCLUSION
         // ----------------------------------------
 
-        if (settings.enable_ao)
+        if (frame_settings.enable_ao)
         {
             uint32 ao_result_index = 1 - ao_history_index;
             ref<DXTexture> ao_history = ao_was_on_last_frame ? ao_textures[ao_history_index] : RenderResources::white_texture;
             ref<DXTexture> ao_result = ao_textures[ao_result_index];
-            ambient_occlusion(cl, linear_depth_buffer, screen_velocities_texture, ao_calculation_texture, ao_blur_temp_texture, ao_history, ao_result, settings.ao_settings, common_render_data.camera_cbv);
+            ambient_occlusion(cl, linear_depth_buffer, screen_velocities_texture, ao_calculation_texture, ao_blur_temp_texture, ao_history, ao_result, frame_settings.ao_settings, common_render_data.camera_cbv);
 
             BarrierBatcher(cl)
                 // UAV barrier is done by hbao-function.
@@ -501,14 +503,14 @@ namespace era_engine
             BarrierBatcher(cl)
                 .transition(depth_stencil_buffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
         }
-        else if (settings.enable_ssr)
+        else if (frame_settings.enable_ssr)
         {
             BarrierBatcher(cl)
                 .transition(depth_stencil_buffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
             screen_space_reflections(cl, prev_frame_hdr_color_texture, depth_stencil_buffer, linear_depth_buffer, world_normals_roughness_texture,
                 screen_velocities_texture, prev_frame_screen_velocities_texture, ssr_raycast_texture, ssr_resolve_texture, ssr_temporal_textures[ssr_history_index],
-                ssr_temporal_textures[1 - ssr_history_index], settings.ssr_settings, common_render_data.camera_cbv);
+                ssr_temporal_textures[1 - ssr_history_index], frame_settings.ssr_settings, common_render_data.camera_cbv);
 
             ssr_history_index = 1 - ssr_history_index;
 
@@ -520,12 +522,12 @@ namespace era_engine
         // SCREEN SPACE SHADOWS
         // ----------------------------------------
 
-        if (settings.enable_sss)
+        if (frame_settings.enable_sss)
         {
             uint32 sss_result_index = 1 - sss_history_index;
             ref<DXTexture> sss_history = sss_was_on_last_frame ? sss_textures[sss_history_index] : RenderResources::white_texture;
             ref<DXTexture> sss_result = sss_textures[sss_result_index];
-            screen_space_shadows(cl, linear_depth_buffer, screen_velocities_texture, sss_calculation_texture, sss_blur_temp_texture, sss_history, sss_result, sun.direction, settings.sss_settings, jittered_camera.view, common_render_data.camera_cbv);
+            screen_space_shadows(cl, linear_depth_buffer, screen_velocities_texture, sss_calculation_texture, sss_blur_temp_texture, sss_history, sss_result, sun.direction, frame_settings.sss_settings, jittered_camera.view, common_render_data.camera_cbv);
 
             BarrierBatcher(cl)
                 // UAV barrier is done by sss-function.
@@ -569,7 +571,7 @@ namespace era_engine
                 PROFILE_ALL(cl, "Copy hovered object ID");
 
                 cl->transition_barrier(object_ids_texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-                cl->copy_texture_region_to_buffer(object_ids_texture, hovered_object_id_readback_buffer, dx_context.buffered_frame_id, input->mouse.x - window_x_offset, input->mouse.y - window_y_offset, 1, 1);
+                cl->copy_texture_region_to_buffer(object_ids_texture, hovered_object_id_readback_buffer, dx_context.get_buffered_frame_id(), input->mouse.x - window_x_offset, input->mouse.y - window_y_offset, 1, 1);
                 cl->transition_barrier(object_ids_texture, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
         }
@@ -579,6 +581,8 @@ namespace era_engine
 
     NODISCARD DXCommandList* MainRenderer::render_thread3(CommonRenderData common_render_data, DXDynamicConstantBuffer unjittered_camera_cbv)
     {
+        ZoneScopedN("MainRenderer::render_thread3");
+
         // After this there is no more camera jittering
         common_render_data.camera_cbv = unjittered_camera_cbv;
 
@@ -646,7 +650,7 @@ namespace era_engine
                 .transition(depth_stencil_buffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
         }
 
-        if ((environment && environment->gi_mode == ENVIRONMENT_GI_RAYTRACED) || settings.enable_ssr)
+        if ((environment && environment->gi_mode == ENVIRONMENT_GI_RAYTRACED) || frame_settings.enable_ssr)
         {
             BarrierBatcher(cl)
                 .transition(ssr_resolve_texture, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_UNORDERED_ACCESS); // For next frame.
@@ -657,7 +661,7 @@ namespace era_engine
         // ----------------------------------------
 
         // TAA
-        if (settings.enable_taa)
+        if (frame_settings.enable_taa)
         {
             uint32 taa_output_index = 1 - taa_history_index;
             temporal_anti_aliasing(cl, hdr_result, screen_velocities_texture, prev_frame_screen_velocities_texture, opaque_depth_buffer, taa_textures[taa_history_index], taa_textures[taa_output_index], jittered_camera.projection_params);
@@ -673,17 +677,17 @@ namespace era_engine
         }
 
         // Bloom
-        if (settings.enable_bloom)
+        if (frame_settings.enable_bloom)
         {
             BarrierBatcher(cl)
                 .transition(hdr_post_processing_texture, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-            bloom(cl, hdr_result, hdr_post_processing_texture, bloom_texture, bloom_temp_texture, settings.bloom_settings); // Bloom returns result in read state.
+            bloom(cl, hdr_result, hdr_post_processing_texture, bloom_texture, bloom_temp_texture, frame_settings.bloom_settings); // Bloom returns result in read state.
             hdr_result = hdr_post_processing_texture;
         }
 
         // At this point hdrResult is either the TAA result, the hdrColorTexture, or the hdrPostProcessingTexture. Either one is in read state.
-        tonemap(cl, hdr_result, ldr_post_processing_texture, settings.tonemap_settings);
+        tonemap(cl, hdr_result, ldr_post_processing_texture, frame_settings.tonemap_settings);
 
         // ----------------------------------------
         // LDR RENDERING
@@ -715,7 +719,7 @@ namespace era_engine
                 .transition(depth_stencil_buffer, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
         }
 
-        present(cl, ldr_post_processing_texture, frame_result, settings.enable_sharpen ? settings.sharpen_settings : SharpenSettings{0.f});
+        present(cl, ldr_post_processing_texture, frame_result, frame_settings.enable_sharpen ? frame_settings.sharpen_settings : SharpenSettings{0.f});
 
         BarrierBatcher(cl)
             //.uav(frameResult)
@@ -730,21 +734,35 @@ namespace era_engine
 
     void MainRenderer::end_frame(const UserInput* input)
     {
-        if (mode == RENDERER_MODE_PATHTRACED && !dx_context.feature_support.raytracing())
+        ZoneScopedN("MainRenderer::end_frame");
+
+        static_cast<MainRendererFrameInputs&>(*this) = collected();
+
+        if (requested_width != 0 && requested_height != 0 && (window_width != requested_width || window_height != requested_height))
         {
-            LOG_ERROR("Path tracing requires DXR support, falling back to rasterization");
-            mode = RENDERER_MODE_RASTERIZED;
+            window_width = requested_width;
+            window_height = requested_height;
+
+            resize_texture(frame_result, window_width, window_height);
+
+            recalculate_viewport(true);
         }
 
-        bool aspect_ratio_mode_changed = aspect_ratio_mode != old_aspect_ratio_mode;
-        old_aspect_ratio_mode = aspect_ratio_mode;
+        if (frame_mode == RENDERER_MODE_PATHTRACED && !dx_context.feature_support.raytracing())
+        {
+            LOG_ERROR("Path tracing requires DXR support, falling back to rasterization");
+            frame_mode = RENDERER_MODE_RASTERIZED;
+        }
+
+        bool aspect_ratio_mode_changed = frame_aspect_ratio_mode != old_aspect_ratio_mode;
+        old_aspect_ratio_mode = frame_aspect_ratio_mode;
 
         if (aspect_ratio_mode_changed)
         {
             recalculate_viewport(true);
         }
 
-        if (mode == RENDERER_MODE_RASTERIZED && screen_velocities_texture)
+        if (frame_mode == RENDERER_MODE_RASTERIZED && screen_velocities_texture)
         {
             std::swap(screen_velocities_texture, prev_frame_screen_velocities_texture);
         }
@@ -752,11 +770,11 @@ namespace era_engine
         auto jittered_camera_cbv = dx_context.upload_dynamic_constant_buffer(jittered_camera);
         auto unjittered_camera_cbv = dx_context.upload_dynamic_constant_buffer(unjittered_camera);
 
-        settings.enable_ao &= spec.allow_ao;
-        settings.enable_sss &= spec.allow_sss;
-        settings.enable_ssr &= spec.allow_ssr;
-        settings.enable_bloom &= spec.allow_bloom;
-        settings.enable_taa &= spec.allow_taa;
+        frame_settings.enable_ao &= spec.allow_ao;
+        frame_settings.enable_sss &= spec.allow_sss;
+        frame_settings.enable_ssr &= spec.allow_ssr;
+        frame_settings.enable_bloom &= spec.allow_bloom;
+        frame_settings.enable_taa &= spec.allow_taa;
 
         LightingCB lighting_cb =
             {
@@ -778,9 +796,9 @@ namespace era_engine
 
         common_render_data.global_illumination_intensity = environment ? environment->global_illumination_intensity : 1.f;
         common_render_data.sky_intensity = environment ? environment->sky_intensity : 1.f;
-        common_render_data.ao_texture = settings.enable_ao ? ao_textures[1 - ao_history_index] : RenderResources::white_texture;
-        common_render_data.sss_texture = settings.enable_sss ? sss_textures[1 - sss_history_index] : RenderResources::white_texture;
-        common_render_data.ssr_texture = settings.enable_ssr ? ssr_resolve_texture : 0;
+        common_render_data.ao_texture = frame_settings.enable_ao ? ao_textures[1 - ao_history_index] : RenderResources::white_texture;
+        common_render_data.sss_texture = frame_settings.enable_sss ? sss_textures[1 - sss_history_index] : RenderResources::white_texture;
+        common_render_data.ssr_texture = frame_settings.enable_ssr ? ssr_resolve_texture : 0;
         common_render_data.tiled_culling_grid = culling.tiled_culling_grid;
         common_render_data.tiled_objects_index_list = culling.tiled_objects_index_list;
         common_render_data.point_light_buffer = point_lights;
@@ -810,13 +828,8 @@ namespace era_engine
         common_particle_data.prev_frame_depth_buffer = opaque_depth_buffer;
         common_particle_data.prev_frame_normals = world_normals_roughness_texture;
 
-        if (mode == RENDERER_MODE_RASTERIZED)
+        if (frame_mode == RENDERER_MODE_RASTERIZED)
         {
-            DXCommandList* cl0 = 0;
-            DXCommandList* cl1 = 0;
-            DXCommandList* cl2 = 0;
-            DXCommandList* cl3 = 0;
-
             struct RenderJobData
             {
                 MainRenderer* renderer;
@@ -826,59 +839,48 @@ namespace era_engine
                 const UserInput* input;
                 DXDynamicConstantBuffer unjittered_camera_cbv;
 
-                DXCommandList*& cl0;
-                DXCommandList*& cl1;
-                DXCommandList*& cl2;
-                DXCommandList*& cl3;
-            };
+                DXCommandList* cl0 = nullptr;
+                DXCommandList* cl1 = nullptr;
+                DXCommandList* cl2 = nullptr;
+                DXCommandList* cl3 = nullptr;
+            } job_data{this, common_render_data, aspect_ratio_mode_changed, input, unjittered_camera_cbv};
 
-            RenderJobData job_data =
+            const JobDecl render_jobs[] =
                 {
-                    this,
-                    common_render_data,
-                    aspect_ratio_mode_changed,
-                    input,
-                    unjittered_camera_cbv,
-                    cl0,
-                    cl1,
-                    cl2,
-                    cl3,
+                    JobDecl([](void* data)
+                        {
+                            RenderJobData& job = *static_cast<RenderJobData*>(data);
+                            job.cl0 = job.renderer->render_thread0(job.common_render_data);
+                        },
+                        &job_data, JobPriority::HIGH, false, "MainRenderer::render_thread0"),
+                    JobDecl([](void* data)
+                        {
+                            RenderJobData& job = *static_cast<RenderJobData*>(data);
+                            job.cl1 = job.renderer->render_thread1(job.common_render_data, job.aspect_ratio_mode_changed);
+                        },
+                        &job_data, JobPriority::HIGH, false, "MainRenderer::render_thread1"),
+                    JobDecl([](void* data)
+                        {
+                            RenderJobData& job = *static_cast<RenderJobData*>(data);
+                            job.cl2 = job.renderer->render_thread2(job.common_render_data, job.input);
+                        },
+                        &job_data, JobPriority::HIGH, false, "MainRenderer::render_thread2"),
+                    JobDecl([](void* data)
+                        {
+                            RenderJobData& job = *static_cast<RenderJobData*>(data);
+                            job.cl3 = job.renderer->render_thread3(job.common_render_data, job.unjittered_camera_cbv);
+                        },
+                        &job_data, JobPriority::HIGH, false, "MainRenderer::render_thread3"),
                 };
 
-            JobHandle parent_job = high_priority_job_queue.create_job<RenderJobData>([](RenderJobData& data, JobHandle parent)
-                {
-                    high_priority_job_queue.create_job<RenderJobData>([](RenderJobData& data, JobHandle)
-                                               {
-                                                   data.cl0 = data.renderer->render_thread0(data.common_render_data);
-                                               },
-                                               data, parent)
-                        .submit_now();
+            JobCounter render_jobs_counter;
+            JobSystem::run_jobs(render_jobs, (uint32)std::size(render_jobs), &render_jobs_counter);
+            JobSystem::wait_for_counter(&render_jobs_counter);
 
-                    high_priority_job_queue.create_job<RenderJobData>([](RenderJobData& data, JobHandle)
-                                               {
-                                                   data.cl1 = data.renderer->render_thread1(data.common_render_data, data.aspect_ratio_mode_changed);
-                                               },
-                                               data, parent)
-                        .submit_now();
-
-                    high_priority_job_queue.create_job<RenderJobData>([](RenderJobData& data, JobHandle)
-                                               {
-                                                   data.cl2 = data.renderer->render_thread2(data.common_render_data, data.input);
-                                               },
-                                               data, parent)
-                        .submit_now();
-
-                    high_priority_job_queue.create_job<RenderJobData>([](RenderJobData& data, JobHandle)
-                                               {
-                                                   data.cl3 = data.renderer->render_thread3(data.common_render_data, data.unjittered_camera_cbv);
-                                               },
-                                               data, parent)
-                        .submit_now();
-                },
-                job_data);
-
-            parent_job.submit_now();
-            parent_job.wait_for_completion();
+            DXCommandList* cl0 = job_data.cl0;
+            DXCommandList* cl1 = job_data.cl1;
+            DXCommandList* cl2 = job_data.cl2;
+            DXCommandList* cl3 = job_data.cl3;
 
             ASSERT(cl0);
             ASSERT(cl1);
@@ -918,7 +920,7 @@ namespace era_engine
 
             dx_context.render_queue.wait_for_other_queue(dx_context.compute_queue, execute_compute_tasks(COMPUTE_PASS_BEFORE_TRANSPARENT_AND_POST_PROCESSING));
 
-            if (dx_context.feature_support.dlss() && settings.enable_dlss)
+            if (dx_context.feature_support.dlss() && frame_settings.enable_dlss)
             {
                 PROFILE_ALL(cl3, "DLSS Evaluation");
                 dlss_adapter.update_dlss(cl3->command_list.Get(), compute_pass->dt);
@@ -926,7 +928,7 @@ namespace era_engine
 
             dx_context.execute_command_list(cl3);
         }
-        else if (mode == RENDERER_MODE_VISUALIZE_SUN_SHADOW_CASCADES)
+        else if (frame_mode == RENDERER_MODE_VISUALIZE_SUN_SHADOW_CASCADES)
         {
             uint64 max_fence = 0;
             for (uint32 i = 0; i < COMPUTE_PASS_EVENT_COUNT; ++i)
@@ -968,7 +970,7 @@ namespace era_engine
 
             dx_context.execute_command_list(cl);
         }
-        else if (mode == RENDERER_MODE_PATHTRACED && dx_context.feature_support.raytracing() && tlas)
+        else if (frame_mode == RENDERER_MODE_PATHTRACED && dx_context.feature_support.raytracing() && tlas)
         {
             uint64 tlas_rebuild_fence;
             {
@@ -1008,7 +1010,7 @@ namespace era_engine
             BarrierBatcher(cl)
                 .transition(hdr_color_texture, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-            tonemap(cl, hdr_color_texture, ldr_post_processing_texture, settings.tonemap_settings);
+            tonemap(cl, hdr_color_texture, ldr_post_processing_texture, frame_settings.tonemap_settings);
 
             BarrierBatcher(cl)
                 .transition(ldr_post_processing_texture, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -1023,7 +1025,7 @@ namespace era_engine
             dx_context.execute_command_list(cl);
         }
 
-        ao_was_on_last_frame = settings.enable_ao;
-        sss_was_on_last_frame = settings.enable_sss;
+        ao_was_on_last_frame = frame_settings.enable_ao;
+        sss_was_on_last_frame = frame_settings.enable_sss;
     }
 }

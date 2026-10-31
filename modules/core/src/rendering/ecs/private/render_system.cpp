@@ -11,6 +11,9 @@
 
 #include "engine/engine.h"
 
+#include "core/frame_params.h"
+#include "core/jobs/jobs.h"
+
 #include "window/dx_window.h"
 
 #include "rendering/mesh_shader.h"
@@ -59,7 +62,10 @@ namespace era_engine
 
         if (dx_context.feature_support.raytracing())
         {
-            raytracing_tlas.initialize();
+            for (FramePasses& frame : passes)
+            {
+                frame.raytracing_tlas.initialize();
+            }
         }
 
         renderer_holder_rc->camera.initialize_ingame(vec3::zero, quat::identity, deg2rad(70.f), 0.2f);
@@ -108,6 +114,9 @@ namespace era_engine
     {
         ZoneScopedN("RenderSystem::begin_frame");
 
+        // Debug drawing of this frame goes to its own slot.
+        renderer_holder_rc->ldr_render_pass = &frame_passes().ldr_render_pass;
+
         if (renderer_holder_rc->present_mode == RendererHolderRootComponent::PRESENT_TO_IMGUI_WINDOW)
         {
             draw_imgui_viewport();
@@ -136,6 +145,7 @@ namespace era_engine
         renderer->begin_frame(renderer_holder_rc->width, renderer_holder_rc->height);
 
         reset_render_passes();
+        frame_passes().compute_pass.dt = dt;
 
         stack_arena.reset();
     }
@@ -153,7 +163,7 @@ namespace era_engine
         environment.update(sun.direction);
         sun.update_matrices(camera);
         set_audio_listener(camera.position, camera.rotation, vec3(0.f));
-        environment.light_probe_grid.visualize(&opaque_render_pass);
+        environment.light_probe_grid.visualize(&frame_passes().opaque_render_pass);
 
         {
             for (auto [entity_handle, transform, terrain] : world->group(components_group<TransformComponent, TerrainComponent>).each())
@@ -162,25 +172,25 @@ namespace era_engine
             }
 
             SceneLighting lighting;
-            lighting.spot_light_buffer = spot_light_buffer[dx_context.buffered_frame_id];
-            lighting.point_light_buffer = point_light_buffer[dx_context.buffered_frame_id];
-            lighting.spot_light_shadow_info_buffer = spot_light_shadow_info_buffer[dx_context.buffered_frame_id];
-            lighting.point_light_shadow_info_buffer = point_light_shadow_info_buffer[dx_context.buffered_frame_id];
-            lighting.spot_shadow_render_passes = spot_shadow_render_passes;
-            lighting.point_shadow_render_passes = point_shadow_render_passes;
-            lighting.max_num_spot_shadow_render_passes = arraysize(spot_shadow_render_passes);
-            lighting.max_num_point_shadow_render_passes = arraysize(point_shadow_render_passes);
+            lighting.spot_light_buffer = spot_light_buffer[dx_context.get_buffered_frame_id()];
+            lighting.point_light_buffer = point_light_buffer[dx_context.get_buffered_frame_id()];
+            lighting.spot_light_shadow_info_buffer = spot_light_shadow_info_buffer[dx_context.get_buffered_frame_id()];
+            lighting.point_light_shadow_info_buffer = point_light_shadow_info_buffer[dx_context.get_buffered_frame_id()];
+            lighting.spot_shadow_render_passes = frame_passes().spot_shadow_render_passes;
+            lighting.point_shadow_render_passes = frame_passes().point_shadow_render_passes;
+            lighting.max_num_spot_shadow_render_passes = arraysize(frame_passes().spot_shadow_render_passes);
+            lighting.max_num_point_shadow_render_passes = arraysize(frame_passes().point_shadow_render_passes);
 
             render_world(camera, world, stack_arena, Entity::null_handle, sun, lighting, !renderer->settings.cache_shadow_map,
-                &opaque_render_pass, &transparent_render_pass, renderer_holder_rc->ldr_render_pass, &sun_shadow_render_pass, &compute_pass, dt);
+                &frame_passes().opaque_render_pass, &frame_passes().transparent_render_pass, renderer_holder_rc->ldr_render_pass, &frame_passes().sun_shadow_render_pass, &frame_passes().compute_pass, dt);
 
-            renderer->set_spot_lights(spot_light_buffer[dx_context.buffered_frame_id], world->number_of_components_of_type<SpotLightComponent>(), spot_light_shadow_info_buffer[dx_context.buffered_frame_id]);
-            renderer->set_point_lights(point_light_buffer[dx_context.buffered_frame_id], world->number_of_components_of_type<PointLightComponent>(), point_light_shadow_info_buffer[dx_context.buffered_frame_id]);
+            renderer->set_spot_lights(spot_light_buffer[dx_context.get_buffered_frame_id()], world->number_of_components_of_type<SpotLightComponent>(), spot_light_shadow_info_buffer[dx_context.get_buffered_frame_id()]);
+            renderer->set_point_lights(point_light_buffer[dx_context.get_buffered_frame_id()], world->number_of_components_of_type<PointLightComponent>(), point_light_shadow_info_buffer[dx_context.get_buffered_frame_id()]);
 
             if (decals.size())
             {
-                update_upload_buffer_data(decal_buffer[dx_context.buffered_frame_id], decals.data(), (uint32)(sizeof(PBRDecalCB) * decals.size()));
-                renderer->set_decals(decal_buffer[dx_context.buffered_frame_id], (uint32)decals.size(), decal_texture);
+                update_upload_buffer_data(decal_buffer[dx_context.get_buffered_frame_id()], decals.data(), (uint32)(sizeof(PBRDecalCB) * decals.size()));
+                renderer->set_decals(decal_buffer[dx_context.get_buffered_frame_id()], (uint32)decals.size(), decal_texture);
             }
 
             submit_renderer_params(lighting.num_spot_shadow_render_passes, lighting.num_point_shadow_render_passes);
@@ -198,27 +208,50 @@ namespace era_engine
 
         RenderCamera& camera = renderer_holder_rc->camera;
 
-        animation::perform_skinning(&compute_pass);
+        animation::perform_skinning(&frame_passes().compute_pass);
 
         if (dx_context.feature_support.raytracing())
         {
             build_raytracing_scene();
-            renderer->set_raytracing_scene(&raytracing_tlas);
+            renderer->set_raytracing_scene(&frame_passes().raytracing_tlas);
         }
 
         renderer->set_environment(environment);
         renderer->set_sun(sun);
         renderer->set_camera(camera);
 
-        end_frame_common();
+        renderer->end_collection();
 
-        const UserInput& input = get_current_frame_input();
-        renderer->end_frame(&input);
-
-        if (renderer_holder_rc->present_mode == RendererHolderRootComponent::PRESENT_TO_MAIN_WINDOW)
+        // Recording and submission belong to the frame's execution.
+        const bool present_to_main_window = renderer_holder_rc->present_mode == RendererHolderRootComponent::PRESENT_TO_MAIN_WINDOW;
+        auto execute = [renderer, input = get_current_frame_input(), present_to_main_window]()
         {
-            get_object<DXWindow>()->present_texture = renderer->frame_result;
+            {
+                ZoneScopedN("end_frame_common");
+                end_frame_common();
+            }
+
+            renderer->end_frame(&input);
+
+            if (present_to_main_window)
+            {
+                get_object<DXWindow>()->present_texture = renderer->frame_result;
+            }
+        };
+
+        if (FrameParams* frame = JobSystem::get_frame_context())
+        {
+            frame->render_tasks.push_back(std::move(execute));
         }
+        else
+        {
+            execute();
+        }
+    }
+
+    RenderSystem::FramePasses& RenderSystem::frame_passes()
+    {
+        return passes[dx_context.get_buffered_frame_id()];
     }
 
     void RenderSystem::draw_imgui_viewport()
@@ -302,7 +335,7 @@ namespace era_engine
 
     void RenderSystem::build_raytracing_scene()
     {
-        raytracing_tlas.reset();
+        frame_passes().raytracing_tlas.reset();
 
         const MainRenderer* renderer = renderer_holder_rc->renderer;
         if (renderer->mode != RENDERER_MODE_PATHTRACED && renderer_holder_rc->environment.gi_mode != ENVIRONMENT_GI_RAYTRACED)
@@ -319,7 +352,7 @@ namespace era_engine
 
             if (const RaytracingObjectType* type = get_raytracing_object_type(mesh.mesh))
             {
-                raytracing_tlas.instantiate(*type, transform.get_world_transform());
+                frame_passes().raytracing_tlas.instantiate(*type, transform.get_world_transform());
             }
         }
 
@@ -327,7 +360,7 @@ namespace era_engine
         {
             if (raytrace.type.blas)
             {
-                raytracing_tlas.instantiate(raytrace.type, transform.get_world_transform());
+                frame_passes().raytracing_tlas.instantiate(raytrace.type, transform.get_world_transform());
             }
         }
     }
@@ -342,20 +375,20 @@ namespace era_engine
 
     void RenderSystem::reset_render_passes()
     {
-        opaque_render_pass.reset();
-        transparent_render_pass.reset();
+        frame_passes().opaque_render_pass.reset();
+        frame_passes().transparent_render_pass.reset();
         renderer_holder_rc->ldr_render_pass->reset();
-        sun_shadow_render_pass.reset();
-        compute_pass.reset();
+        frame_passes().sun_shadow_render_pass.reset();
+        frame_passes().compute_pass.reset();
 
-        for (uint32 i = 0; i < arraysize(spot_shadow_render_passes); ++i)
+        for (uint32 i = 0; i < arraysize(frame_passes().spot_shadow_render_passes); ++i)
         {
-            spot_shadow_render_passes[i].reset();
+            frame_passes().spot_shadow_render_passes[i].reset();
         }
 
-        for (uint32 i = 0; i < arraysize(point_shadow_render_passes); ++i)
+        for (uint32 i = 0; i < arraysize(frame_passes().point_shadow_render_passes); ++i)
         {
-            point_shadow_render_passes[i].reset();
+            frame_passes().point_shadow_render_passes[i].reset();
         }
     }
 
@@ -367,42 +400,41 @@ namespace era_engine
             CPU_PROFILE_BLOCK("Sort render passes");
             ZoneScopedN("RenderSystem::submit_renderer_params");
 
-            opaque_render_pass.sort();
-            transparent_render_pass.sort();
+            frame_passes().opaque_render_pass.sort();
+            frame_passes().transparent_render_pass.sort();
             renderer_holder_rc->ldr_render_pass->sort();
 
-            for (uint32 i = 0; i < sun_shadow_render_pass.num_cascades; ++i)
+            for (uint32 i = 0; i < frame_passes().sun_shadow_render_pass.num_cascades; ++i)
             {
-                sun_shadow_render_pass.cascades[i].sort();
+                frame_passes().sun_shadow_render_pass.cascades[i].sort();
             }
 
             for (uint32 i = 0; i < num_spot_light_shadow_passes; ++i)
             {
-                spot_shadow_render_passes[i].sort();
+                frame_passes().spot_shadow_render_passes[i].sort();
             }
 
             for (uint32 i = 0; i < num_point_light_shadow_passes; ++i)
             {
-                point_shadow_render_passes[i].sort();
+                frame_passes().point_shadow_render_passes[i].sort();
             }
         }
 
-        renderer->submit_render_pass(&opaque_render_pass);
-        renderer->submit_render_pass(&transparent_render_pass);
+        renderer->submit_render_pass(&frame_passes().opaque_render_pass);
+        renderer->submit_render_pass(&frame_passes().transparent_render_pass);
         renderer->submit_render_pass(renderer_holder_rc->ldr_render_pass);
-        renderer->submit_compute_pass(&compute_pass);
+        renderer->submit_compute_pass(&frame_passes().compute_pass);
 
-        renderer->submit_shadow_render_pass(&sun_shadow_render_pass);
+        renderer->submit_shadow_render_pass(&frame_passes().sun_shadow_render_pass);
 
         for (uint32 i = 0; i < num_spot_light_shadow_passes; ++i)
         {
-            renderer->submit_shadow_render_pass(&spot_shadow_render_passes[i]);
+            renderer->submit_shadow_render_pass(&frame_passes().spot_shadow_render_passes[i]);
         }
 
         for (uint32 i = 0; i < num_point_light_shadow_passes; ++i)
         {
-            renderer->submit_shadow_render_pass(&point_shadow_render_passes[i]);
+            renderer->submit_shadow_render_pass(&frame_passes().point_shadow_render_passes[i]);
         }
     }
-
 }

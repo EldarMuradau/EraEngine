@@ -508,8 +508,15 @@ namespace era_engine::physics
     void PhysicalAnimationComponent::reset_blends()
     {
         blend_weight = 0.0f;
-        reached_physics_pose = false;
-        elapsed_blend_time = 0.0f;
+
+        for (const EntityPtr& limb_ptr : limbs)
+        {
+            Entity limb = limb_ptr.get();
+            if (PhysicalAnimationLimbComponent* limb_component = limb.get_component_if_exists<PhysicalAnimationLimbComponent>())
+            {
+                limb_component->mesh_physics_weight = 0.0f;
+            }
+        }
     }
 
     SimulationStateType PhysicalAnimationComponent::get_current_state_type() const

@@ -13,7 +13,6 @@ Texture2D<float3> world_normals_roughness	: register(t1);
 Texture2D<float4> reflection		    : register(t2);
 Texture2D<float4> hdr_color  		    : register(t3);
 Texture2D<float2> motion			    : register(t4);
-Texture2D<float2> prev_frame_motion	    : register(t5);
 
 RWTexture2D<float4> output              : register(u0);
 
@@ -65,9 +64,7 @@ void main(CSInput IN)
     const float2 uv = (uv_int.xy + 0.5f) * cb.inv_dimensions;
 
     const float2 uv_m = motion.SampleLevel(point_sampler, uv, 0);
-    float2 prev_frame_uv;
-    const bool disoccluded = !find_prev_frame_surface(prev_frame_motion, point_sampler, uv, uv_m, cb.dimensions, prev_frame_uv);
-    const float3 normal_and_roughness = world_normals_roughness.SampleLevel(point_sampler, prev_frame_uv, 0);
+    const float3 normal_and_roughness = world_normals_roughness.SampleLevel(point_sampler, uv + uv_m, 0);
     const float3 normal = unpack_normal(normal_and_roughness.xy);
     const float3 N = normalize(mul(camera.view, float4(normal, 0.f)).xyz);
     const float roughness = clamp(normal_and_roughness.z, 0.03f, 0.97f);
@@ -101,7 +98,7 @@ void main(CSInput IN)
         return;
     }
 
-    if (depth == 1.f || disoccluded)
+    if (depth == 1.f)
     {
         output[uv_int.xy] = float4(0.f, 0.f, 0.f, 0.f);
         return;
